@@ -1,0 +1,31 @@
+from app.engine.context_budget import build_context_prompt, estimate_tokens
+
+
+class FakeMessage:
+    def __init__(self, direction, text):
+        self.direction = direction
+        self.normalized_text = text
+        self.raw_text = text
+
+
+def test_estimate_tokens_scales_with_length():
+    assert estimate_tokens("a" * 300) > estimate_tokens("a" * 30)
+
+
+def test_build_context_prompt_includes_history_and_current():
+    from app.models.enums import Direction
+
+    history = [FakeMessage(Direction.INBOUND, "hi"), FakeMessage(Direction.OUTBOUND, "hello")]
+    prompt, overflowed = build_context_prompt(
+        history=history, slots={}, current_text="عايز اطلب", max_turns=10, token_budget=2048
+    )
+    assert "عايز اطلب" in prompt
+    assert "hi" in prompt
+    assert overflowed is False
+
+
+def test_build_context_prompt_flags_overflow_on_tiny_budget():
+    prompt, overflowed = build_context_prompt(
+        history=[], slots={}, current_text="x" * 1000, max_turns=10, token_budget=5
+    )
+    assert overflowed is True
