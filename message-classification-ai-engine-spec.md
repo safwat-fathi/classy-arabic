@@ -45,12 +45,33 @@ Grounding the spec in what this model actually is, since the routing design depe
 
 ---
 
-## 2. Data Model (trimmed — no channel/webhook fields)
+## 2. Data Model
 
 ```prisma
+model Merchant {
+  id            String   @id @default(cuid())
+  name          String
+  products      Product[]
+  conversations Conversation[]
+}
+
+model Conversation {
+  id            String   @id @default(cuid())
+  merchantId    String
+  merchant      Merchant @relation(fields: [merchantId], references: [id])
+  customerRef   String
+  state         ConvState      // NEW | GATHERING | CONFIRMING | COMPLETED | ABANDONED
+  slots         Json           // { line_items: [], address?, phone?, payment_method? }
+  lastMessageAt DateTime
+  messages      Message[]
+  orders        Order[]
+}
+
 model Message {
   id                 String   @id @default(cuid())
-  direction          Direction?       // INBOUND | OUTBOUND
+  conversationId     String
+  conversation       Conversation @relation(fields: [conversationId], references: [id])
+  direction          Direction        // INBOUND | OUTBOUND
   rawText            String?
   normalizedText     String?
   intent             String?
@@ -59,6 +80,27 @@ model Message {
   escalationReason   String?          // populated only if modelTier = ESCALATED
   embedding          Unsupported("vector(1024)")?  // 1024-dim dense vector from BAAI/bge-m3
   createdAt          DateTime @default(now())
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  merchantId    String
+  merchant      Merchant @relation(fields: [merchantId], references: [id])
+  name          String
+  aliases       String[]
+  variants      Json
+  embedding     Unsupported("vector(1024)")?  // 1024-dim dense vector from BAAI/bge-m3
+}
+
+model Order {
+  id                String   @id @default(cuid())
+  conversationId    String
+  conversation      Conversation @relation(fields: [conversationId], references: [id])
+  extractedPayload  Json
+  confirmedPayload  Json?
+  status            OrderStatus     // AUTO_CONFIRMED | PENDING_REVIEW | CONFIRMED | REJECTED
+  confidenceScore   Float
+  extractedByTier   ModelTier
 }
 
 model LabeledExample {

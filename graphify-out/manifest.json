@@ -1,0 +1,62 @@
+{
+  "alembic/env.py": {
+    "mtime": 1787324350.4218318,
+    "seen": 1787335068.35804,
+    "ast_hash": "e4cd3ec594d1db8978691f2f31d5764d",
+    "semantic_hash": "e4cd3ec594d1db8978691f2f31d5764d"
+  },
+  "app/api/router.py": {
+    "mtime": 1787324060.6702754,
+    "seen": 1787335068.358042,
+    "ast_hash": "4e22003afb24e576ebf2da434f64a35a",
+    "semantic_hash": "4e22003afb24e576ebf2da434f64a35a"
+  },
+  "app/core/config.py": {
+    "mtime": 1787324067.1671867,
+    "seen": 1787335068.358044,
+    "ast_hash": "233257294996163b9f8722f2e51cb29d",
+    "semantic_hash": "233257294996163b9f8722f2e51cb29d"
+  },
+  "app/core/database.py": {
+    "mtime": 1787324037.2009714,
+    "seen": 1787335068.358044,
+    "ast_hash": "a49bb1ec6f6b2b013b1cca0c6310bed8",
+    "semantic_hash": "a49bb1ec6f6b2b013b1cca0c6310bed8"
+  },
+  "app/domains/health/router.py": {
+    "mtime": 1787324052.8716505,
+    "seen": 1787335068.3580449,
+    "ast_hash": "955864db15181cd5e25db6c5ef929d06",
+    "semantic_hash": "955864db15181cd5e25db6c5ef929d06"
+  },
+  "app/domains/health/schemas.py": {
+    "mtime": 1787324044.29019,
+    "seen": 1787335068.358046,
+    "ast_hash": "161475bb0333864a7431c0f2c520ba4d",
+    "semantic_hash": "161475bb0333864a7431c0f2c520ba4d"
+  },
+  "app/main.py": {
+    "mtime": 1787324068.6679668,
+    "seen": 1787335068.358046,
+    "ast_hash": "6837f750c5841e742592f0eb7040bca2",
+    "semantic_hash": "6837f750c5841e742592f0eb7040bca2"
+  },
+  "main.py": {
+    "mtime": 1787324001.3920257,
+    "seen": 1787335068.358047,
+    "ast_hash": "a865ff47ac653075da39466b1eafd558",
+    "semantic_hash": "a865ff47ac653075da39466b1eafd558"
+  },
+  "pyproject.toml": {
+    "mtime": 1787324003.7824552,
+    "seen": 1787335068.358047,
+    "ast_hash": "22b4a317da1b6dc987f40fe8613180ff",
+    "semantic_hash": "22b4a317da1b6dc987f40fe8613180ff"
+  },
+  "message-classification-ai-engine-spec.md": {
+    "mtime": 1787334373.963684,
+    "seen": 1787335068.358048,
+    "ast_hash": "8c8725c164983a50345101a17cf4043f",
+    "semantic_hash": "8c8725c164983a50345101a17cf4043f"
+  }
+}
