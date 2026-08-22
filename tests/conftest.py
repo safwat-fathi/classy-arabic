@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 import respx
@@ -46,7 +46,7 @@ async def conversation(db_session, merchant):
         customer_ref="test-customer-1",
         state=ConvState.GATHERING,
         slots={},
-        last_message_at=datetime.now(timezone.utc),
+        last_message_at=datetime.now(UTC),
     )
     db_session.add(c)
     await db_session.flush()

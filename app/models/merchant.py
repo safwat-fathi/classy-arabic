@@ -13,5 +13,5 @@ class Merchant(Base):
     id: Mapped[str] = mapped_column(String, primary_key=True, default=new_id)
     name: Mapped[str] = mapped_column(String, nullable=False)
 
-    products: Mapped[list["Product"]] = relationship(back_populates="merchant")
-    conversations: Mapped[list["Conversation"]] = relationship(back_populates="merchant")
+    products: Mapped[list[Product]] = relationship(back_populates="merchant")
+    conversations: Mapped[list[Conversation]] = relationship(back_populates="merchant")

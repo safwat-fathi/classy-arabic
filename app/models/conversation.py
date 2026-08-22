@@ -22,6 +22,6 @@ class Conversation(Base):
     slots: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     last_message_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
-    merchant: Mapped["Merchant"] = relationship(back_populates="conversations")
-    messages: Mapped[list["Message"]] = relationship(back_populates="conversation")
-    orders: Mapped[list["Order"]] = relationship(back_populates="conversation")
+    merchant: Mapped[Merchant] = relationship(back_populates="conversations")
+    messages: Mapped[list[Message]] = relationship(back_populates="conversation")
+    orders: Mapped[list[Order]] = relationship(back_populates="conversation")

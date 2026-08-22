@@ -1,4 +1,8 @@
-from app.engine.schemas import ExtractionResult, IntentClassification, json_schema_response_format
+from app.engine.schemas import (
+    ExtractionResult,
+    IntentClassification,
+    json_schema_response_format,
+)
 
 
 def test_intent_classification_round_trips():

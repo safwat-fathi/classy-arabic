@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from pgvector.sqlalchemy import Vector
 
 from app.core.database import Base
 from app.models._ids import new_id
@@ -19,4 +19,4 @@ class Product(Base):
     variants: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     embedding: Mapped[list[float] | None] = mapped_column(Vector(1024), nullable=True)
 
-    merchant: Mapped["Merchant"] = relationship(back_populates="products")
+    merchant: Mapped[Merchant] = relationship(back_populates="products")

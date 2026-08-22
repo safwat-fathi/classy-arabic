@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from sqlalchemy import Float, ForeignKey, String
 from sqlalchemy import Enum as SAEnum
+from sqlalchemy import Float, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,4 +21,4 @@ class Order(Base):
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False)
     extracted_by_tier: Mapped[ModelTier] = mapped_column(SAEnum(ModelTier, name="modeltier"), nullable=False)
 
-    conversation: Mapped["Conversation"] = relationship(back_populates="orders")
+    conversation: Mapped[Conversation] = relationship(back_populates="orders")

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     NILECHAT_MODEL: str = "MBZUAI-Paris/Nile-Chat-4B"
 
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
-    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_API_KEY: str = "EMPTY"
     DEEPSEEK_MODEL: str = "deepseek/deepseek-v4-flash"
 
     EMBEDDING_BASE_URL: str = "http://localhost:8002/v1"
