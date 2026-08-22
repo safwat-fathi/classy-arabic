@@ -1,5 +1,6 @@
 import httpx
 
+from app.core.config import settings
 from app.engine.pipeline import process_message
 from app.models import ModelTier, OrderStatus
 
@@ -29,7 +30,7 @@ async def test_tier0_short_circuit_skips_ai_calls(db_session, conversation, mock
 
 
 async def test_purchase_intent_in_gathering_creates_order(db_session, conversation, mock_ai):
-    mock_ai.post("http://localhost:8001/v1/chat/completions").mock(
+    mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions").mock(
         side_effect=[
             httpx.Response(200, json=_chat_response('{"intent": "purchase_intent", "confidence": 0.9}')),
             httpx.Response(
@@ -40,7 +41,7 @@ async def test_purchase_intent_in_gathering_creates_order(db_session, conversati
             ),
         ]
     )
-    mock_ai.post("http://localhost:8002/v1/embeddings").mock(return_value=httpx.Response(200, json=_embedding_response()))
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(return_value=httpx.Response(200, json=_embedding_response()))
 
     result = await process_message(db_session, conversation, "عايز اطلب رز", "عايز اطلب رز")
 
@@ -51,10 +52,10 @@ async def test_purchase_intent_in_gathering_creates_order(db_session, conversati
 
 
 async def test_non_purchase_intent_does_not_create_order(db_session, conversation, mock_ai):
-    mock_ai.post("http://localhost:8001/v1/chat/completions").mock(
+    mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions").mock(
         return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
     )
-    mock_ai.post("http://localhost:8002/v1/embeddings").mock(return_value=httpx.Response(200, json=_embedding_response()))
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(return_value=httpx.Response(200, json=_embedding_response()))
 
     result = await process_message(db_session, conversation, "الاسعار كام؟", "الاسعار كام؟")
 

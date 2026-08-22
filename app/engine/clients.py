@@ -1,7 +1,6 @@
 import logging
 import time
 
-import httpx
 from openai import AsyncOpenAI
 
 from app.core.config import settings
@@ -10,15 +9,15 @@ logger = logging.getLogger("app.engine.ai_calls")
 
 
 def get_nilechat_client() -> AsyncOpenAI:
-    return AsyncOpenAI(base_url=settings.NILECHAT_BASE_URL, api_key=settings.NILECHAT_API_KEY, http_client=httpx.AsyncClient())
+    return AsyncOpenAI(base_url=settings.NILECHAT_BASE_URL, api_key=settings.NILECHAT_API_KEY)
 
 
 def get_deepseek_client() -> AsyncOpenAI:
-    return AsyncOpenAI(base_url=settings.OPENROUTER_BASE_URL, api_key=settings.OPENROUTER_API_KEY, http_client=httpx.AsyncClient())
+    return AsyncOpenAI(base_url=settings.OPENROUTER_BASE_URL, api_key=settings.OPENROUTER_API_KEY)
 
 
 def get_embedding_client() -> AsyncOpenAI:
-    return AsyncOpenAI(base_url=settings.EMBEDDING_BASE_URL, api_key=settings.EMBEDDING_API_KEY, http_client=httpx.AsyncClient())
+    return AsyncOpenAI(base_url=settings.OPENROUTER_BASE_URL, api_key=settings.OPENROUTER_API_KEY)
 
 
 def record_ai_call(tier: str, model: str, start_time: float, usage) -> None:

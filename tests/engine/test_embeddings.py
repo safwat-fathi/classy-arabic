@@ -1,11 +1,12 @@
 import httpx
 
+from app.core.config import settings
 from app.engine.embeddings import embed_text, find_similar_examples
 from app.models import LabeledExample
 
 
 async def test_embed_text_calls_embedding_endpoint(mock_ai):
-    mock_ai.post("http://localhost:8002/v1/embeddings").mock(
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(
             200,
             json={

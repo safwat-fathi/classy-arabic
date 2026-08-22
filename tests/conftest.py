@@ -1,7 +1,6 @@
 from datetime import UTC, datetime
 
 import pytest
-import respx
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.core.database import engine
@@ -54,6 +53,11 @@ async def conversation(db_session, merchant):
 
 
 @pytest.fixture
-def mock_ai():
-    with respx.mock(assert_all_called=False) as router:
-        yield router
+def mock_ai(httpx2_mock):
+    # openai>=3.3.1 makes its HTTP calls through `httpx2` (a separate package
+    # from `httpx`), which plain `respx.mock()` cannot intercept — the request
+    # falls through to a real network call instead of being mocked. The
+    # `httpx2_mock` fixture (from pytest-httpx2) is respx wired to patch
+    # httpx2's transport instead; `mock_ai` just forwards it so every existing
+    # `mock_ai.post(...)` call site keeps working unchanged.
+    yield httpx2_mock
