@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.core.database import get_db
 from app.main import app
-from app.models import ConvState, Conversation, Merchant
+from app.models import Conversation, ConvState, Merchant
 
 
 async def test_list_conversations_filters_by_merchant_id(db_session, merchant, conversation):
