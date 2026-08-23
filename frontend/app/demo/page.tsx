@@ -9,7 +9,10 @@ function DemoHeader() {
     <header className="border-b border-gray-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-4">
         <BrandMark size="sm" />
-        <Link href="/" className="text-sm font-medium text-gray-500 hover:text-emerald-700">
+        <Link
+          href="/"
+          className="text-sm font-medium text-gray-500 hover:text-emerald-700"
+        >
           الرئيسية
         </Link>
       </div>
@@ -27,10 +30,12 @@ export default async function Home() {
       <>
         <DemoHeader />
         <main className="mx-auto flex max-w-2xl flex-col gap-4 p-8">
-          <h1 className="text-2xl font-semibold">Classy Arabic — ديمو المحرك</h1>
+          <h1 className="text-2xl font-semibold">
+            Classy Arabic — ديمو المحرك
+          </h1>
           <p className="text-sm text-red-600">
-            مفيش محادثة موجودة. شغّل <code>make seed</code> في <code>backend/</code> الأول،
-            وبعد كده حدّث الصفحة.
+            مفيش محادثة موجودة. شغّل <code>make seed</code> في{" "}
+            <code>backend/</code> الأول، وبعد كده حدّث الصفحة.
           </p>
         </main>
       </>
@@ -55,11 +60,11 @@ export default async function Home() {
     <>
       <DemoHeader />
       <main className="mx-auto flex max-w-6xl flex-col gap-8 p-8">
-        <h1 className="text-2xl font-semibold">Classy Arabic — ديمو المحرك</h1>
+        <h1 className="text-2xl font-semibold">
+          Classy Arabic — تجربة محادثة مع عميل
+        </h1>
         <p className="text-sm text-gray-500">
-          محادثة <span dir="ltr">{conversation.id}</span> &middot; عميل{" "}
-          <span dir="ltr">{conversation.customer_ref}</span> &middot; الحالة{" "}
-          <span dir="ltr">{conversation.state}</span>
+          محاكاة لتعرف الذكاء الاصطناعي على منتجاتك من خلال رسائل عملائك
         </p>
         <Workspace conversationId={conversation.id} products={products} />
       </main>

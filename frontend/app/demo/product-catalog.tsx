@@ -29,7 +29,7 @@ export function ProductCatalog({
 }) {
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="font-display text-xl font-semibold tracking-tight">كتالوج المنتجات</h2>
+      <h2 className="font-display text-xl font-semibold tracking-tight">منتجاتك</h2>
       <div className="grid gap-6 sm:grid-cols-2">
         {products.map((product) => {
           const isHighlighted = highlightedProductIds.includes(product.id);
@@ -54,6 +54,8 @@ export function ProductCatalog({
                   src={getImageForProduct(product.name)}
                   alt={product.name}
                   fill
+                  sizes="(max-width: 640px) 100vw, 50vw"
+                  priority
                   className="object-cover"
                 />
               </div>

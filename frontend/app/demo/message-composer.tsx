@@ -1,182 +1,196 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
-import type { Product } from "@/lib/products";
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  startTransition,
+} from "react";
 import { sendMessage, type IngestState } from "./actions";
 
 const initialState: IngestState = { status: "idle" };
 
-function findProduct(products: Product[], productId: string | null): Product | null {
-  if (!productId) return null;
-  return products.find((p) => p.id === productId) ?? null;
-}
+const placeholders = [
+  "عايزة فستان صيفي مقاس M...",
+  "بكام الجاكيت الجينز؟",
+  "عندكم الوان تانية من الفستان؟",
+  "لو سمحت أنا عايزة أطلب جاكت جينز مقاس لارج على المعادي ورقمي 01012345678 هدفع انستا",
+];
 
 export function MessageComposer({
   conversationId,
-  products,
-  onHighlightProducts,
+  onStateChange,
 }: {
   conversationId: string;
-  products: Product[];
-  onHighlightProducts?: (ids: string[]) => void;
+  onStateChange: (state: IngestState) => void;
 }) {
   const action = sendMessage.bind(null, conversationId);
   const [state, formAction, isPending] = useActionState(action, initialState);
+  const formRef = useRef<HTMLFormElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<
+    { id: string; text: string; role: "user" | "ai" }[]
+  >([]);
+
+  const [placeholderText, setPlaceholderText] = useState("");
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
-    if (state.status === "success" && onHighlightProducts) {
-      if (state.data.order) {
-        const matchedIds = state.data.order.line_items
-          .map((item) => item.product_id)
-          .filter(Boolean) as string[];
-        onHighlightProducts(matchedIds);
-      } else {
-        onHighlightProducts([]);
-      }
-    } else if (state.status !== "success" && onHighlightProducts) {
-      onHighlightProducts([]);
+    onStateChange(state);
+  }, [state, onStateChange]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [state, onHighlightProducts]);
+  }, [messages]);
+
+  useEffect(() => {
+    if (isFocused) {
+      setPlaceholderText("ابعت رسالة كأنك الزبون...");
+      return;
+    }
+
+    const currentPhrase = placeholders[phraseIndex];
+    let timeoutId: NodeJS.Timeout;
+
+    if (!isDeleting && placeholderText === currentPhrase) {
+      timeoutId = setTimeout(() => setIsDeleting(true), 2000);
+    } else if (isDeleting && placeholderText === "") {
+      setIsDeleting(false);
+      setPhraseIndex((prev) => (prev + 1) % placeholders.length);
+    } else {
+      timeoutId = setTimeout(
+        () => {
+          setPlaceholderText(
+            isDeleting
+              ? currentPhrase.substring(0, placeholderText.length - 1)
+              : currentPhrase.substring(0, placeholderText.length + 1),
+          );
+        },
+        isDeleting ? 30 : 70,
+      );
+    }
+
+    return () => clearTimeout(timeoutId);
+  }, [placeholderText, isDeleting, phraseIndex, isFocused]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const text = formData.get("text") as string;
+    if (!text || !text.trim()) return;
+
+    setMessages((prev) => [
+      ...prev,
+      { id: Date.now().toString(), text, role: "user" },
+    ]);
+
+    if (formRef.current) {
+      formRef.current.reset();
+    }
+
+    startTransition(() => {
+      formAction(formData);
+    });
+  };
 
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="font-display text-xl font-semibold tracking-tight">إرسال رسالة</h2>
-      <form action={formAction} className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+    <section className="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-[#efeae2] shadow-sm">
+      <div className="flex items-center gap-3 bg-[#075e54] px-4 py-3 text-white">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-lg font-bold">
+          ز
+        </div>
+        <div>
+          <h2 className="font-semibold">الزبون</h2>
+          <p className="text-xs text-white/80">متصل الآن</p>
+        </div>
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto p-4 flex flex-col gap-2"
+        style={{ minHeight: "300px" }}
+      >
+        <div className="mx-auto mb-4 w-fit rounded-lg bg-[#e1f5fe] px-3 py-1 text-xs text-gray-600 shadow-sm">
+          اليوم
+        </div>
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`max-w-[80%] rounded-lg px-4 py-2 text-sm shadow-sm ${msg.role === "user" ? "self-end bg-[#dcf8c6] text-gray-900" : "self-start bg-white text-gray-900"}`}
+          >
+            {msg.text}
+          </div>
+        ))}
+      </div>
+
+      <form
+        ref={formRef}
+        onSubmit={handleSubmit}
+        className="flex items-end gap-2 bg-[#f0f0f0] p-3"
+      >
         <textarea
           name="text"
           required
-          rows={3}
-          placeholder="عايز فستان صيفي..."
-          className="w-full resize-none rounded-lg border-gray-200 bg-gray-50 p-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          rows={1}
+          placeholder={
+            isFocused ? "ابعت رسالة كأنك الزبون..." : placeholderText || " "
+          }
+          onFocus={() => setIsFocused(true)}
+          onBlur={(e) => {
+            if (!e.target.value) setIsFocused(false);
+          }}
+          className="max-h-32 min-h-12 flex-1 resize-none rounded-full border-none bg-white px-4 py-3 text-sm focus:outline-none focus:ring-0"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              e.currentTarget.form?.requestSubmit();
+            }
+          }}
         />
         <button
           type="submit"
           disabled={isPending}
-          className="self-end rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:opacity-50"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#00a884] text-white transition-colors hover:bg-[#008f6f] disabled:opacity-50"
         >
-          {isPending ? "جاري التحليل..." : "إرسال"}
+          {isPending ? (
+            <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+                fill="none"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          ) : (
+            <svg
+              className="h-5 w-5 rotate-90 rtl:-rotate-90"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+              />
+            </svg>
+          )}
         </button>
       </form>
-
-      {state.status === "error" && (
-        <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
-          {state.message}
-        </div>
-      )}
-
-      {state.status === "success" && (
-        <div className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2.5 py-1 text-sm font-medium text-blue-700">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
-              {state.data.intent ?? "Unknown Intent"}
-            </span>
-            {state.data.intent_confidence !== null && (
-              <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-                {(state.data.intent_confidence * 100).toFixed(0)}% ثقة
-              </span>
-            )}
-            <span className="inline-flex items-center gap-1 rounded-md bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-              </svg>
-              الموديل: {state.data.model_tier ?? "Unknown"}
-            </span>
-          </div>
-
-          {state.data.escalation_reason && (
-            <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
-              <span className="font-semibold">تصعيد:</span> {state.data.escalation_reason}
-            </div>
-          )}
-
-          {state.data.order ? (
-            <div className="flex flex-col gap-4 border-t border-gray-100 pt-4">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-gray-900">بيانات الطلب المستخرجة</h3>
-                <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                  {state.data.order.status}
-                  ({(state.data.order.confidence_score * 100).toFixed(0)}% conf, {state.data.order.extracted_by_tier})
-                </span>
-              </div>
-              
-              <ul className="flex flex-col gap-2 text-sm text-gray-700">
-                {state.data.order.address && (
-                  <li className="flex gap-2">
-                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>{state.data.order.address}</span>
-                  </li>
-                )}
-                {state.data.order.phone && (
-                  <li className="flex gap-2">
-                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    <span>{state.data.order.phone}</span>
-                  </li>
-                )}
-                {state.data.order.payment_method && (
-                  <li className="flex gap-2">
-                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                    <span>{state.data.order.payment_method}</span>
-                  </li>
-                )}
-                {state.data.order.ambiguous_fields.length > 0 && (
-                  <li className="flex gap-2 text-amber-700">
-                    <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <span>يحتاج توضيح في: <span className="font-medium">{state.data.order.ambiguous_fields.join(", ")}</span></span>
-                  </li>
-                )}
-              </ul>
-
-              <div className="mt-2">
-                <h4 className="mb-2 text-sm font-medium text-gray-900">عناصر الطلب</h4>
-                <ul className="flex flex-col gap-2">
-                  {state.data.order.line_items.map((item, i) => {
-                    const matched = findProduct(products, item.product_id);
-                    return (
-                      <li key={i} className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm">
-                        <div>
-                          <span className="font-semibold text-gray-900">{item.quantity}×</span> {item.product_name}
-                          {item.notes && <span className="text-gray-500"> ({item.notes})</span>}
-                        </div>
-                        {matched ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
-                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            متطابق
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
-                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            غير متطابق
-                          </span>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-lg border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500">
-              مقدرناش نستخرج بيانات طلب من الرسالة دي.
-            </div>
-          )}
-        </div>
-      )}
     </section>
   );
 }
