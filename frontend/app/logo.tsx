@@ -31,7 +31,7 @@ export function BrandMark({
         dir="ltr"
         className={`font-display ${textSize} font-extrabold tracking-tight ${textColor}`}
       >
-        Classy Arabic
+        TijaratkBot
       </span>
     </span>
   );

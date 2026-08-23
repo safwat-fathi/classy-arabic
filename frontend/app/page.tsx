@@ -664,7 +664,7 @@ function CtaAndFooter() {
             </div>
           </div>
           <div className="border-t border-white/10 pt-5 text-center">
-            <span className="text-[12.5px] text-gray-500">© 2026 Classy Arabic. جميع الحقوق محفوظة.</span>
+            <span className="text-[12.5px] text-gray-500">© 2026 TijaratkBot. جميع الحقوق محفوظة.</span>
           </div>
         </div>
       </footer>

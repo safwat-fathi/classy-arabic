@@ -15,7 +15,7 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: "Classy Arabic",
+  title: "TijaratkBot",
   description: "حوّل رسايل الواتساب والإنستجرام لطلبات جاهزة تلقائيًا بالذكاء الاصطناعي",
 };
 

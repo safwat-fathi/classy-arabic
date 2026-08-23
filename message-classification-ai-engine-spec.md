@@ -1,4 +1,4 @@
-# Classy Arabic: Message Classification & AI Engine — Technical Spec (Core)
+# TijaratkBot: Message Classification & AI Engine — Technical Spec (Core)
 
 Scope: storage → normalization → classification → structured extraction, with NileChat-4B as the primary model from huggingface and a defined escalation path to a higher-tier model (DeepSeek v4 Flash via OpenRouter API). Embeddings use a self-hosted multilingual model (`BAAI/bge-m3`). No channel/webhook integration in this doc — starts from "a message has arrived and is ready to be processed."
 
