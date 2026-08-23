@@ -1,0 +1,17 @@
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/CLAUDE.md
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/backend/README.md
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/docs/2026-08-22-classification-pipeline-debugging.md
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/docs/review-current-implementation.md
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/docs/superpowers/plans/2026-08-21-message-classification-engine.md
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/frontend/AGENTS.md
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/frontend/CLAUDE.md
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/frontend/README.md
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/frontend/pnpm-workspace.yaml
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/seeder_implementation_plan.md
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/frontend/public/file.svg
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/frontend/public/globe.svg
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/frontend/public/images/denim_jacket.jpg
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/frontend/public/images/linen_dress.jpg
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/frontend/public/next.svg
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/frontend/public/vercel.svg
+/Users/safwat/Coding/Projects/side-projects/classy-arabic/frontend/public/window.svg

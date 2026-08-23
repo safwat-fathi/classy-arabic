@@ -40,7 +40,7 @@ export function MessageComposer({
 
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-xl font-semibold tracking-tight">Send a Message</h2>
+      <h2 className="font-display text-xl font-semibold tracking-tight">إرسال رسالة</h2>
       <form action={formAction} className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
         <textarea
           name="text"
@@ -54,7 +54,7 @@ export function MessageComposer({
           disabled={isPending}
           className="self-end rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:opacity-50"
         >
-          {isPending ? "Analyzing..." : "Send Message"}
+          {isPending ? "جاري التحليل..." : "إرسال"}
         </button>
       </form>
 
@@ -75,29 +75,29 @@ export function MessageComposer({
             </span>
             {state.data.intent_confidence !== null && (
               <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-                {(state.data.intent_confidence * 100).toFixed(0)}% confidence
+                {(state.data.intent_confidence * 100).toFixed(0)}% ثقة
               </span>
             )}
             <span className="inline-flex items-center gap-1 rounded-md bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
               </svg>
-              Model: {state.data.model_tier ?? "Unknown"}
+              الموديل: {state.data.model_tier ?? "Unknown"}
             </span>
           </div>
-          
+
           {state.data.escalation_reason && (
             <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
-              <span className="font-semibold">Escalation:</span> {state.data.escalation_reason}
+              <span className="font-semibold">تصعيد:</span> {state.data.escalation_reason}
             </div>
           )}
 
           {state.data.order ? (
             <div className="flex flex-col gap-4 border-t border-gray-100 pt-4">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-gray-900">Extracted Order</h3>
+                <h3 className="font-semibold text-gray-900">بيانات الطلب المستخرجة</h3>
                 <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                  {state.data.order.status} 
+                  {state.data.order.status}
                   ({(state.data.order.confidence_score * 100).toFixed(0)}% conf, {state.data.order.extracted_by_tier})
                 </span>
               </div>
@@ -133,13 +133,13 @@ export function MessageComposer({
                     <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    <span>Needs clarification on: <span className="font-medium">{state.data.order.ambiguous_fields.join(", ")}</span></span>
+                    <span>يحتاج توضيح في: <span className="font-medium">{state.data.order.ambiguous_fields.join(", ")}</span></span>
                   </li>
                 )}
               </ul>
 
               <div className="mt-2">
-                <h4 className="mb-2 text-sm font-medium text-gray-900">Line Items</h4>
+                <h4 className="mb-2 text-sm font-medium text-gray-900">عناصر الطلب</h4>
                 <ul className="flex flex-col gap-2">
                   {state.data.order.line_items.map((item, i) => {
                     const matched = findProduct(products, item.product_id);
@@ -154,14 +154,14 @@ export function MessageComposer({
                             <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
-                            Matched
+                            متطابق
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
                             <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                            Unmatched
+                            غير متطابق
                           </span>
                         )}
                       </li>
@@ -172,7 +172,7 @@ export function MessageComposer({
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500">
-              No order data could be extracted from this message.
+              مقدرناش نستخرج بيانات طلب من الرسالة دي.
             </div>
           )}
         </div>

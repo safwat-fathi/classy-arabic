@@ -15,9 +15,9 @@ function getImageForProduct(name: string) {
 }
 
 function getDummyPrice(name: string) {
-  if (name.toLowerCase().includes("denim")) return "$89.99";
-  if (name.toLowerCase().includes("linen")) return "$129.99";
-  return "$49.99"; // fallback
+  if (name.toLowerCase().includes("denim")) return "899 جنيه";
+  if (name.toLowerCase().includes("linen")) return "1,299 جنيه";
+  return "499 جنيه"; // fallback
 }
 
 export function ProductCatalog({
@@ -29,7 +29,7 @@ export function ProductCatalog({
 }) {
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-xl font-semibold tracking-tight">Merchant Catalog</h2>
+      <h2 className="font-display text-xl font-semibold tracking-tight">كتالوج المنتجات</h2>
       <div className="grid gap-6 sm:grid-cols-2">
         {products.map((product) => {
           const isHighlighted = highlightedProductIds.includes(product.id);
@@ -45,8 +45,8 @@ export function ProductCatalog({
               }`}
             >
               {isHighlighted && (
-                <div className="absolute right-2 top-2 z-10 rounded-full bg-emerald-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">
-                  Matched
+                <div className="absolute end-2 top-2 z-10 rounded-full bg-emerald-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">
+                  متطابق
                 </div>
               )}
               <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
@@ -66,7 +66,7 @@ export function ProductCatalog({
                 </div>
                 {product.aliases.length > 0 && (
                   <p className="mt-1 text-xs text-gray-500">
-                    aka {product.aliases.join(", ")}
+                    معروف أيضًا بـ {product.aliases.join(", ")}
                   </p>
                 )}
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -80,7 +80,7 @@ export function ProductCatalog({
                   ))}
                   {variants.length === 0 && (
                     <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
-                      No variants
+                      لا توجد خيارات
                     </span>
                   )}
                 </div>
@@ -90,7 +90,7 @@ export function ProductCatalog({
         })}
         {products.length === 0 && (
           <div className="col-span-full rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500">
-            No products seeded.
+            لا توجد منتجات مضافة بعد.
           </div>
         )}
       </div>
