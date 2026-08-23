@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
     OPENROUTER_BASE_URL: str
     OPENROUTER_API_KEY: str
+    OPENROUTER_PROVIDERS: list[str] = ["DeepSeek", "Fireworks", "Together"]
     DEEPSEEK_MODEL: str
 
     # Embeddings route through OpenRouter too (OPENROUTER_BASE_URL/OPENROUTER_API_KEY

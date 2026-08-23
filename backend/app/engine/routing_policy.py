@@ -1,4 +1,3 @@
-CONDITIONAL_MARKERS = ("لو", "يبقى", "اذا", "إذا")
 REASONING_LENGTH_THRESHOLD = 300
 QUESTION_MARK_DENSITY_THRESHOLD = 0.02
 # Density alone is meaningless on short text: a single "?" in an 8-char message
@@ -37,9 +36,8 @@ def check_reasoning_heavy(text: str) -> str | None:
     question_marks = text.count("?") + text.count("؟")
     density = question_marks / max(1, len(text))
     density_heavy = len(text) >= DENSITY_CHECK_MIN_LENGTH and density > QUESTION_MARK_DENSITY_THRESHOLD
-    words = "".join(c if c.isalnum() else " " for c in text).split()
-    has_conditional = any(marker in words for marker in CONDITIONAL_MARKERS)
-    if len(text) > REASONING_LENGTH_THRESHOLD or density_heavy or has_conditional:
+    
+    if len(text) > REASONING_LENGTH_THRESHOLD or density_heavy:
         return "reasoning_heavy_content"
     return None
 

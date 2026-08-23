@@ -46,6 +46,8 @@ async def _call(
     }
     if temperature is not None:
         kwargs["temperature"] = temperature
+    if tier == "escalated" and settings.OPENROUTER_PROVIDERS:
+        kwargs["extra_body"] = {"provider": {"order": settings.OPENROUTER_PROVIDERS, "allow_fallbacks": True}}
     try:
         response = await client.chat.completions.create(**kwargs)
     except openai.APIError as exc:
