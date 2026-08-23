@@ -21,7 +21,7 @@ export async function sendMessage(
 
   let response: Response;
   try {
-    response = await fetch(`${baseUrl}/api/v1/messages/`, {
+    response = await fetch(`${baseUrl}/messages/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

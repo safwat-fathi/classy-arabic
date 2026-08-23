@@ -73,7 +73,7 @@ async def seed_data():
         print(f"Conversation ID : {c1.id}")
         print("=" * 50)
         print("\n👉 You can now copy this Conversation ID and use it in Swagger:")
-        print("   http://localhost:8000/docs -> POST /api/v1/messages/\n")
+        print("   http://localhost:8000/docs -> POST /messages/\n")
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ async def test_ingest_returns_404_for_unknown_conversation(db_session, mock_ai):
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
-                "/api/v1/messages",
+                "/messages",
                 json={"conversation_id": "does-not-exist", "raw_text": "hi", "normalized_text": "hi"},
             )
     finally:
@@ -54,7 +54,7 @@ async def test_ingest_tier0_short_circuit_end_to_end(db_session, conversation, m
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
-                "/api/v1/messages",
+                "/messages",
                 json={"conversation_id": conversation.id, "raw_text": "👍", "normalized_text": "👍"},
             )
     finally:
@@ -96,7 +96,7 @@ async def test_ingest_purchase_intent_returns_full_order_detail(db_session, conv
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
-                "/api/v1/messages",
+                "/messages",
                 json={
                     "conversation_id": conversation.id,
                     "raw_text": "عايز فستان صيفي",

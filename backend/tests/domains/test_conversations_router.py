@@ -27,7 +27,7 @@ async def test_list_conversations_filters_by_merchant_id(db_session, merchant, c
     app.dependency_overrides[get_db] = _override_get_db
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.get("/api/v1/conversations/", params={"merchant_id": merchant.id})
+            response = await client.get("/conversations/", params={"merchant_id": merchant.id})
     finally:
         app.dependency_overrides.pop(get_db, None)
 
@@ -45,7 +45,7 @@ async def test_list_conversations_without_filter_returns_all(db_session, convers
     app.dependency_overrides[get_db] = _override_get_db
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.get("/api/v1/conversations/")
+            response = await client.get("/conversations/")
     finally:
         app.dependency_overrides.pop(get_db, None)
 

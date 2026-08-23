@@ -12,7 +12,7 @@ export async function getProducts(merchantId: string): Promise<Product[]> {
     throw new Error("BASE_API_URL not configured");
   }
   const response = await fetch(
-    `${baseUrl}/api/v1/products/?merchant_id=${encodeURIComponent(merchantId)}`,
+    `${baseUrl}/products/?merchant_id=${encodeURIComponent(merchantId)}`,
     { cache: "no-store" },
   );
   if (!response.ok) {

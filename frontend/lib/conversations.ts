@@ -12,7 +12,7 @@ export async function getConversations(): Promise<Conversation[]> {
   if (!baseUrl) {
     throw new Error("BASE_API_URL not configured");
   }
-  const response = await fetch(`${baseUrl}/api/v1/conversations/`, {
+  const response = await fetch(`${baseUrl}/conversations/`, {
     cache: "no-store",
   });
   if (!response.ok) {
