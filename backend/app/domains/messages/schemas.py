@@ -1,10 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class MessageIngestRequest(BaseModel):
     conversation_id: str
-    raw_text: str
-    normalized_text: str
+    raw_text: str = Field(..., max_length=2000)
+    normalized_text: str = Field(..., max_length=2000)
 
 
 class OrderLineItem(BaseModel):

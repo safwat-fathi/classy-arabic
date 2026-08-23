@@ -30,9 +30,11 @@
 ### Task 1: Dependencies
 
 **Files:**
+
 - Modify: `pyproject.toml` (via `uv add`, not hand-edited)
 
 **Interfaces:**
+
 - Produces: `openai`, `pgvector`, `scikit-learn`, `numpy` available to all later tasks; `respx` available to test tasks.
 
 - [ ] **Step 1: Add runtime dependencies**
@@ -62,10 +64,12 @@ git commit -m "chore: add AI/vector/clustering dependencies; untrack .env"
 ### Task 2: Config settings
 
 **Files:**
+
 - Modify: `app/core/config.py`
 - Modify: `.env.example`
 
 **Interfaces:**
+
 - Produces: new fields on `Settings` (imported everywhere as `from app.core.config import settings`): `OPENROUTER_API_KEY: str`, `OPENROUTER_BASE_URL: str`, `NILECHAT_BASE_URL: str`, `NILECHAT_API_KEY: str`, `NILECHAT_MODEL: str`, `DEEPSEEK_MODEL: str`, `EMBEDDING_BASE_URL: str`, `EMBEDDING_API_KEY: str`, `EMBEDDING_MODEL: str`, `CLASSIFICATION_CONFIDENCE_THRESHOLD: float`, `NILECHAT_CONTEXT_TOKEN_BUDGET: int`, `CONTEXT_HISTORY_TURNS: int`.
 
 - [ ] **Step 1: Add the new settings fields**
@@ -80,7 +84,7 @@ Edit `app/core/config.py` — add inside `class Settings(BaseSettings):`, after 
 
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
     OPENROUTER_API_KEY: str = ""
-    DEEPSEEK_MODEL: str = "deepseek/deepseek-v4-flash"
+    DEEPSEEK_MODEL: str = "~deepseek/deepseek-v4-flash-latest"
 
     EMBEDDING_BASE_URL: str = "http://localhost:8002/v1"
     EMBEDDING_API_KEY: str = "EMPTY"
@@ -108,7 +112,7 @@ NILECHAT_MODEL="MBZUAI-Paris/Nile-Chat-4B"
 
 OPENROUTER_BASE_URL="https://openrouter.ai/api/v1"
 OPENROUTER_API_KEY=""
-DEEPSEEK_MODEL="deepseek/deepseek-v4-flash"
+DEEPSEEK_MODEL="~deepseek/deepseek-v4-flash-latest"
 
 EMBEDDING_BASE_URL="http://localhost:8002/v1"
 EMBEDDING_API_KEY="EMPTY"
@@ -131,6 +135,7 @@ git commit -m "feat: add AI tier configuration settings"
 ### Task 3: ORM models
 
 **Files:**
+
 - Create: `app/models/__init__.py`
 - Create: `app/models/_ids.py`
 - Create: `app/models/enums.py`
@@ -143,6 +148,7 @@ git commit -m "feat: add AI tier configuration settings"
 - Modify: `alembic/env.py`
 
 **Interfaces:**
+
 - Consumes: `Base` from `app.core.database`.
 - Produces: `Merchant`, `Conversation`, `Message`, `Product`, `Order`, `LabeledExample` ORM classes and `Direction`, `ModelTier`, `ConvState`, `OrderStatus` enums, all importable from `app.models`.
 
@@ -427,10 +433,12 @@ git commit -m "feat: add ORM models for classification engine schema"
 ### Task 4: Alembic migration + pgvector round-trip proof
 
 **Files:**
+
 - Create: `alembic/versions/<generated>_add_classification_schema.py`
 - Create: `scripts/verify_pgvector.py` (throwaway verification script, not part of the app)
 
 **Interfaces:**
+
 - Consumes: `app.models` (Task 3), a reachable Postgres with the `pgvector` extension installable (`CREATE EXTENSION vector` must succeed — if it fails, the Postgres instance needs the pgvector extension installed at the server level first; that's outside this plan).
 - Produces: `merchants`, `conversations`, `messages`, `products`, `orders`, `labeled_examples` tables in the configured database.
 
@@ -616,11 +624,13 @@ git commit -m "feat: add classification schema migration (merchants, conversatio
 ### Task 5: Test infrastructure
 
 **Files:**
+
 - Create: `tests/__init__.py`
 - Create: `tests/conftest.py`
 - Modify: `pyproject.toml` (pytest-asyncio config)
 
 **Interfaces:**
+
 - Produces: `db_session` fixture (`AsyncSession` bound to a connection whose transaction is rolled back after the test), `merchant` fixture (`Merchant`), `conversation` fixture (`Conversation`, state=`GATHERING`), `mock_ai` fixture (a `respx.Router`).
 
 - [ ] **Step 1: Configure pytest-asyncio**
@@ -726,6 +736,7 @@ git commit -m "test: add async DB fixtures and respx AI mocking fixture"
 ### Task 6: Engine primitives — tier0 rules, context budget, confidence, routing policy
 
 **Files:**
+
 - Create: `app/engine/__init__.py`
 - Create: `app/engine/tier0_rules.py`
 - Create: `app/engine/context_budget.py`
@@ -736,6 +747,7 @@ git commit -m "test: add async DB fixtures and respx AI mocking fixture"
 - Test: `tests/engine/test_routing_policy.py`
 
 **Interfaces:**
+
 - Produces: `match_tier0(text: str) -> str | None`; `estimate_tokens(text: str) -> int`; `build_context_prompt(history: list[Message], slots: dict, current_text: str, max_turns: int, token_budget: int) -> tuple[str, bool]`; `get_confidence(structured_output: dict) -> float`; `evaluate_escalation(*, confidence: float, threshold: float, ambiguous_fields: list[str] | None = None, overflowed: bool = False, correction_count: int = 0, text: str = "") -> str | None`.
 
 - [ ] **Step 1: Write failing tests**
@@ -998,11 +1010,13 @@ git commit -m "feat: add tier0 rules, context budget, confidence, and routing po
 ### Task 7: Engine clients + structured-output schemas
 
 **Files:**
+
 - Create: `app/engine/clients.py`
 - Create: `app/engine/schemas.py`
 - Test: `tests/engine/test_schemas.py`
 
 **Interfaces:**
+
 - Consumes: `settings` from `app.core.config`.
 - Produces: `get_nilechat_client() -> AsyncOpenAI`, `get_deepseek_client() -> AsyncOpenAI`, `get_embedding_client() -> AsyncOpenAI`, `record_ai_call(tier: str, model: str, start_time: float, usage) -> None` (§7 observability — logs duration + token counts, called from every AI call site in later tasks); `IntentClassification`, `ExtractedLineItem`, `ExtractionResult` (pydantic models); `json_schema_response_format(model: type[BaseModel], name: str) -> dict`.
 
@@ -1136,12 +1150,14 @@ git commit -m "feat: add shared AI client factory and structured-output schemas"
 ### Task 8: Classification + extraction (Tier 1 → Tier 2)
 
 **Files:**
+
 - Create: `app/engine/classification.py`
 - Create: `app/engine/extraction.py`
 - Test: `tests/engine/test_classification.py`
 - Test: `tests/engine/test_extraction.py`
 
 **Interfaces:**
+
 - Consumes: `get_nilechat_client`/`get_deepseek_client` (Task 7), `json_schema_response_format`/`IntentClassification`/`ExtractionResult` (Task 7), `check_confidence_threshold`/`evaluate_escalation` (Task 6).
 - Produces: `async classify_message(prompt: str, known_intents: list[str], threshold: float) -> tuple[IntentClassification, str, str | None]` (result, tier ("nilechat"|"escalated"), escalation reason or None); `async extract_order(prompt: str, threshold: float, overflowed: bool, correction_count: int) -> tuple[ExtractionResult, str, str | None]` (same shape).
 
@@ -1357,10 +1373,12 @@ git commit -m "feat: add tier1/tier2 classification and extraction calls"
 ### Task 9: Embeddings
 
 **Files:**
+
 - Create: `app/engine/embeddings.py`
 - Test: `tests/engine/test_embeddings.py`
 
 **Interfaces:**
+
 - Consumes: `get_embedding_client` (Task 7), `LabeledExample` (Task 3), `db_session`/`merchant` fixtures (Task 5).
 - Produces: `async embed_text(text: str) -> list[float]`; `async find_similar_examples(session, embedding: list[float], merchant_id: str | None, limit: int = 5) -> list[LabeledExample]`.
 
@@ -1484,10 +1502,12 @@ git commit -m "feat: add embedding generation and merchant-scoped similarity sea
 ### Task 10: Pipeline orchestrator
 
 **Files:**
+
 - Create: `app/engine/pipeline.py`
 - Test: `tests/engine/test_pipeline.py`
 
 **Interfaces:**
+
 - Consumes: everything from Tasks 6–9; `Message`, `Order`, `Direction`, `ModelTier`, `OrderStatus`, `ConvState` (Task 3); `conversation`/`db_session`/`mock_ai` fixtures (Task 5).
 - Produces: `@dataclass PipelineResult(message: Message, order: Order | None)`; `async process_message(session: AsyncSession, conversation: Conversation, raw_text: str, normalized_text: str) -> PipelineResult`.
 
@@ -1699,6 +1719,7 @@ git commit -m "feat: add pipeline orchestrator tying tier0/classification/extrac
 ### Task 11: Messages domain (HTTP entry point)
 
 **Files:**
+
 - Create: `app/domains/messages/__init__.py`
 - Create: `app/domains/messages/schemas.py`
 - Create: `app/domains/messages/service.py`
@@ -1707,6 +1728,7 @@ git commit -m "feat: add pipeline orchestrator tying tier0/classification/extrac
 - Test: `tests/domains/test_messages_router.py`
 
 **Interfaces:**
+
 - Consumes: `process_message` (Task 10), `Conversation` (Task 3), `get_db` (existing, `app.core.database`).
 - Produces: `POST /api/v1/messages/` — request `{conversation_id, raw_text, normalized_text}`, response `{message_id, intent, intent_confidence, model_tier, escalation_reason, order_id, order_status}`.
 
@@ -1889,11 +1911,13 @@ git commit -m "feat: add POST /messages endpoint wiring the pipeline to HTTP"
 ### Task 12: Clustering job
 
 **Files:**
+
 - Create: `app/clustering/__init__.py`
 - Create: `app/clustering/job.py`
 - Test: `tests/clustering/test_job.py`
 
 **Interfaces:**
+
 - Consumes: `Message`, `LabeledExample` (Task 3), `get_deepseek_client` (Task 7).
 - Produces: `async run_clustering(session, distance_threshold: float = 0.3, min_cluster_size: int = 3, limit: int = 1000) -> int` (count of `LabeledExample` rows created).
 
@@ -2106,10 +2130,12 @@ git commit -m "feat: add offline clustering job with graceful labeling fallback"
 ### Task 13: Clustering CLI entrypoint
 
 **Files:**
+
 - Create: `app/clustering/__main__.py`
 - Modify: `Makefile`
 
 **Interfaces:**
+
 - Produces: `uv run python -m app.clustering` runnable from the shell; `make cluster` Makefile target.
 
 - [ ] **Step 1: Implement**
@@ -2190,4 +2216,4 @@ Expected: clean (everything committed task-by-task above). If anything is unstag
 - No merchant-review/confirmation endpoint that would set `Order.confirmed_payload`/`status=REJECTED` — trigger #4's correction-counting logic is real and tested, but nothing in this plan writes those fields outside of tests.
 - No exact-tokenizer context budgeting — the char-based heuristic is a placeholder pending empirical validation against the real NileChat tokenizer.
 - No live-endpoint smoke test — everything is verified against mocked HTTP responses. Once real `NILECHAT_BASE_URL`/`EMBEDDING_BASE_URL`/`OPENROUTER_API_KEY` values exist, a manual live run is a reasonable follow-up but is not part of this plan's acceptance.
-- `find_similar_examples` (Task 9) is built and tested as standalone retrieval infrastructure but is **not** wired into the classification/extraction prompt as few-shot context. §3's own pipeline diagram only names "last N turns + slot state" for the Context Budget Assembler — it doesn't include a retrieval step, even though §5/§6 describe the embeddings existing partly to support future few-shot prompting. Wiring retrieval in would mean embedding the message *before* classification instead of after, which reorders Task 10's pipeline — treated as a follow-up, not silently added here.
+- `find_similar_examples` (Task 9) is built and tested as standalone retrieval infrastructure but is **not** wired into the classification/extraction prompt as few-shot context. §3's own pipeline diagram only names "last N turns + slot state" for the Context Budget Assembler — it doesn't include a retrieval step, even though §5/§6 describe the embeddings existing partly to support future few-shot prompting. Wiring retrieval in would mean embedding the message _before_ classification instead of after, which reorders Task 10's pipeline — treated as a follow-up, not silently added here.

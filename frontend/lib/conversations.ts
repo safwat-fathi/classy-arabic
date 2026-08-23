@@ -8,11 +8,11 @@ export interface Conversation {
 }
 
 export async function getConversations(): Promise<Conversation[]> {
-  const backendUrl = process.env.BACKEND_API_URL;
-  if (!backendUrl) {
-    throw new Error("BACKEND_API_URL not configured");
+  const baseUrl = process.env.BASE_API_URL;
+  if (!baseUrl) {
+    throw new Error("BASE_API_URL not configured");
   }
-  const response = await fetch(`${backendUrl}/api/v1/conversations/`, {
+  const response = await fetch(`${baseUrl}/api/v1/conversations/`, {
     cache: "no-store",
   });
   if (!response.ok) {

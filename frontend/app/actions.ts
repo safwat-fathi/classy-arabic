@@ -14,14 +14,14 @@ export async function sendMessage(
 ): Promise<IngestState> {
   const text = String(formData.get("text") ?? "");
 
-  const backendUrl = process.env.BACKEND_API_URL;
-  if (!backendUrl) {
-    return { status: "error", message: "BACKEND_API_URL not configured" };
+  const baseUrl = process.env.BASE_API_URL;
+  if (!baseUrl) {
+    return { status: "error", message: "BASE_API_URL not configured" };
   }
 
   let response: Response;
   try {
-    response = await fetch(`${backendUrl}/api/v1/messages/`, {
+    response = await fetch(`${baseUrl}/api/v1/messages/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -32,7 +32,10 @@ export async function sendMessage(
       cache: "no-store",
     });
   } catch {
-    return { status: "error", message: `Could not reach backend at ${backendUrl}` };
+    return {
+      status: "error",
+      message: `Could not reach backend at ${baseUrl}`,
+    };
   }
 
   if (!response.ok) {

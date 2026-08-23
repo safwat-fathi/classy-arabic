@@ -7,12 +7,12 @@ export interface Product {
 }
 
 export async function getProducts(merchantId: string): Promise<Product[]> {
-  const backendUrl = process.env.BACKEND_API_URL;
-  if (!backendUrl) {
-    throw new Error("BACKEND_API_URL not configured");
+  const baseUrl = process.env.BASE_API_URL;
+  if (!baseUrl) {
+    throw new Error("BASE_API_URL not configured");
   }
   const response = await fetch(
-    `${backendUrl}/api/v1/products/?merchant_id=${encodeURIComponent(merchantId)}`,
+    `${baseUrl}/api/v1/products/?merchant_id=${encodeURIComponent(merchantId)}`,
     { cache: "no-store" },
   );
   if (!response.ok) {

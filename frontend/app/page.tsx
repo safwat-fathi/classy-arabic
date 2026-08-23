@@ -1,11 +1,12 @@
 import { getConversations } from "@/lib/conversations";
-import { getProducts } from "@/lib/products";
+import { getProducts, type Product } from "@/lib/products";
 import { MessageComposer } from "./message-composer";
 import { ProductCatalog } from "./product-catalog";
 
 export default async function Home() {
   const conversations = await getConversations();
-  const conversation = conversations[0];
+  let conversation = conversations[0];
+  let products: Product[] = [];
 
   if (!conversation) {
     return (
@@ -19,7 +20,19 @@ export default async function Home() {
     );
   }
 
-  const products = await getProducts(conversation.merchant_id);
+  for (const c of conversations) {
+    const p = await getProducts(c.merchant_id);
+    if (p.length > 0) {
+      conversation = c;
+      products = p;
+      break;
+    }
+  }
+
+  if (products.length === 0) {
+    // Fallback if none have products
+    products = await getProducts(conversation.merchant_id);
+  }
 
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-8 p-8">

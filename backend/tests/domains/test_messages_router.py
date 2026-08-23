@@ -9,7 +9,10 @@ from app.models import Product
 
 def _chat_response(content: str) -> dict:
     return {
-        "id": "chatcmpl-1", "object": "chat.completion", "created": 0, "model": "test",
+        "id": "chatcmpl-1",
+        "object": "chat.completion",
+        "created": 0,
+        "model": "test",
         "choices": [{"index": 0, "message": {"role": "assistant", "content": content}, "finish_reason": "stop"}],
     }
 
@@ -31,7 +34,7 @@ async def test_ingest_returns_404_for_unknown_conversation(db_session, mock_ai):
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
-                "/api/v1/messages/",
+                "/api/v1/messages",
                 json={"conversation_id": "does-not-exist", "raw_text": "hi", "normalized_text": "hi"},
             )
     finally:
@@ -51,7 +54,7 @@ async def test_ingest_tier0_short_circuit_end_to_end(db_session, conversation, m
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
-                "/api/v1/messages/",
+                "/api/v1/messages",
                 json={"conversation_id": conversation.id, "raw_text": "👍", "normalized_text": "👍"},
             )
     finally:
@@ -93,7 +96,7 @@ async def test_ingest_purchase_intent_returns_full_order_detail(db_session, conv
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
-                "/api/v1/messages/",
+                "/api/v1/messages",
                 json={
                     "conversation_id": conversation.id,
                     "raw_text": "عايز فستان صيفي",
