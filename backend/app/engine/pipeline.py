@@ -21,6 +21,7 @@ from app.models import (
     ConvState,
     Direction,
     LabeledExample,
+    Merchant,
     Message,
     ModelTier,
     Order,
@@ -58,7 +59,7 @@ def _usage_event(
         conversation_id=conversation_id,
         message_id=message_id,
         tier=failed_tier or "unknown",
-        provider="nilechat" if failed_tier == "nilechat" else "openrouter",
+        provider="openrouter",
         model="unknown",
         input_tokens=None,
         output_tokens=None,
@@ -88,6 +89,11 @@ async def _correction_count(session: AsyncSession, conversation_id: str) -> int:
             ),
         )
     )
+    return result.scalar_one()
+
+
+async def _merchant_name(session: AsyncSession, merchant_id: str) -> str:
+    result = await session.execute(select(Merchant.name).where(Merchant.id == merchant_id))
     return result.scalar_one()
 
 
@@ -132,63 +138,66 @@ async def process_message(
     except AICallError as exc:
         logger.warning("embedding_failed message_id=%s error=%s", message.id, exc)
 
-    prompt, overflowed = build_context_prompt(
+    prompt = build_context_prompt(
         history=history,
         slots=conversation.slots,
         current_text=normalized_text,
         max_turns=settings.CONTEXT_HISTORY_TURNS,
-        token_budget=settings.NILECHAT_CONTEXT_TOKEN_BUDGET,
         examples=examples,
     )
 
     known_intents = await _known_intents(session)
     correction_count = await _correction_count(session, conversation.id)
+    merchant_name = await _merchant_name(session, conversation.merchant_id)
     try:
-        classification, tier, reason, usage = await classify_message(
+        classification, reason, usage = await classify_message(
             prompt,
             known_intents,
             settings.CLASSIFICATION_CONFIDENCE_THRESHOLD,
-            overflowed,
             correction_count,
             normalized_text,
+            merchant_name,
+            conversation.state,
+            conversation.slots,
         )
     except AICallError as exc:
         logger.warning("classification_failed message_id=%s error=%s", message.id, exc)
         message.escalation_reason = "ai_call_failed"
-        session.add(_usage_event(conversation.id, message.id, None, success=False, failed_tier="nilechat"))
+        session.add(_usage_event(conversation.id, message.id, None, success=False, failed_tier="deepseek"))
         await session.flush()
         return PipelineResult(message=message, order=None)
 
     session.add(_usage_event(conversation.id, message.id, usage, success=True))
     message.intent = classification.intent
     message.intent_confidence = classification.confidence
-    message.model_tier = ModelTier.NILECHAT if tier == "nilechat" else ModelTier.ESCALATED
+    message.model_tier = ModelTier.DEEPSEEK
     message.escalation_reason = reason
 
     order = None
     if classification.intent == "purchase_intent" and conversation.state in (ConvState.GATHERING, ConvState.CONFIRMING):
-        extraction_prompt, extraction_overflowed = build_context_prompt(
+        extraction_prompt = build_context_prompt(
             history=history,
             slots=conversation.slots,
             current_text=normalized_text,
             max_turns=settings.CONTEXT_HISTORY_TURNS,
-            token_budget=settings.NILECHAT_CONTEXT_TOKEN_BUDGET,
             examples=examples,
             mode="extraction",
         )
         try:
-            extraction, extraction_tier, extraction_reason, extraction_usage = await extract_order(
+            extraction, extraction_reason, extraction_usage = await extract_order(
                 extraction_prompt,
                 settings.CLASSIFICATION_CONFIDENCE_THRESHOLD,
-                extraction_overflowed,
                 correction_count,
                 normalized_text,
+                merchant_name,
+                conversation.state,
+                conversation.slots,
             )
         except AICallError as exc:
             logger.warning("extraction_failed message_id=%s error=%s", message.id, exc)
             if not message.escalation_reason:
                 message.escalation_reason = "ai_call_failed"
-            session.add(_usage_event(conversation.id, message.id, None, success=False, failed_tier="nilechat"))
+            session.add(_usage_event(conversation.id, message.id, None, success=False, failed_tier="deepseek"))
             await session.flush()
             return PipelineResult(message=message, order=None)
 
@@ -209,7 +218,7 @@ async def process_message(
             extracted_payload=extraction.model_dump(mode="json"),
             status=status,
             confidence_score=extraction.confidence,
-            extracted_by_tier=ModelTier.NILECHAT if extraction_tier == "nilechat" else ModelTier.ESCALATED,
+            extracted_by_tier=ModelTier.DEEPSEEK,
             escalation_reason=extraction_reason,
         )
         session.add(order)

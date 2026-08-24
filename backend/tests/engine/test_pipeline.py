@@ -67,7 +67,7 @@ async def test_tier0_short_circuit_skips_ai_calls(db_session, conversation, mock
 
 
 async def test_purchase_intent_in_gathering_creates_order(db_session, conversation, mock_ai):
-    mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions").mock(
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         side_effect=[
             httpx.Response(200, json=_chat_response('{"intent": "purchase_intent", "confidence": 0.9}')),
             httpx.Response(
@@ -85,7 +85,7 @@ async def test_purchase_intent_in_gathering_creates_order(db_session, conversati
     result = await process_message(db_session, conversation, "عايز اطلب رز", "عايز اطلب رز")
 
     assert result.message.intent == "purchase_intent"
-    assert result.message.model_tier == ModelTier.NILECHAT
+    assert result.message.model_tier == ModelTier.DEEPSEEK
     assert result.order is not None
     assert result.order.status == OrderStatus.AUTO_CONFIRMED
 
@@ -96,7 +96,7 @@ async def test_purchase_intent_line_items_match_seeded_product(db_session, conve
     db_session.add(product)
     await db_session.flush()
 
-    mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions").mock(
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         side_effect=[
             httpx.Response(200, json=_chat_response('{"intent": "purchase_intent", "confidence": 0.9}')),
             httpx.Response(
@@ -122,7 +122,7 @@ async def test_classification_failure_persists_message_instead_of_losing_it(db_s
     # Regression: a malformed/empty response from the classifier must not raise
     # out of process_message and lose the inbound message row — it must persist
     # the message with an explicit failure marker so the request can be retried.
-    mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions").mock(
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         return_value=httpx.Response(200, json=_chat_response("not json"))
     )
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
@@ -140,7 +140,7 @@ async def test_classification_failure_persists_message_instead_of_losing_it(db_s
 async def test_extraction_failure_persists_message_and_classification(db_session, conversation, mock_ai):
     # Same guarantee for the extraction leg: classification already succeeded
     # and must not be thrown away just because the extraction call failed.
-    mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions").mock(
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         side_effect=[
             httpx.Response(200, json=_chat_response('{"intent": "purchase_intent", "confidence": 0.9}')),
             httpx.Response(200, json=_chat_response("not json")),
@@ -161,7 +161,7 @@ async def test_non_purchase_intent_does_not_create_order(db_session, conversatio
     # A short question ("how much?") must stay on tier 1 — regression guard for
     # the reasoning-heavy density check firing on any single "؟" (see
     # routing_policy.DENSITY_CHECK_MIN_LENGTH).
-    mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions").mock(
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
     )
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
@@ -171,7 +171,7 @@ async def test_non_purchase_intent_does_not_create_order(db_session, conversatio
     result = await process_message(db_session, conversation, "الاسعار كام؟", "الاسعار كام؟")
 
     assert result.message.intent == "question"
-    assert result.message.model_tier == ModelTier.NILECHAT
+    assert result.message.model_tier == ModelTier.DEEPSEEK
     assert result.order is None
 
 
@@ -181,7 +181,7 @@ async def test_process_message_persists_ai_usage_event(db_session, conversation,
     # instead (same text as test_non_purchase_intent_does_not_create_order).
     # The mocked intent value itself is arbitrary here — only the usage event
     # persisted for the one AI call is under test.
-    mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions").mock(
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         return_value=httpx.Response(200, json=_chat_response('{"intent": "greeting", "confidence": 0.95}'))
     )
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
@@ -196,6 +196,6 @@ async def test_process_message_persists_ai_usage_event(db_session, conversation,
         .all()
     )
     assert len(events) == 1
-    assert events[0].tier == "nilechat"
+    assert events[0].tier == "deepseek"
     assert events[0].conversation_id == conversation.id
     assert events[0].latency_ms > 0

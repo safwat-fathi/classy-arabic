@@ -72,7 +72,7 @@ async def test_ingest_purchase_intent_returns_full_order_detail(db_session, conv
     db_session.add(product)
     await db_session.flush()
 
-    mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions").mock(
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         side_effect=[
             httpx.Response(200, json=_chat_response('{"intent": "purchase_intent", "confidence": 0.9}')),
             httpx.Response(
