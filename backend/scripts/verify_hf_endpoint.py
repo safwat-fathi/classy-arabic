@@ -6,10 +6,10 @@ historically exposed guided generation through a separate `grammar` field
 instead."""
 
 import asyncio
+from typing import Literal
 
 from openai import AsyncOpenAI
 from pydantic import BaseModel
-from typing import Literal
 
 from app.core.config import settings
 from app.engine.schemas import json_schema_response_format

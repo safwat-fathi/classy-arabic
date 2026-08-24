@@ -41,7 +41,7 @@ def check_reasoning_heavy(text: str) -> str | None:
     has_conditional = any(marker in text for marker in CONDITIONAL_MARKERS) and any(
         marker in text for marker in CONDITIONAL_RESULT_MARKERS
     )
-    
+
     if len(text) > REASONING_LENGTH_THRESHOLD or density_heavy or has_conditional:
         return "reasoning_heavy_content"
     return None
