@@ -31,8 +31,8 @@ _deepseek = AsyncOpenAI(
 )
 
 _embedding = AsyncOpenAI(
-    base_url=settings.OPENROUTER_BASE_URL,
-    api_key=settings.OPENROUTER_API_KEY,
+    base_url=settings.EMBEDDING_BASE_URL,
+    api_key=settings.EMBEDDING_API_KEY,
     timeout=settings.AI_REQUEST_TIMEOUT_SECONDS,
     max_retries=settings.AI_MAX_RETRIES,
 )
