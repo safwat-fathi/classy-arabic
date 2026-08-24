@@ -8,8 +8,7 @@ class Direction(enum.StrEnum):
 
 class ModelTier(enum.StrEnum):
     RULE = "RULE"
-    NILECHAT = "NILECHAT"
-    ESCALATED = "ESCALATED"
+    DEEPSEEK = "DEEPSEEK"
 
 
 class ConvState(enum.StrEnum):
