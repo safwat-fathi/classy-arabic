@@ -143,7 +143,7 @@ function Hero() {
               >
                 <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
               </svg>
-              <span>جاري الفهم والاستخراج بواسطة NileChat...</span>
+              <span>جاري الفهم والاستخراج بالذكاء الاصطناعي...</span>
             </div>
             <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3">
               <Image
