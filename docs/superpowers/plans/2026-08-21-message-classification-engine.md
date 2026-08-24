@@ -2217,3 +2217,14 @@ Expected: clean (everything committed task-by-task above). If anything is unstag
 - No exact-tokenizer context budgeting — the char-based heuristic is a placeholder pending empirical validation against the real NileChat tokenizer.
 - No live-endpoint smoke test — everything is verified against mocked HTTP responses. Once real `NILECHAT_BASE_URL`/`EMBEDDING_BASE_URL`/`OPENROUTER_API_KEY` values exist, a manual live run is a reasonable follow-up but is not part of this plan's acceptance.
 - `find_similar_examples` (Task 9) is built and tested as standalone retrieval infrastructure but is **not** wired into the classification/extraction prompt as few-shot context. §3's own pipeline diagram only names "last N turns + slot state" for the Context Budget Assembler — it doesn't include a retrieval step, even though §5/§6 describe the embeddings existing partly to support future few-shot prompting. Wiring retrieval in would mean embedding the message _before_ classification instead of after, which reorders Task 10's pipeline — treated as a follow-up, not silently added here.
+ ☐ نطاق التعريب
+
+│ صفحة الديمو الحالية (Engine Demo) فيها labels إنجليزية تقنية (Model: NILECHAT, confidence, escalation_reason, order status enums زي AUTO_CONFIRMED). لما نوافقها مع ثيم اللاندينج عايز أي مستوى؟
+
+❯ 1. هيبريد (موصى بيه)
+     العناوين/الأزرار تترجم للعربي مع dir=rtl وfonts جديدة، لكن القيم التقنية (Model: NILECHAT/DEEPSEEK، enum زي AUTO_CONFIRMED، مفاتيح JSON) تفضل تفضل تفضل إنجليزي زي ما هي في backend
+  2. إنجليزي بس ريستايل (visual restyle only)
+     نفس النصوص الحالية زي ما هي، بس fonts+ألوان+RTL layout جديدة
+  3. عربي كامل
+     كل النصوص تترجم للعربي بما فيها قيم backend التقنية زي status enums
+❯ 4. Type something.
