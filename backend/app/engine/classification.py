@@ -1,13 +1,10 @@
-import time
 from typing import Any, Literal, cast
 
-import openai
-from pydantic import BaseModel, Field, ValidationError, create_model
+from pydantic import BaseModel, Field, create_model
 
-from app.core.config import settings
-from app.engine.clients import AICallError, get_deepseek_client, get_nilechat_client, parse_json_content, record_ai_call
+from app.engine.gateway import complete, escalated_provider, nilechat_provider
 from app.engine.routing_policy import evaluate_postflight, evaluate_preflight
-from app.engine.schemas import IntentClassification, json_schema_response_format
+from app.engine.schemas import IntentClassification
 
 CLASSIFICATION_SYSTEM_PROMPT = (
     "You classify customer messages into an intent label. Respond only with json "
@@ -32,66 +29,41 @@ def _intent_response_schema(known_intents: list[str]) -> type[BaseModel]:
     )
 
 
-async def _call(
-    client, model: str, prompt: str, known_intents: list[str], tier: str, *, temperature: float | None = None
-) -> IntentClassification:
-    start = time.monotonic()
-    kwargs = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": CLASSIFICATION_SYSTEM_PROMPT.format(known_intents=", ".join(known_intents))},
-            {"role": "user", "content": prompt},
-        ],
-        "response_format": json_schema_response_format(_intent_response_schema(known_intents), "intent_classification"),
-    }
-    if temperature is not None:
-        kwargs["temperature"] = temperature
-    if tier == "escalated" and settings.OPENROUTER_PROVIDERS:
-        kwargs["extra_body"] = {"provider": {"order": settings.OPENROUTER_PROVIDERS, "allow_fallbacks": True}}
-    try:
-        response = await client.chat.completions.create(**kwargs)
-    except openai.APIError as exc:
-        raise AICallError(f"{tier} call failed: {exc}") from exc
-    record_ai_call(tier, model, start, response.usage)
-    raw = parse_json_content(response)
-    try:
-        return IntentClassification.model_validate(raw)
-    except ValidationError as exc:
-        raise AICallError(f"{tier} response failed validation: {exc}") from exc
-
-
 async def classify_message(
     prompt: str, known_intents: list[str], threshold: float, overflowed: bool, correction_count: int, text: str
 ) -> tuple[IntentClassification, str, str | None]:
+    system_prompt = CLASSIFICATION_SYSTEM_PROMPT.format(known_intents=", ".join(known_intents))
+    schema_model = _intent_response_schema(known_intents)
+
     preflight_reason = evaluate_preflight(text=text, overflowed=overflowed, correction_count=correction_count)
     if preflight_reason:
-        result = await _call(
-            get_deepseek_client(),
-            settings.DEEPSEEK_MODEL,
-            prompt,
-            known_intents,
-            "escalated",
-            temperature=settings.DEEPSEEK_TEMPERATURE,
+        result = await complete(
+            escalated_provider(),
+            system_prompt=system_prompt,
+            user_prompt=prompt,
+            schema_model=schema_model,
+            parse_model=IntentClassification,
+            schema_name="intent_classification",
         )
         return result, "escalated", preflight_reason
 
-    result = await _call(
-        get_nilechat_client(),
-        settings.NILECHAT_MODEL,
-        prompt,
-        known_intents,
-        "nilechat",
-        temperature=settings.NILECHAT_TEMPERATURE,
+    result = await complete(
+        nilechat_provider(),
+        system_prompt=system_prompt,
+        user_prompt=prompt,
+        schema_model=schema_model,
+        parse_model=IntentClassification,
+        schema_name="intent_classification",
     )
     postflight_reason = evaluate_postflight(confidence=result.confidence, threshold=threshold)
     if postflight_reason:
-        result = await _call(
-            get_deepseek_client(),
-            settings.DEEPSEEK_MODEL,
-            prompt,
-            known_intents,
-            "escalated",
-            temperature=settings.DEEPSEEK_TEMPERATURE,
+        result = await complete(
+            escalated_provider(),
+            system_prompt=system_prompt,
+            user_prompt=prompt,
+            schema_model=schema_model,
+            parse_model=IntentClassification,
+            schema_name="intent_classification",
         )
         return result, "escalated", postflight_reason
     return result, "nilechat", None
