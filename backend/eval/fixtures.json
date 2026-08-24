@@ -1,0 +1,44 @@
+[
+  {
+    "id": "greeting_arabic",
+    "input": "السلام عليكم",
+    "expected_intent": "greeting",
+    "expected_escalation_tier": null
+  },
+  {
+    "id": "purchase_arabizi",
+    "input": "3ayz 2 tshirt aswd xl",
+    "expected_intent": "purchase_intent",
+    "expected_escalation_tier": "nilechat"
+  },
+  {
+    "id": "purchase_mixed_language",
+    "input": "عايز اطلب the black one, size L",
+    "expected_intent": "purchase_intent",
+    "expected_escalation_tier": "nilechat"
+  },
+  {
+    "id": "question_with_typo",
+    "input": "هل عندكو مقاسات تانيه",
+    "expected_intent": "question",
+    "expected_escalation_tier": "nilechat"
+  },
+  {
+    "id": "spam_reaction",
+    "input": "👍",
+    "expected_intent": "reaction",
+    "expected_escalation_tier": null
+  },
+  {
+    "id": "ambiguous_conditional",
+    "input": "لو السعر يزيد يبقى هغير الطلب",
+    "expected_intent": null,
+    "expected_escalation_tier": "escalated"
+  },
+  {
+    "id": "address_extraction",
+    "input": "محمد أحمد 01012345678، 15 شارع التحرير الدقي الدور التالت",
+    "expected_intent": "purchase_intent",
+    "expected_escalation_tier": "nilechat"
+  }
+]
