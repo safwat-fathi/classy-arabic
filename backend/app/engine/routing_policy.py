@@ -58,7 +58,10 @@ def evaluate_postflight(
     *, confidence: float, threshold: float, ambiguous_fields: list[str] | None = None
 ) -> str | None:
     """Triggers only knowable from tier-1 output — re-run on tier 2."""
-    for reason in (check_confidence_threshold(confidence, threshold),):
+    for reason in (
+        check_confidence_threshold(confidence, threshold),
+        check_ambiguous_fields(ambiguous_fields or []),
+    ):
         if reason:
             return reason
     return None
