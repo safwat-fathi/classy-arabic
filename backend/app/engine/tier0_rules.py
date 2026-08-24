@@ -24,8 +24,9 @@ def match_tier0(normalized_text: str) -> str | None:
     if GREETING_PATTERN.match(text):
         return "greeting"
     if SPAM_PATTERN.search(text):
-        remainder = SPAM_PATTERN.sub("", text).strip(" \t\n.,!؟?،-")
-        has_question = "?" in remainder or "؟" in remainder
+        url_stripped = SPAM_PATTERN.sub("", text).strip()
+        has_question = "?" in url_stripped or "؟" in url_stripped
+        remainder = url_stripped.strip(" \t\n.,!،-")
         if not has_question and len(remainder) <= SPAM_REMAINDER_MAX_CHARS:
             return "spam"
     return None
