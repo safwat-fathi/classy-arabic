@@ -30,17 +30,16 @@ Requires Python 3.13 and a running Postgres with the `pgvector` extension availa
 
 ## Architecture
 
-### Three-tier AI routing
+### Two-stage AI routing
 
-The core design idea (spec §3–§4) is a cost-conscious escalation pipeline, not a single model call:
+The core design idea (spec §3–§4) is a two-stage classification and extraction pipeline:
 
 1. **Tier 0 — rule-based short-circuit** (`app/engine/tier0_rules.py`): regex match for greetings/spam/single-emoji reactions before any model call.
-2. **Tier 1 — NileChat-4B** (`MBZUAI-Paris/Nile-Chat-4B`, self-hosted, OpenAI-compatible endpoint): primary classifier/extractor. Hard-capped at a **2048-token context budget** (`app/engine/context_budget.py`) — this is a training-time ceiling for the model, not an arbitrary choice, so don't silently raise it without re-reading spec §1.1.
-3. **Tier 2 — DeepSeek v4 Flash via OpenRouter**: escalation target for low confidence, ambiguous extraction fields, context overflow, repeated merchant corrections, or reasoning-heavy content. Escalation triggers are centralized in `app/engine/routing_policy.py` (`evaluate_preflight` before calling Tier 1, `evaluate_postflight` after) — each trigger returns a stable reason string that gets persisted to `Message.escalation_reason`, since that field is the primary signal for what to fine-tune next.
+2. **DeepSeek v4 Flash via OpenRouter** (`app/engine/gateway.py::deepseek_provider`): sole LLM engine for classification and extraction. `app/engine/prompts.py` builds a system prompt composed of a shared dialect/persona/context preamble plus a per-task block. Low confidence, ambiguous extraction fields, repeated merchant corrections, or reasoning-heavy content flags the result for human review. Escalation triggers are centralized in `app/engine/routing_policy.py` (`evaluate_preflight` before calling the model, `evaluate_postflight` after) — each trigger returns a stable reason string that gets persisted to `Message.escalation_reason`, since that field is the primary signal for what to fine-tune next.
 
-A separate embedding model (`BAAI/bge-m3`, self-hosted, 1024-dim) handles semantic search/clustering; it is not one of the two chat-completion tiers. `app/engine/clients.py` builds one `AsyncOpenAI` client per backend (NileChat, DeepSeek/OpenRouter, embeddings) since all three speak the OpenAI-compatible API — same client shape, different base URL/model.
+A separate embedding model (`BAAI/bge-m3`, via OpenRouter, 1024-dim) handles semantic search/clustering; it is not part of the chat-completion pipeline. `app/engine/clients.py` builds two `AsyncOpenAI` clients (DeepSeek, embeddings) to communicate with the OpenAI-compatible OpenRouter API.
 
-Confidence is self-reported by the model as part of its constrained JSON output — normalized by validators in `app/engine/schemas.py` and checked against the threshold in `app/engine/routing_policy.py::check_confidence_threshold` — not logprob-derived. Structured output schemas (`app/engine/schemas.py`: `IntentClassification`, `ExtractionResult`) are enforced via `json_schema_response_format`, since NileChat has no native function-calling and must use constrained/guided decoding.
+Confidence is self-reported by the model as part of its constrained JSON output — normalized by validators in `app/engine/schemas.py` and checked against the threshold in `app/engine/routing_policy.py::check_confidence_threshold` — not logprob-derived. Structured output schemas (`app/engine/schemas.py`: `IntentClassification`, `ExtractionResult`) are enforced via `json_schema_response_format` supported by DeepSeek.
 
 ### App layout
 

@@ -12,8 +12,8 @@ This repo currently implements the **AI message-classification/routing engine** 
 
 **Built:**
 - Tier 0 rule-based short-circuit (`app/engine/tier0_rules.py`)
-- Tier 1 classification + extraction against NileChat-4B, with self-reported confidence and structured-output schemas (`app/engine/classification.py`, `extraction.py`, `schemas.py`)
-- Tier 2 escalation to DeepSeek v4 Flash, driven by pre/post-flight checks in `app/engine/routing_policy.py` (`evaluate_preflight`, `evaluate_postflight`)
+- DeepSeek v4 Flash for all classification and extraction, with a dialect-aware system prompt, self-reported confidence, and structured-output schemas (`app/engine/classification.py`, `extraction.py`, `schemas.py`, `prompts.py`)
+- Pre/post-flight checks (`evaluate_preflight`, `evaluate_postflight` in `app/engine/routing_policy.py`) flag ambiguous or low-confidence results for human review (`escalation_reason`, `OrderStatus.PENDING_REVIEW`)
 - End-to-end pipeline (`app/engine/pipeline.py::process_message`) wired into a real endpoint: `POST /messages` ingests a message for an existing conversation, runs it through the full tiered pipeline, and persists intent/order/escalation data
 - Core data models: `merchant`, `conversation`, `message`, `product`, `order`, `labeled_example`
 - Product search domain (`app/domains/products`), conversation domain (`app/domains/conversations`)
@@ -38,20 +38,16 @@ Customer Message
   L0 rules  --(deterministic)--> execute
       |
       v
-  L1 NileChat-4B (classification + extraction)
+  DeepSeek v4 Flash (classification + extraction)
       |
-      +-- confident + unambiguous --> execute
+      +-- confident + unambiguous --> execute (AUTO_CONFIRMED)
       |
-      +-- low confidence / ambiguous / context overflow / repeated correction --> L2 DeepSeek v4 Flash
-                                                                                        |
-                                                                                        v
-                                                                                   execute or escalate to human (not yet built)
+      +-- low confidence / ambiguous / reasoning heavy / repeated correction --> PENDING_REVIEW (escalate to human)
 ```
 
-- **Tier 1 — NileChat-4B**: self-hosted, OpenAI-compatible endpoint, primary classifier/extractor. Hard-capped at a 2048-token context budget (`app/engine/context_budget.py`) — a training-time ceiling for the model, not an arbitrary choice.
-- **Tier 2 — DeepSeek v4 Flash** (via OpenRouter): escalation target for low confidence, ambiguous extraction, context overflow, repeated correction, or reasoning-heavy content. Each escalation reason is a stable string persisted to `Message.escalation_reason` — the primary signal for what to fine-tune next.
-- **Embeddings — BAAI/bge-m3** (1024-dim, self-hosted): separate from the two chat-completion tiers, used for semantic search/clustering (`app/engine/embeddings.py`, `app/clustering/`).
-- `app/engine/clients.py` builds one `AsyncOpenAI` client per backend (NileChat, DeepSeek/OpenRouter, embeddings), since all three speak the OpenAI-compatible API.
+- **DeepSeek v4 Flash** (via OpenRouter): sole LLM engine for classification and extraction, driven by a system prompt providing Egyptian Arabic / Arabizi dialect guidance. Low confidence, ambiguous extraction, repeated correction, or reasoning-heavy content flags the order for review. Each reason is a stable string persisted to `Message.escalation_reason`.
+- **Embeddings — BAAI/bge-m3** (1024-dim, via OpenRouter): separate from the chat-completion engine, used for semantic search/clustering (`app/engine/embeddings.py`, `app/clustering/`).
+- `app/engine/clients.py` builds two `AsyncOpenAI` clients (DeepSeek, embeddings) to communicate with the OpenAI-compatible OpenRouter API.
 
 **Reading the SRD against this repo:** the SRD's suggested module names (`CartModule`, `CheckoutModule`, `AIModule`, etc., §53) are NestJS-flavored — this repo doesn't use NestJS. The equivalent boundary here is `app/domains/<name>/` for feature routers (FastAPI) and `app/engine/` for the AI pipeline. Don't expect the SRD's literal module names to exist in the code.
 

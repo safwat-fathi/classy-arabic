@@ -4,7 +4,7 @@ Sourced from `TijaratkBot_PRD.md` (§4–§5, §35, §37) and `TijaratkBot_SRD.m
 
 ## Now — built today
 
-- Tier 0/1/2 AI classification + extraction pipeline, with escalation policy and telemetry fields (`Message.escalation_reason`)
+- Two-stage AI classification + extraction pipeline (Tier 0 rules + DeepSeek), with escalation telemetry fields (`Message.escalation_reason`)
 - Core models: `merchant`, `conversation`, `message`, `product`, `order`, `labeled_example`
 - API domains: `health`, `messages` (message ingest → full pipeline), `products`, `conversations`
 - Offline clustering job, seed/dev scripts
@@ -39,7 +39,6 @@ Everything below is in the PRD's MVP scope (§4) or Success Criteria (§35) but 
 
 ## Phase 3 (per PRD §37)
 
-- Fine-tuned NileChat ecommerce model
 - Voice-message understanding
 - Image-based product search
 - AI sales analytics and customer segmentation
