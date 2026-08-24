@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "classy-arabic"
+    PROJECT_NAME: str = "TijaratkBot"
     VERSION: str = "0.1.0"
 
     # Database Settings

@@ -2,16 +2,20 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import TypeVar
 
 from openai import APIError, AsyncOpenAI
 from pydantic import BaseModel, ValidationError
 
 from app.core.config import settings
-from app.engine.clients import AICallError, get_deepseek_client, get_nilechat_client, parse_json_content, record_ai_call
+from app.engine.clients import (
+    AICallError,
+    get_deepseek_client,
+    get_embedding_client,
+    get_nilechat_client,
+    parse_json_content,
+    record_ai_call,
+)
 from app.engine.schemas import json_schema_response_format
-
-T = TypeVar("T", bound=BaseModel)
 
 
 @dataclass(frozen=True)
@@ -30,7 +34,7 @@ def escalated_provider() -> Provider:
     return Provider("escalated", get_deepseek_client(), settings.DEEPSEEK_MODEL, settings.DEEPSEEK_TEMPERATURE)
 
 
-async def complete(
+async def complete[T: BaseModel](
     provider: Provider,
     *,
     system_prompt: str,

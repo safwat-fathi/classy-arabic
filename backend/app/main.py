@@ -38,4 +38,4 @@ app.include_router(api_router)
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to the classy-arabic API", "docs": "/docs"}
+    return {"message": "Welcome to the TijaratkBot API", "docs": "/docs"}

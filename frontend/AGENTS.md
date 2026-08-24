@@ -7,3 +7,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## ⛔ CRITICAL SECURITY RULE: Environment Variables & Secrets
+
+- **NEVER access, read, open, cat, grep, or inspect `.env` files** (such as `.env`, `.env.local`, `.env.production`, or any `.env*` file containing real values).
+- **NEVER print, expose, or log real environment variable values or secrets** (e.g., API keys, auth tokens, secrets) in tool outputs, chat responses, or logs.
+- **ALWAYS reference `.env.example` or schema definitions** when inspecting expected configuration keys and environment variable structures.

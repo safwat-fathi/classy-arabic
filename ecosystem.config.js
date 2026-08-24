@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'classy-arabic-frontend',
+      name: 'tijaratk-bot-frontend',
       script: 'pnpm',
       args: 'start',
       cwd: './frontend',
@@ -11,7 +11,7 @@ module.exports = {
       }
     },
     {
-      name: 'classy-arabic-backend',
+      name: 'tijaratk-bot-backend',
       script: 'uv',
       args: 'run uvicorn app.main:app --host 127.0.0.1 --port 8000',
       cwd: './backend',
