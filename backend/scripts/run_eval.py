@@ -1,8 +1,7 @@
 """Manual evaluation runner — NOT part of `make test` / CI. Hits the real
-configured NILECHAT_BASE_URL (and OPENROUTER for escalations), so it costs
-real latency/money and requires whatever endpoint is currently configured
-to be reachable. Run after any change to tier0_rules, routing_policy,
-classification, or when validating a new NileChat endpoint.
+configured DEEPSEEK_MODEL via OPENROUTER_BASE_URL, so it costs real
+latency/money and requires OpenRouter to be reachable. Run after any change
+to tier0_rules, routing_policy, classification, or prompts.
 
 Usage: PYTHONPATH=. .venv/bin/python scripts/run_eval.py
 """
@@ -15,6 +14,7 @@ from app.core.config import settings
 from app.engine.classification import classify_message
 from app.engine.context_budget import build_context_prompt
 from app.engine.tier0_rules import match_tier0
+from app.models.enums import ConvState
 
 FIXTURES_PATH = Path(__file__).parent.parent / "eval" / "fixtures.json"
 KNOWN_INTENTS = ["greeting", "spam", "reaction", "purchase_intent", "question", "other"]
@@ -24,26 +24,32 @@ async def run_case(case: dict) -> tuple[bool, str]:
     text = case["input"]
     tier0_intent = match_tier0(text)
     if tier0_intent is not None:
-        ok = case["expected_escalation_tier"] is None and tier0_intent == case["expected_intent"]
+        ok = case["expected_reason"] is None and tier0_intent == case["expected_intent"]
         return ok, f"tier0 -> intent={tier0_intent!r}"
 
-    prompt, overflowed = build_context_prompt(
+    prompt = build_context_prompt(
         history=[],
         slots={},
         current_text=text,
         max_turns=settings.CONTEXT_HISTORY_TURNS,
-        token_budget=settings.NILECHAT_CONTEXT_TOKEN_BUDGET,
     )
-    classification, tier, reason, _usage = await classify_message(
-        prompt, KNOWN_INTENTS, settings.CLASSIFICATION_CONFIDENCE_THRESHOLD, overflowed, correction_count=0, text=text
+    classification, reason, _usage = await classify_message(
+        prompt,
+        KNOWN_INTENTS,
+        settings.CLASSIFICATION_CONFIDENCE_THRESHOLD,
+        correction_count=0,
+        text=text,
+        merchant_name="Eval Merchant",
+        conv_state=ConvState.GATHERING,
+        slots={},
     )
 
-    tier_ok = tier == case["expected_escalation_tier"]
+    reason_ok = reason == case["expected_reason"]
     intent_ok = case["expected_intent"] is None or classification.intent == case["expected_intent"]
-    detail = f"tier={tier!r} (expected {case['expected_escalation_tier']!r}), intent={classification.intent!r}"
+    detail = f"intent={classification.intent!r}"
     if reason:
         detail += f", reason={reason!r}"
-    return tier_ok and intent_ok, detail
+    return reason_ok and intent_ok, detail
 
 
 async def main() -> None:
