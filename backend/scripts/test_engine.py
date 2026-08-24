@@ -40,6 +40,9 @@ async def test_raw_message(text: str):
         prompt=prompt,
         known_intents=intents,
         threshold=0.7,
+        overflowed=_overflowed,
+        correction_count=0,
+        text=text,
     )
     print(f"   Intent     : {classification.intent}")
     print(f"   Confidence : {classification.confidence:.2f}")
@@ -53,8 +56,9 @@ async def test_raw_message(text: str):
         extraction, ext_tier, ext_reason = await extract_order(
             prompt=prompt,
             threshold=0.7,
-            overflowed=False,
+            overflowed=_overflowed,
             correction_count=0,
+            text=text,
         )
         print(f"   Line Items       : {extraction.line_items}")
         print(f"   Address          : {extraction.address}")
