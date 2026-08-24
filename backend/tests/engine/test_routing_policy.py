@@ -48,3 +48,12 @@ def test_dense_multi_question_text_still_escalates():
         text="عندي كذا سؤال: هل عندكوا مقاس لارج؟ هل في تفصيل مختلف؟ هل ممكن تبعتولي صورة تانية؟",
     )
     assert reason == "reasoning_heavy_content"
+
+
+def test_lo_without_conditional_result_does_not_escalate():
+    # Regression guard: "لو" alone is extremely common ordinary Egyptian
+    # Arabic and must not trigger reasoning_heavy by itself — only paired
+    # with a result marker (يبقى/بقى) does it signal actual conditional
+    # reasoning, per spec §4 trigger 5's own example ("لو... يبقى...").
+    reason = evaluate_preflight(overflowed=False, correction_count=0, text="لو حبيت اطلب تاني هكلمك")
+    assert reason is None

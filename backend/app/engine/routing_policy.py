@@ -6,6 +6,8 @@ QUESTION_MARK_DENSITY_THRESHOLD = 0.02
 # traffic" goal. Only apply the density check once there's enough text for it
 # to mean something (multiple/rapid-fire questions), not a single ordinary one.
 DENSITY_CHECK_MIN_LENGTH = 60
+CONDITIONAL_MARKERS = ("لو", "إذا", "اذا")
+CONDITIONAL_RESULT_MARKERS = ("يبقى", "هيبقى", "بقى")
 
 
 def check_confidence_threshold(confidence: float, threshold: float) -> str | None:
@@ -36,8 +38,11 @@ def check_reasoning_heavy(text: str) -> str | None:
     question_marks = text.count("?") + text.count("؟")
     density = question_marks / max(1, len(text))
     density_heavy = len(text) >= DENSITY_CHECK_MIN_LENGTH and density > QUESTION_MARK_DENSITY_THRESHOLD
+    has_conditional = any(marker in text for marker in CONDITIONAL_MARKERS) and any(
+        marker in text for marker in CONDITIONAL_RESULT_MARKERS
+    )
     
-    if len(text) > REASONING_LENGTH_THRESHOLD or density_heavy:
+    if len(text) > REASONING_LENGTH_THRESHOLD or density_heavy or has_conditional:
         return "reasoning_heavy_content"
     return None
 
