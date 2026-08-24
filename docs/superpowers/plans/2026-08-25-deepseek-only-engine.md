@@ -31,7 +31,7 @@
 **Interfaces:**
 - Produces: `build_system_prompt(*, task_block: str, merchant_name: str, conv_state: ConvState, slots: dict) -> str`, and the constants `CLASSIFICATION_TASK_BLOCK: str`, `EXTRACTION_TASK_BLOCK: str` — Task 4 imports all three.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # backend/tests/engine/test_prompts.py
@@ -70,12 +70,12 @@ def test_classification_task_block_lists_known_intents():
     assert "greeting, purchase_intent" in block
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `cd backend && uv run pytest tests/engine/test_prompts.py -v`
 Expected: FAIL — `ModuleNotFoundError: No module named 'app.engine.prompts'`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```python
 # backend/app/engine/prompts.py
@@ -135,12 +135,12 @@ EXTRACTION_TASK_BLOCK = (
 )
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `cd backend && uv run pytest tests/engine/test_prompts.py -v`
 Expected: PASS (5 passed)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/engine/prompts.py backend/tests/engine/test_prompts.py
@@ -162,7 +162,7 @@ Drops the NileChat-specific 2048-token hard budget (no equivalent applies to Dee
 **Interfaces:**
 - Produces: `build_context_prompt(history, slots, current_text, max_turns, examples=None, mode="intent") -> str` (was `-> tuple[str, bool]`; drops `token_budget` param). `evaluate_preflight(*, text: str, correction_count: int) -> str | None` (drops `overflowed` param). Task 4 and Task 5 consume both new signatures.
 
-- [ ] **Step 1: Update `test_context_budget.py`**
+- [x] **Step 1: Update `test_context_budget.py`**
 
 Delete `test_build_context_prompt_flags_overflow_on_tiny_budget` and `test_estimate_tokens_scales_with_length` entirely (they test removed behavior — `estimate_tokens`/token-budget flagging no longer exist). Rewrite the other two to match the new signature:
 
@@ -179,16 +179,16 @@ def test_build_context_prompt_includes_examples():
     assert "examples:" in prompt
 ```
 
-- [ ] **Step 2: Update `test_routing_policy.py`**
+- [x] **Step 2: Update `test_routing_policy.py`**
 
 Delete `test_escalates_on_context_overflow` entirely (tests the removed `check_context_overflow`). In every remaining `evaluate_preflight(...)` call (`test_no_escalation_when_all_clear`, `test_escalates_on_repeated_correction`, `test_escalates_on_reasoning_heavy_conditional`, `test_short_single_question_does_not_escalate`, `test_dense_multi_question_text_still_escalates`, `test_lo_without_conditional_result_does_not_escalate`), remove the `overflowed=...` keyword argument. `test_escalates_on_low_confidence` / `test_escalates_on_ambiguous_fields` test `evaluate_postflight` and are untouched.
 
-- [ ] **Step 3: Run to verify the updated tests fail against old source**
+- [x] **Step 3: Run to verify the updated tests fail against old source**
 
 Run: `cd backend && uv run pytest tests/engine/test_context_budget.py tests/engine/test_routing_policy.py -v`
 Expected: FAIL — `TypeError: build_context_prompt() missing 1 required positional argument` / unexpected keyword `overflowed`
 
-- [ ] **Step 4: Rewrite `context_budget.py`**
+- [x] **Step 4: Rewrite `context_budget.py`**
 
 ```python
 # backend/app/engine/context_budget.py
@@ -232,7 +232,7 @@ def build_context_prompt(
 
 (`estimate_tokens`/`CHARS_PER_TOKEN_ESTIMATE` are deleted — nothing consumes them once `overflowed` is gone.)
 
-- [ ] **Step 5: Rewrite `routing_policy.py`**
+- [x] **Step 5: Rewrite `routing_policy.py`**
 
 Delete `check_context_overflow` entirely. Update `evaluate_preflight`:
 
@@ -250,12 +250,12 @@ def evaluate_preflight(*, text: str, correction_count: int) -> str | None:
 
 `evaluate_postflight` is unchanged (its triggers never depended on `overflowed`). Update its docstring to `"""Triggers only knowable from the model's output."""` (was "re-run on tier 2" — no longer accurate, nothing re-runs).
 
-- [ ] **Step 6: Run to verify it passes**
+- [x] **Step 6: Run to verify it passes**
 
 Run: `cd backend && uv run pytest tests/engine/test_context_budget.py tests/engine/test_routing_policy.py -v`
 Expected: PASS
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add backend/app/engine/context_budget.py backend/app/engine/routing_policy.py backend/tests/engine/test_context_budget.py backend/tests/engine/test_routing_policy.py
@@ -273,7 +273,7 @@ git commit -m "refactor: drop NileChat-specific token budget and its escalation 
 **Interfaces:**
 - Produces: `ModelTier.RULE`, `ModelTier.DEEPSEEK` (was `RULE, NILECHAT, ESCALATED`). Task 5 consumes `ModelTier.DEEPSEEK` directly (no more ternary).
 
-- [ ] **Step 1: Update the enum**
+- [x] **Step 1: Update the enum**
 
 ```python
 # backend/app/models/enums.py — ModelTier only, other enums unchanged
@@ -282,13 +282,13 @@ class ModelTier(enum.StrEnum):
     DEEPSEEK = "DEEPSEEK"
 ```
 
-- [ ] **Step 2: Scaffold the migration**
+- [x] **Step 2: Scaffold the migration**
 
 Run: `cd backend && uv run alembic revision -m "collapse modeltier to rule deepseek"`
 
 This creates an empty migration file with `down_revision` auto-set to the current head (`1511b3371e51`, the `add_ai_usage_events_table` migration — verify the generated file's `down_revision` reads exactly that). Alembic's `--autogenerate` cannot detect enum *value* changes correctly, so don't use `--autogenerate` here — hand-write the body.
 
-- [ ] **Step 3: Write the migration body**
+- [x] **Step 3: Write the migration body**
 
 Recreate the Postgres enum type in one pass rather than using `ALTER TYPE ... RENAME VALUE` — a single `CASE`-mapped type swap avoids any same-transaction visibility question around renamed enum values, and handles collapsing *two* old values (`NILECHAT` and `ESCALATED`) into one new value (`DEEPSEEK`) directly:
 
@@ -353,11 +353,11 @@ def downgrade() -> None:
     op.execute("DROP TYPE modeltier_new")
 ```
 
-- [ ] **Step 4: Verify against a real database**
+- [x] **Step 4: Verify against a real database**
 
 Run: `cd backend && make upgrade` against a scratch/dev database that has at least one row of each old value (`RULE`, `NILECHAT`, `ESCALATED`) in both `messages.model_tier` and `orders.extracted_by_tier` — seed them by hand first if the dev DB doesn't already have all three. Confirm the upgrade applies cleanly and every row's new value is correct (`RULE`→`RULE`, `NILECHAT`/`ESCALATED`→`DEEPSEEK`). Then run `uv run alembic downgrade -1` and confirm it also applies cleanly. This is the one step in this plan touching real DDL against enum types — don't skip the manual verification even though it's not a pytest step.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/models/enums.py backend/alembic/versions/*_collapse_modeltier_to_rule_deepseek.py
@@ -383,16 +383,16 @@ This is one atomic unit: `gateway.py`/`clients.py` have no dedicated test file (
 - Consumes: `build_system_prompt`, `CLASSIFICATION_TASK_BLOCK`, `EXTRACTION_TASK_BLOCK` (Task 1). `ModelTier.DEEPSEEK` (Task 3). `evaluate_preflight(*, text, correction_count)` (Task 2).
 - Produces: `classify_message(prompt, known_intents, threshold, correction_count, text, merchant_name, conv_state, slots) -> tuple[IntentClassification, str | None, CallUsage]` (was `tuple[IntentClassification, str, str | None, CallUsage | None]` — drops the `tier` element, `usage` is no longer optional). `extract_order(prompt, threshold, correction_count, text, merchant_name, conv_state, slots) -> tuple[ExtractionResult, str | None, CallUsage]` (same shape change). Task 5 consumes both new signatures.
 
-- [ ] **Step 1: Update `test_classification.py` and `test_extraction.py`**
+- [x] **Step 1: Update `test_classification.py` and `test_extraction.py`**
 
 In both files: replace `settings.NILECHAT_BASE_URL` with `settings.OPENROUTER_BASE_URL` in every `mock_ai.post(...)` call (2 occurrences each, at the lines that currently read `mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions")`). Update every `classify_message(...)` / `extract_order(...)` call site to the new signature (drop `overflowed`, add `merchant_name="Test Merchant"`, `conv_state=ConvState.GATHERING`, `slots={}` — matching the existing `merchant`/`conversation` fixtures in `conftest.py`, which already produce exactly those values). Update any assertion unpacking 4 return values (`result, tier, reason, usage = ...`) to 3 (`result, reason, usage = ...`), and drop any assertion on the removed `tier` string.
 
-- [ ] **Step 2: Run to verify failure against old source**
+- [x] **Step 2: Run to verify failure against old source**
 
 Run: `cd backend && uv run pytest tests/engine/test_classification.py tests/engine/test_extraction.py -v`
 Expected: FAIL — mock URL no longer matches `NILECHAT_BASE_URL`, and/or signature mismatch errors.
 
-- [ ] **Step 3: Rewrite `clients.py`**
+- [x] **Step 3: Rewrite `clients.py`**
 
 Remove the `_nilechat` client and `get_nilechat_client()`; `close_ai_clients()` closes only the remaining two:
 
@@ -427,7 +427,7 @@ async def close_ai_clients():
 
 (`AICallError`, `parse_json_content`, `record_ai_call` are unchanged — leave them exactly as they are.)
 
-- [ ] **Step 4: Rewrite `gateway.py`**
+- [x] **Step 4: Rewrite `gateway.py`**
 
 Replace `nilechat_provider()`/`escalated_provider()` with one factory, and drop the now-meaningless `provider.name == "escalated"` branching (there's only one provider, so its behavior is now unconditional):
 
@@ -465,7 +465,7 @@ provider="openrouter",
 ```
 Update the `Provider.name` field's comment (currently `# "nilechat" | "escalated" — matches the tier vocabulary already used throughout the engine`) to `# always "deepseek" — kept as a field for CallUsage/logging, not for branching`.
 
-- [ ] **Step 5: Rewrite `classification.py`**
+- [x] **Step 5: Rewrite `classification.py`**
 
 ```python
 from typing import Any, Literal, cast
@@ -531,7 +531,7 @@ async def classify_message(
 
 (`CLASSIFICATION_SYSTEM_PROMPT` is deleted — superseded by `CLASSIFICATION_TASK_BLOCK` in `prompts.py`.)
 
-- [ ] **Step 6: Rewrite `extraction.py`**
+- [x] **Step 6: Rewrite `extraction.py`**
 
 ```python
 from app.engine.gateway import CallUsage, complete, deepseek_provider
@@ -573,16 +573,16 @@ async def extract_order(
 
 (`EXTRACTION_SYSTEM_PROMPT` is deleted — superseded by `EXTRACTION_TASK_BLOCK` in `prompts.py`.)
 
-- [ ] **Step 7: Update `app/clustering/job.py`**
+- [x] **Step 7: Update `app/clustering/job.py`**
 
 `label_cluster()` calls `escalated_provider()`/`complete_json()` today — change the import and call to `deepseek_provider()`. No other logic in that file changes.
 
-- [ ] **Step 8: Run to verify it passes**
+- [x] **Step 8: Run to verify it passes**
 
 Run: `cd backend && uv run pytest tests/engine/test_classification.py tests/engine/test_extraction.py -v`
 Expected: PASS
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add backend/app/engine/clients.py backend/app/engine/gateway.py backend/app/engine/classification.py backend/app/engine/extraction.py backend/app/clustering/job.py backend/tests/engine/test_classification.py backend/tests/engine/test_extraction.py
@@ -601,20 +601,20 @@ git commit -m "feat: collapse classification/extraction to a single DeepSeek cal
 **Interfaces:**
 - Consumes: new `classify_message`/`extract_order` signatures (Task 4), `ModelTier.DEEPSEEK` (Task 3), `build_context_prompt` returning `str` (Task 2).
 
-- [ ] **Step 1: Update `test_pipeline.py`**
+- [x] **Step 1: Update `test_pipeline.py`**
 
 Replace `settings.NILECHAT_BASE_URL` with `settings.OPENROUTER_BASE_URL` in all 6 `mock_ai.post(...)` call sites. Replace both `assert result.message.model_tier == ModelTier.NILECHAT` with `assert result.message.model_tier == ModelTier.DEEPSEEK`. The existing `merchant`/`conversation` fixtures already provide a named merchant and a `ConvState.GATHERING` conversation with `slots={}` — no new fixtures needed, but if any test asserts on the exact outbound request body sent to the mocked endpoint, update that assertion to expect the new composed system prompt (containing the merchant fixture's name, e.g. `"Test Merchant"`) rather than the old bare `CLASSIFICATION_SYSTEM_PROMPT`/`EXTRACTION_SYSTEM_PROMPT` text.
 
-- [ ] **Step 2: Update `test_messages_router.py`**
+- [x] **Step 2: Update `test_messages_router.py`**
 
 Replace `settings.NILECHAT_BASE_URL` with `settings.OPENROUTER_BASE_URL` at line 75's `mock_ai.post(...)` call.
 
-- [ ] **Step 3: Run to verify failure against old source**
+- [x] **Step 3: Run to verify failure against old source**
 
 Run: `cd backend && uv run pytest tests/engine/test_pipeline.py tests/domains/test_messages_router.py -v`
 Expected: FAIL — mock URL mismatch and/or `ModelTier.NILECHAT` no longer exists (`AttributeError`).
 
-- [ ] **Step 4: Rewrite the relevant section of `pipeline.py`**
+- [x] **Step 4: Rewrite the relevant section of `pipeline.py`**
 
 Add a merchant-name lookup helper next to `_known_intents`/`_correction_count` (same pattern — a small scoped query, avoids relying on lazy-loading `conversation.merchant` in an async context):
 
@@ -722,17 +722,17 @@ Add `Merchant` to the `from app.models import (...)` block. Replace the `build_c
 
 Also update `_usage_event`'s failure branch: `provider="nilechat" if failed_tier == "nilechat" else "openrouter"` → just `provider="openrouter"` (unconditional — there's only one non-rule provider now).
 
-- [ ] **Step 5: Run to verify it passes**
+- [x] **Step 5: Run to verify it passes**
 
 Run: `cd backend && uv run pytest tests/engine/test_pipeline.py tests/domains/test_messages_router.py -v`
 Expected: PASS
 
-- [ ] **Step 6: Run the full test suite**
+- [x] **Step 6: Run the full test suite**
 
 Run: `cd backend && uv run pytest`
 Expected: PASS (this is the first point where every test in the suite exercises the new code end-to-end)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add backend/app/engine/pipeline.py backend/tests/engine/test_pipeline.py backend/tests/domains/test_messages_router.py
@@ -749,12 +749,12 @@ Only safe now that Tasks 2–5 removed every consumer of these settings.
 - Modify: `backend/app/core/config.py`
 - Modify: `backend/.env.example`
 
-- [ ] **Step 1: Confirm no remaining references**
+- [x] **Step 1: Confirm no remaining references**
 
 Run: `cd backend && grep -rn "NILECHAT" --include="*.py" . | grep -v scripts/verify_hf_endpoint.py | grep -v scripts/run_eval.py | grep -v scripts/test_engine.py`
 Expected: no output (`scripts/*` references are handled in Task 7, next).
 
-- [ ] **Step 2: Edit `config.py`**
+- [x] **Step 2: Edit `config.py`**
 
 Remove these three lines from the `# AI Tier Settings` block:
 ```python
@@ -768,7 +768,7 @@ And remove these two lines further down:
     NILECHAT_TEMPERATURE: float = 0.1
 ```
 
-- [ ] **Step 3: Edit `.env.example`**
+- [x] **Step 3: Edit `.env.example`**
 
 Remove:
 ```
@@ -785,12 +785,12 @@ Reword the OpenRouter comment from "used for both DeepSeek escalation (chat comp
 ```
 Remove the `NILECHAT_CONTEXT_TOKEN_BUDGET=2048` and `NILECHAT_TEMPERATURE=0.1` lines.
 
-- [ ] **Step 4: Run the full test suite**
+- [x] **Step 4: Run the full test suite**
 
 Run: `cd backend && uv run pytest`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/core/config.py backend/.env.example
@@ -807,7 +807,7 @@ git commit -m "chore: remove NileChat/HF settings"
 - Modify: `backend/scripts/test_engine.py`
 - Modify: `backend/eval/fixtures.json`
 
-- [ ] **Step 1: Delete `verify_hf_endpoint.py`**
+- [x] **Step 1: Delete `verify_hf_endpoint.py`**
 
 It exists solely to sanity-check a NileChat/TGI Hugging Face endpoint before switching production traffic to it — nothing to verify once there's no such endpoint.
 
@@ -815,7 +815,7 @@ It exists solely to sanity-check a NileChat/TGI Hugging Face endpoint before swi
 git rm backend/scripts/verify_hf_endpoint.py
 ```
 
-- [ ] **Step 2: Rewrite `eval/fixtures.json`**
+- [x] **Step 2: Rewrite `eval/fixtures.json`**
 
 Rename `expected_escalation_tier` to `expected_reason` and update values: `null` stays `null` for the tier-0 and clean-single-shot cases; the old `"nilechat"` label (meaning "handled without needing extra help") becomes `null` for the same reason; the old generic `"escalated"` label becomes the actual, more precise trigger string `"reasoning_heavy_content"` (this is what `ambiguous_conditional` was always tripping — the coarse tier label just didn't say so):
 
@@ -866,7 +866,7 @@ Rename `expected_escalation_tier` to `expected_reason` and update values: `null`
 ]
 ```
 
-- [ ] **Step 3: Rewrite `run_eval.py`**
+- [x] **Step 3: Rewrite `run_eval.py`**
 
 ```python
 """Manual evaluation runner — NOT part of `make test` / CI. Hits the real
@@ -943,16 +943,16 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-- [ ] **Step 4: Update `test_engine.py`**
+- [x] **Step 4: Update `test_engine.py`**
 
 Drop `overflowed`/`token_budget` from the `build_context_prompt` call (it now returns `str`, not a tuple — drop the `_overflowed` unpacking too), drop `overflowed=_overflowed` from both `classify_message`/`extract_order` calls, add `merchant_name`, `conv_state=ConvState.GATHERING`, `slots={}` to both calls (import `ConvState` from `app.models.enums`), and replace the four `Tier Used` print lines (which printed the now-removed `tier`/`ext_tier` strings) — since there's only ever one tier now, drop those two print lines entirely rather than printing a constant.
 
-- [ ] **Step 5: Run it manually**
+- [x] **Step 5: Run it manually**
 
 Run: `cd backend && PYTHONPATH=. .venv/bin/python scripts/run_eval.py`
 Expected: no case fails with an exception; review the PASS/FAIL summary (this hits the real OpenRouter API, so isn't a hard gate on this task, but should run without crashing).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A backend/scripts backend/eval/fixtures.json
@@ -966,7 +966,7 @@ git commit -m "chore: drop NileChat verification script, update eval runner and 
 **Files:**
 - Modify: `frontend/app/page.tsx`
 
-- [ ] **Step 1: Replace the NileChat-branded loading string**
+- [x] **Step 1: Replace the NileChat-branded loading string**
 
 At line 146, replace:
 ```
@@ -978,7 +978,7 @@ with:
 ```
 ("Understanding and extraction in progress via AI..." — genericized rather than naming DeepSeek directly, so this string doesn't need another edit if the model changes again.)
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add frontend/app/page.tsx
@@ -997,23 +997,23 @@ Done last, so it describes the actually-verified end state rather than an aspira
 - Modify: `CLAUDE.md`
 - Modify: `message-classification-ai-engine-spec.md`
 
-- [ ] **Step 1: `README.md`**
+- [x] **Step 1: `README.md`**
 
 Rewrite the "Built" bullet (currently "Tier 1 classification + extraction against NileChat-4B... Tier 2 escalation to DeepSeek v4 Flash, driven by pre/post-flight checks") to describe the collapsed pipeline: Tier-0 rule short-circuit, then DeepSeek v4 Flash for everything else, with pre/postflight checks now flagging results for review (`escalation_reason`, `OrderStatus.PENDING_REVIEW`) rather than routing to a second model. Rewrite the `Architecture` ASCII diagram and the bullet list below it (drop the "Tier 1 — NileChat-4B" bullet; the "Tier 2 — DeepSeek" bullet becomes the only model bullet; fix the pre-existing stale claim that embeddings are "self-hosted" — `EMBEDDING_MODEL` already routes through OpenRouter, per `config.py`'s own comment). Update the `clients.py` description (one client per backend — now two, not three).
 
-- [ ] **Step 2: `ROADMAP.md`**
+- [x] **Step 2: `ROADMAP.md`**
 
 In "Now — built today", reword "Tier 0/1/2 AI classification + extraction pipeline, with escalation policy" to reflect the two-stage (rules + DeepSeek) pipeline. Under "Phase 3", remove the "Fine-tuned NileChat ecommerce model" line — there's no NileChat to fine-tune anymore; if a future custom/self-hosted model is still a real ambition, that's a new roadmap item to add deliberately, not this stale one to leave in place.
 
-- [ ] **Step 3: `CLAUDE.md`**
+- [x] **Step 3: `CLAUDE.md`**
 
 Rewrite the "Three-tier AI routing" section: it currently documents Tier 0/Tier 1 (NileChat, 2048-token cap)/Tier 2 (DeepSeek) as three distinct tiers. Replace with a description of the two-stage design (Tier 0 rules, then DeepSeek for everything else via `deepseek_provider()`), and describe `app/engine/prompts.py`'s role (shared dialect/persona/context preamble + per-task block). Also fix the pre-existing stale line "A separate embedding model (BAAI/bge-m3, self-hosted, 1024-dim)" — it already routes through OpenRouter today, confirmed by `config.py`'s own comment; this was already wrong before this change, not introduced by it, but this section is being rewritten anyway.
 
-- [ ] **Step 4: `message-classification-ai-engine-spec.md`**
+- [x] **Step 4: `message-classification-ai-engine-spec.md`**
 
 Update the serving-architecture line (~line 19, "vLLM/SGLang expose an OpenAI-compatible /v1/chat/completions endpoint") and the Tier-1/Tier-2 description (~lines 212–213) to describe DeepSeek as the sole LLM tier. Preserve the existing rationale text about *why* NileChat was originally chosen (Egyptian-dialect/Arabizi transliteration strength) as a historical note, paired with a statement of the mitigation this plan implements instead: a system prompt carrying explicit dialect/context guidance (`app/engine/prompts.py`). Leave `docs/2026-08-22-classification-pipeline-debugging.md` untouched — it's a dated record of a past debugging session, not living documentation.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add README.md ROADMAP.md CLAUDE.md message-classification-ai-engine-spec.md
