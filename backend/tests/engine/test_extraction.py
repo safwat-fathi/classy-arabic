@@ -21,11 +21,13 @@ async def test_extract_order_stays_on_tier1_when_clean(mock_ai):
             json=_chat_response('{"line_items": [], "ambiguous_fields": [], "confidence": 0.9}'),
         )
     )
-    result, tier, reason = await extract_order(
+    result, tier, reason, usage = await extract_order(
         "customer: order text", threshold=0.7, overflowed=False, correction_count=0, text="customer: order text"
     )
     assert tier == "nilechat"
     assert reason is None
+    assert usage is not None
+    assert usage.tier == "nilechat"
 
 
 async def test_extract_order_escalates_on_ambiguous_fields(mock_ai):
@@ -41,8 +43,10 @@ async def test_extract_order_escalates_on_ambiguous_fields(mock_ai):
             json=_chat_response('{"line_items": [], "ambiguous_fields": [], "confidence": 0.85}'),
         )
     )
-    result, tier, reason = await extract_order(
+    result, tier, reason, usage = await extract_order(
         "customer: order text", threshold=0.7, overflowed=False, correction_count=0, text="customer: order text"
     )
     assert tier == "escalated"
     assert reason == "ambiguous_fields_present"
+    assert usage is not None
+    assert usage.tier == "escalated"

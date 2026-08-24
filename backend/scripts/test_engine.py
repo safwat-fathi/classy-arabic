@@ -36,7 +36,7 @@ async def test_raw_message(text: str):
     # 2. Tier 1 / Tier 2 Classification
     print("🤖 [AI Classification Step]")
     intents = ["greeting", "spam", "reaction", "purchase_intent", "question", "other"]
-    classification, tier, reason = await classify_message(
+    classification, tier, reason, _usage = await classify_message(
         prompt=prompt,
         known_intents=intents,
         threshold=0.7,
@@ -53,7 +53,7 @@ async def test_raw_message(text: str):
     # 3. Extraction (if purchase intent)
     if classification.intent == "purchase_intent":
         print("\n📦 [Order Extraction Step]")
-        extraction, ext_tier, ext_reason = await extract_order(
+        extraction, ext_tier, ext_reason, _ext_usage = await extract_order(
             prompt=prompt,
             threshold=0.7,
             overflowed=_overflowed,

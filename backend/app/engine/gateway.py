@@ -26,6 +26,16 @@ class Provider:
     temperature: float
 
 
+@dataclass(frozen=True)
+class CallUsage:
+    tier: str
+    provider: str
+    model: str
+    input_tokens: int | None
+    output_tokens: int | None
+    latency_ms: float
+
+
 def nilechat_provider() -> Provider:
     return Provider("nilechat", get_nilechat_client(), settings.NILECHAT_MODEL, settings.NILECHAT_TEMPERATURE)
 
@@ -42,7 +52,7 @@ async def complete[T: BaseModel](
     schema_model: type[BaseModel],
     parse_model: type[T],
     schema_name: str,
-) -> T:
+) -> tuple[T, CallUsage]:
     kwargs: dict = {
         "model": provider.model,
         "messages": [
@@ -62,12 +72,23 @@ async def complete[T: BaseModel](
         raise AICallError(str(exc)) from exc
 
     record_ai_call(provider.name, provider.model, start, response.usage)
+    latency_ms = (time.monotonic() - start) * 1000
 
     content = parse_json_content(response)
     try:
-        return parse_model.model_validate(content)
+        result = parse_model.model_validate(content)
     except ValidationError as exc:
         raise AICallError(f"schema validation failed: {exc}") from exc
+
+    usage = CallUsage(
+        tier=provider.name,
+        provider="openrouter" if provider.name == "escalated" else "nilechat",
+        model=provider.model,
+        input_tokens=getattr(response.usage, "prompt_tokens", None) if response.usage else None,
+        output_tokens=getattr(response.usage, "completion_tokens", None) if response.usage else None,
+        latency_ms=latency_ms,
+    )
+    return result, usage
 
 
 async def embed(text: str) -> list[float]:

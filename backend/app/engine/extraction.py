@@ -1,4 +1,4 @@
-from app.engine.gateway import complete, escalated_provider, nilechat_provider
+from app.engine.gateway import CallUsage, complete, escalated_provider, nilechat_provider
 from app.engine.routing_policy import evaluate_postflight, evaluate_preflight
 from app.engine.schemas import ExtractionResult
 
@@ -10,10 +10,10 @@ EXTRACTION_SYSTEM_PROMPT = (
 
 async def extract_order(
     prompt: str, threshold: float, overflowed: bool, correction_count: int, text: str
-) -> tuple[ExtractionResult, str, str | None]:
+) -> tuple[ExtractionResult, str, str | None, CallUsage | None]:
     preflight_reason = evaluate_preflight(text=text, overflowed=overflowed, correction_count=correction_count)
     if preflight_reason:
-        result = await complete(
+        result, usage = await complete(
             escalated_provider(),
             system_prompt=EXTRACTION_SYSTEM_PROMPT,
             user_prompt=prompt,
@@ -21,9 +21,9 @@ async def extract_order(
             parse_model=ExtractionResult,
             schema_name="order_extraction",
         )
-        return result, "escalated", preflight_reason
+        return result, "escalated", preflight_reason, usage
 
-    result = await complete(
+    result, usage = await complete(
         nilechat_provider(),
         system_prompt=EXTRACTION_SYSTEM_PROMPT,
         user_prompt=prompt,
@@ -37,7 +37,7 @@ async def extract_order(
         ambiguous_fields=result.ambiguous_fields,
     )
     if postflight_reason:
-        result = await complete(
+        result, usage = await complete(
             escalated_provider(),
             system_prompt=EXTRACTION_SYSTEM_PROMPT,
             user_prompt=prompt,
@@ -45,5 +45,5 @@ async def extract_order(
             parse_model=ExtractionResult,
             schema_name="order_extraction",
         )
-        return result, "escalated", postflight_reason
-    return result, "nilechat", None
+        return result, "escalated", postflight_reason, usage
+    return result, "nilechat", None, usage

@@ -1,8 +1,9 @@
 import httpx
+from sqlalchemy import select
 
 from app.core.config import settings
 from app.engine.pipeline import DEFAULT_INTENTS, _known_intents, process_message
-from app.models import Direction, Message, ModelTier, OrderStatus, Product
+from app.models import AIUsageEvent, Direction, Message, ModelTier, OrderStatus, Product
 
 
 def _chat_response(content: str) -> dict:
@@ -172,3 +173,29 @@ async def test_non_purchase_intent_does_not_create_order(db_session, conversatio
     assert result.message.intent == "question"
     assert result.message.model_tier == ModelTier.NILECHAT
     assert result.order is None
+
+
+async def test_process_message_persists_ai_usage_event(db_session, conversation, mock_ai):
+    # NOTE: "hi" matches the tier0 greeting regex and would short-circuit before
+    # any gateway call, so this uses a message that reaches the classifier
+    # instead (same text as test_non_purchase_intent_does_not_create_order).
+    # The mocked intent value itself is arbitrary here — only the usage event
+    # persisted for the one AI call is under test.
+    mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions").mock(
+        return_value=httpx.Response(200, json=_chat_response('{"intent": "greeting", "confidence": 0.95}'))
+    )
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    result = await process_message(db_session, conversation, "الاسعار كام؟", "الاسعار كام؟")
+
+    events = (
+        (await db_session.execute(select(AIUsageEvent).where(AIUsageEvent.message_id == result.message.id)))
+        .scalars()
+        .all()
+    )
+    assert len(events) == 1
+    assert events[0].tier == "nilechat"
+    assert events[0].conversation_id == conversation.id
+    assert events[0].latency_ms > 0

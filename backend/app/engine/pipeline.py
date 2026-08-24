@@ -9,11 +9,14 @@ from app.core.config import settings
 from app.engine.classification import classify_message
 from app.engine.clients import AICallError
 from app.engine.context_budget import build_context_prompt
+from app.engine.cost import estimate_cost
 from app.engine.embeddings import embed_text, find_similar_examples
 from app.engine.extraction import extract_order
+from app.engine.gateway import CallUsage
 from app.engine.product_matching import match_line_items_to_products
 from app.engine.tier0_rules import match_tier0
 from app.models import (
+    AIUsageEvent,
     Conversation,
     ConvState,
     Direction,
@@ -33,6 +36,36 @@ logger = logging.getLogger(__name__)
 class PipelineResult:
     message: Message
     order: Order | None
+
+
+def _usage_event(
+    conversation_id: str, message_id: str, usage: CallUsage | None, *, success: bool, failed_tier: str | None = None
+) -> AIUsageEvent:
+    if usage is not None:
+        return AIUsageEvent(
+            conversation_id=conversation_id,
+            message_id=message_id,
+            tier=usage.tier,
+            provider=usage.provider,
+            model=usage.model,
+            input_tokens=usage.input_tokens,
+            output_tokens=usage.output_tokens,
+            latency_ms=usage.latency_ms,
+            estimated_cost=estimate_cost(usage.model, usage.input_tokens, usage.output_tokens),
+            success=success,
+        )
+    return AIUsageEvent(
+        conversation_id=conversation_id,
+        message_id=message_id,
+        tier=failed_tier or "unknown",
+        provider="nilechat" if failed_tier == "nilechat" else "openrouter",
+        model="unknown",
+        input_tokens=None,
+        output_tokens=None,
+        latency_ms=0.0,
+        estimated_cost=None,
+        success=False,
+    )
 
 
 async def _known_intents(session: AsyncSession) -> list[str]:
@@ -111,7 +144,7 @@ async def process_message(
     known_intents = await _known_intents(session)
     correction_count = await _correction_count(session, conversation.id)
     try:
-        classification, tier, reason = await classify_message(
+        classification, tier, reason, usage = await classify_message(
             prompt,
             known_intents,
             settings.CLASSIFICATION_CONFIDENCE_THRESHOLD,
@@ -122,9 +155,11 @@ async def process_message(
     except AICallError as exc:
         logger.warning("classification_failed message_id=%s error=%s", message.id, exc)
         message.escalation_reason = "ai_call_failed"
+        session.add(_usage_event(conversation.id, message.id, None, success=False, failed_tier="nilechat"))
         await session.flush()
         return PipelineResult(message=message, order=None)
 
+    session.add(_usage_event(conversation.id, message.id, usage, success=True))
     message.intent = classification.intent
     message.intent_confidence = classification.confidence
     message.model_tier = ModelTier.NILECHAT if tier == "nilechat" else ModelTier.ESCALATED
@@ -142,7 +177,7 @@ async def process_message(
             mode="extraction",
         )
         try:
-            extraction, extraction_tier, extraction_reason = await extract_order(
+            extraction, extraction_tier, extraction_reason, extraction_usage = await extract_order(
                 extraction_prompt,
                 settings.CLASSIFICATION_CONFIDENCE_THRESHOLD,
                 extraction_overflowed,
@@ -153,9 +188,11 @@ async def process_message(
             logger.warning("extraction_failed message_id=%s error=%s", message.id, exc)
             if not message.escalation_reason:
                 message.escalation_reason = "ai_call_failed"
+            session.add(_usage_event(conversation.id, message.id, None, success=False, failed_tier="nilechat"))
             await session.flush()
             return PipelineResult(message=message, order=None)
 
+        session.add(_usage_event(conversation.id, message.id, extraction_usage, success=True))
         extraction.line_items = await match_line_items_to_products(
             session, conversation.merchant_id, extraction.line_items
         )
