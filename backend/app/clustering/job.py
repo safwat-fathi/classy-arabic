@@ -1,5 +1,3 @@
-import json
-import time
 from datetime import UTC, datetime
 
 import numpy as np
@@ -8,8 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.config import settings
-from app.engine.clients import get_deepseek_client, record_ai_call
+from app.engine import gateway
 from app.models import LabeledExample, Message
 
 FALLBACK_LABEL_PREFIX = "unknown_intent"
@@ -55,23 +52,13 @@ def representative_messages(cluster: list[Message], top_n: int = 5) -> list[Mess
 
 
 async def label_cluster(representatives: list[Message], cluster_size: int, cluster_id: int) -> str:
-    client = get_deepseek_client()
     texts = "\n".join(f"- {m.normalized_text}" for m in representatives)
-    start = time.monotonic()
+    system_prompt = 'You classify user messages into a 1-3 word intent. You also provide a very brief summary of the user messages. Respond with json: {"intent": snake_case_label, "summary": one_sentence}.'  # noqa: E501
+    user_prompt = f"Cluster size: {cluster_size}\nMessages:\n{texts}"
     try:
-        response = await client.chat.completions.create(
-            model=settings.DEEPSEEK_MODEL,
-            messages=[
-                {
-                    "role": "system",
-                    "content": 'You classify user messages into a 1-3 word intent. You also provide a very brief summary of the user messages. Respond with json: {"intent": snake_case_label, "summary": one_sentence}.',  # noqa: E501
-                },
-                {"role": "user", "content": f"Cluster size: {cluster_size}\nMessages:\n{texts}"},
-            ],
-            response_format={"type": "json_object"},
+        data = await gateway.complete_json(
+            gateway.escalated_provider(), system_prompt=system_prompt, user_prompt=user_prompt
         )
-        record_ai_call("escalated", settings.DEEPSEEK_MODEL, start, response.usage)
-        data = json.loads(response.choices[0].message.content)
         return data["intent"]
     except Exception:
         return f"{FALLBACK_LABEL_PREFIX}_{cluster_id}"

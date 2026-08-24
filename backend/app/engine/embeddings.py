@@ -1,23 +1,12 @@
-import time
-
-import openai
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
-from app.engine.clients import AICallError, get_embedding_client, record_ai_call
+from app.engine import gateway
 from app.models import LabeledExample
 
 
 async def embed_text(text: str) -> list[float]:
-    client = get_embedding_client()
-    start = time.monotonic()
-    try:
-        response = await client.embeddings.create(model=settings.EMBEDDING_MODEL, input=text)
-    except openai.APIError as exc:
-        raise AICallError(f"embedding call failed: {exc}") from exc
-    record_ai_call("embedding", settings.EMBEDDING_MODEL, start, response.usage)
-    return list(response.data[0].embedding)
+    return await gateway.embed(text)
 
 
 async def find_similar_examples(

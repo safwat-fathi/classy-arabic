@@ -68,3 +68,35 @@ async def complete[T: BaseModel](
         return parse_model.model_validate(content)
     except ValidationError as exc:
         raise AICallError(f"schema validation failed: {exc}") from exc
+
+
+async def embed(text: str) -> list[float]:
+    start = time.monotonic()
+    try:
+        response = await get_embedding_client().embeddings.create(model=settings.EMBEDDING_MODEL, input=text)
+    except APIError as exc:
+        raise AICallError(str(exc)) from exc
+    record_ai_call("embedding", settings.EMBEDDING_MODEL, start, response.usage)
+    return list(response.data[0].embedding)
+
+
+async def complete_json(provider: Provider, *, system_prompt: str, user_prompt: str) -> dict:
+    kwargs: dict = {
+        "model": provider.model,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "response_format": {"type": "json_object"},
+        "temperature": provider.temperature,
+    }
+    if provider.name == "escalated" and settings.OPENROUTER_PROVIDERS:
+        kwargs["extra_body"] = {"provider": {"order": settings.OPENROUTER_PROVIDERS}}
+
+    start = time.monotonic()
+    try:
+        response = await provider.client.chat.completions.create(**kwargs)
+    except APIError as exc:
+        raise AICallError(str(exc)) from exc
+    record_ai_call(provider.name, provider.model, start, response.usage)
+    return parse_json_content(response)
