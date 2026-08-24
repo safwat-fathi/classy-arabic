@@ -31,5 +31,5 @@ async def find_similar_examples(
         if rows:
             return rows
 
-    result = await session.execute(base_query)
-    return list(result.scalars().all())
+    global_pool = await session.execute(base_query.where(LabeledExample.merchant_id.is_(None)))
+    return list(global_pool.scalars().all())

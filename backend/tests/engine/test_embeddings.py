@@ -2,7 +2,7 @@ import httpx
 
 from app.core.config import settings
 from app.engine.embeddings import embed_text, find_similar_examples
-from app.models import LabeledExample
+from app.models import LabeledExample, Merchant
 
 
 async def test_embed_text_calls_embedding_endpoint(mock_ai):
@@ -60,3 +60,22 @@ async def test_find_similar_examples_falls_back_to_global_pool(db_session, merch
     results = await find_similar_examples(db_session, embedding, merchant.id, limit=5)
     assert len(results) == 1
     assert results[0].normalized_text == "global only"
+
+
+async def test_find_similar_examples_never_returns_other_merchants_data(db_session, merchant):
+    other = Merchant(name="Other Merchant")
+    db_session.add(other)
+    await db_session.flush()
+    other_example = LabeledExample(
+        merchant_id=other.id,
+        normalized_text="other merchant's example",
+        intent="other",
+        embedding=[0.1] * 1024,
+        source="manual_seed",
+    )
+    db_session.add(other_example)
+    await db_session.flush()
+
+    results = await find_similar_examples(db_session, [0.1] * 1024, merchant_id=merchant.id)
+
+    assert other_example.id not in {r.id for r in results}
