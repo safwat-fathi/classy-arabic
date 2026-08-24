@@ -23,13 +23,6 @@ def parse_json_content(response) -> dict:
         raise AICallError(f"non-json content: {content[:200]!r}") from exc
 
 
-_nilechat = AsyncOpenAI(
-    base_url=settings.NILECHAT_BASE_URL,
-    api_key=settings.NILECHAT_API_KEY,
-    timeout=settings.AI_REQUEST_TIMEOUT_SECONDS,
-    max_retries=settings.AI_MAX_RETRIES,
-)
-
 _deepseek = AsyncOpenAI(
     base_url=settings.OPENROUTER_BASE_URL,
     api_key=settings.OPENROUTER_API_KEY,
@@ -45,10 +38,6 @@ _embedding = AsyncOpenAI(
 )
 
 
-def get_nilechat_client() -> AsyncOpenAI:
-    return _nilechat
-
-
 def get_deepseek_client() -> AsyncOpenAI:
     return _deepseek
 
@@ -58,7 +47,6 @@ def get_embedding_client() -> AsyncOpenAI:
 
 
 async def close_ai_clients():
-    await _nilechat.close()
     await _deepseek.close()
     await _embedding.close()
 

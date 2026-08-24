@@ -2,6 +2,7 @@ import httpx
 
 from app.core.config import settings
 from app.engine.extraction import extract_order
+from app.models.enums import ConvState
 
 
 def _chat_response(content: str) -> dict:
@@ -14,39 +15,43 @@ def _chat_response(content: str) -> dict:
     }
 
 
-async def test_extract_order_stays_on_tier1_when_clean(mock_ai):
-    mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions").mock(
+async def test_extract_order_returns_result_when_clean(mock_ai):
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         return_value=httpx.Response(
             200,
             json=_chat_response('{"line_items": [], "ambiguous_fields": [], "confidence": 0.9}'),
         )
     )
-    result, tier, reason, usage = await extract_order(
-        "customer: order text", threshold=0.7, overflowed=False, correction_count=0, text="customer: order text"
+    result, reason, usage = await extract_order(
+        "customer: order text",
+        threshold=0.7,
+        correction_count=0,
+        text="customer: order text",
+        merchant_name="Test Merchant",
+        conv_state=ConvState.GATHERING,
+        slots={},
     )
-    assert tier == "nilechat"
     assert reason is None
     assert usage is not None
-    assert usage.tier == "nilechat"
+    assert usage.tier == "deepseek"
 
 
-async def test_extract_order_escalates_on_ambiguous_fields(mock_ai):
-    mock_ai.post(f"{settings.NILECHAT_BASE_URL}/chat/completions").mock(
+async def test_extract_order_flags_ambiguous_fields(mock_ai):
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         return_value=httpx.Response(
             200,
             json=_chat_response('{"line_items": [], "ambiguous_fields": ["address"], "confidence": 0.9}'),
         )
     )
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
-        return_value=httpx.Response(
-            200,
-            json=_chat_response('{"line_items": [], "ambiguous_fields": [], "confidence": 0.85}'),
-        )
+    result, reason, usage = await extract_order(
+        "customer: order text",
+        threshold=0.7,
+        correction_count=0,
+        text="customer: order text",
+        merchant_name="Test Merchant",
+        conv_state=ConvState.GATHERING,
+        slots={},
     )
-    result, tier, reason, usage = await extract_order(
-        "customer: order text", threshold=0.7, overflowed=False, correction_count=0, text="customer: order text"
-    )
-    assert tier == "escalated"
     assert reason == "ambiguous_fields_present"
     assert usage is not None
-    assert usage.tier == "escalated"
+    assert usage.tier == "deepseek"

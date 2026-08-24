@@ -11,7 +11,6 @@ from app.engine.clients import (
     AICallError,
     get_deepseek_client,
     get_embedding_client,
-    get_nilechat_client,
     parse_json_content,
     record_ai_call,
 )
@@ -20,7 +19,7 @@ from app.engine.schemas import json_schema_response_format
 
 @dataclass(frozen=True)
 class Provider:
-    name: str  # "nilechat" | "escalated" — matches the tier vocabulary already used throughout the engine
+    name: str  # always "deepseek" — kept as a field for CallUsage/logging, not for branching
     client: AsyncOpenAI
     model: str
     temperature: float
@@ -36,12 +35,8 @@ class CallUsage:
     latency_ms: float
 
 
-def nilechat_provider() -> Provider:
-    return Provider("nilechat", get_nilechat_client(), settings.NILECHAT_MODEL, settings.NILECHAT_TEMPERATURE)
-
-
-def escalated_provider() -> Provider:
-    return Provider("escalated", get_deepseek_client(), settings.DEEPSEEK_MODEL, settings.DEEPSEEK_TEMPERATURE)
+def deepseek_provider() -> Provider:
+    return Provider("deepseek", get_deepseek_client(), settings.DEEPSEEK_MODEL, settings.DEEPSEEK_TEMPERATURE)
 
 
 async def complete[T: BaseModel](
@@ -62,7 +57,7 @@ async def complete[T: BaseModel](
         "response_format": json_schema_response_format(schema_model, schema_name),
         "temperature": provider.temperature,
     }
-    if provider.name == "escalated" and settings.OPENROUTER_PROVIDERS:
+    if settings.OPENROUTER_PROVIDERS:
         kwargs["extra_body"] = {"provider": {"order": settings.OPENROUTER_PROVIDERS}}
 
     start = time.monotonic()
@@ -82,7 +77,7 @@ async def complete[T: BaseModel](
 
     usage = CallUsage(
         tier=provider.name,
-        provider="openrouter" if provider.name == "escalated" else "nilechat",
+        provider="openrouter",
         model=provider.model,
         input_tokens=getattr(response.usage, "prompt_tokens", None) if response.usage else None,
         output_tokens=getattr(response.usage, "completion_tokens", None) if response.usage else None,
@@ -111,7 +106,7 @@ async def complete_json(provider: Provider, *, system_prompt: str, user_prompt: 
         "response_format": {"type": "json_object"},
         "temperature": provider.temperature,
     }
-    if provider.name == "escalated" and settings.OPENROUTER_PROVIDERS:
+    if settings.OPENROUTER_PROVIDERS:
         kwargs["extra_body"] = {"provider": {"order": settings.OPENROUTER_PROVIDERS}}
 
     start = time.monotonic()

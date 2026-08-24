@@ -57,7 +57,7 @@ async def label_cluster(representatives: list[Message], cluster_size: int, clust
     user_prompt = f"Cluster size: {cluster_size}\nMessages:\n{texts}"
     try:
         data = await gateway.complete_json(
-            gateway.escalated_provider(), system_prompt=system_prompt, user_prompt=user_prompt
+            gateway.deepseek_provider(), system_prompt=system_prompt, user_prompt=user_prompt
         )
         return data["intent"]
     except Exception:
