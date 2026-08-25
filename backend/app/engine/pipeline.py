@@ -19,7 +19,6 @@ from app.models import (
     AIUsageEvent,
     Conversation,
     ConvState,
-    Direction,
     LabeledExample,
     Merchant,
     Message,

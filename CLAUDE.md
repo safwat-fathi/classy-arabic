@@ -10,13 +10,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-An async FastAPI backend for classifying inbound Egyptian-Arabic/Arabizi merchant chat messages (e.g. WhatsApp-style order conversations) and extracting structured order data. See `message-classification-ai-engine-spec.md` for the full technical spec — it's the source of truth for the pipeline design, model tiers, and escalation policy. This repo is one piece of the broader TijaratkBot platform described in `TijaratkBot_SRD.md` / `TijaratkBot_PRD.md`; see the root `README.md` and `ROADMAP.md` for what's built vs. not. No channel/webhook integration exists yet — `POST /messages` runs the full pipeline against an existing `conversation_id`, but nothing yet creates that conversation from a real customer message.
+An async FastAPI backend for classifying inbound Egyptian-Arabic/Arabizi merchant chat messages (e.g. WhatsApp-style order conversations) and extracting structured order data. See `message-classification-ai-engine-spec.md` for the full technical spec — it's the source of truth for the pipeline design, model tiers, and escalation policy. This repo is one piece of the broader TijaratkBot platform described in `TijaratkBot_SRD.md` / `TijaratkBot_PRD.md`; see the root `README.md` and `ROADMAP.md` for what's built vs. not. Webhook endpoints (`/webhooks/meta` and `/webhooks/whatsapp/twilio`) ingest real customer messages, creating conversations and enqueuing jobs to an `arq` worker to run the pipeline, but outbound sending does not exist yet.
 
 ## Commands
 
 ```bash
 make dev        # uvicorn --reload
 make run         # uvicorn (no reload)
+make worker      # uv run arq app.worker.WorkerSettings
 make test        # uv run pytest
 make lint        # uv run ruff check .
 make format      # uv run ruff format .
@@ -26,7 +27,7 @@ make upgrade     # alembic upgrade head
 
 Run a single test: `uv run pytest tests/engine/test_routing_policy.py::test_escalates_on_low_confidence`
 
-Requires Python 3.13 and a running Postgres with the `pgvector` extension available (the initial migration runs `CREATE EXTENSION IF NOT EXISTS vector`). Config comes from `.env` (see `.env.example`) via `app/core/config.py`'s pydantic-settings `Settings`.
+Requires Python 3.13, a running Redis instance (`redis://localhost:6379/0` by default), and a running Postgres with the `pgvector` extension available (the initial migration runs `CREATE EXTENSION IF NOT EXISTS vector`). Config comes from `.env` (see `.env.example`) via `app/core/config.py`'s pydantic-settings `Settings`.
 
 ## Architecture
 
@@ -62,5 +63,5 @@ Postgres enums shared across multiple tables (e.g. `ModelTier` used by both `mes
 ## Known in-progress / not-yet-implemented
 
 - `backend/scripts/seed.py` exists and seeds demo merchant data (`make seed`).
-- The classification/extraction pipeline is wired into a request path (`POST /messages` → `app/engine/pipeline.py::process_message`), but only for a message against an already-existing `conversation_id`. There is still no channel/webhook ingestion (Facebook/Instagram/WhatsApp) and no way for an external customer message to create or reach a conversation.
+- The classification/extraction pipeline is wired into a request path (`POST /messages` → `app/engine/pipeline.py::process_message`). Channel/webhook ingestion (Facebook/Instagram/WhatsApp via Twilio) is implemented at `/webhooks/*`, which verifies signatures and enqueues messages to the `arq` worker (`make worker`) for processing.
 - No cart, checkout, billing, delivery, or multi-tenant dashboard layer yet — see the root `ROADMAP.md` for the full list against the PRD's MVP scope.

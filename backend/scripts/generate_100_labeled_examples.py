@@ -1,11 +1,12 @@
 import asyncio
 import logging
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from app.core.config import settings
 from app.engine.embeddings import embed_text
-from app.models import LabeledExample, Merchant, Product
+from app.models import LabeledExample, Merchant
 from app.models._ids import new_id
 
 logging.basicConfig(level=logging.INFO)

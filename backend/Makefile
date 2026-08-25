@@ -1,10 +1,13 @@
-.PHONY: run dev test lint format migrate upgrade db-bash seed
+.PHONY: run dev worker test lint format migrate upgrade db-bash seed
 
 run:
-	uv run uvicorn app.main:app
+	uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 dev:
 	uv run uvicorn app.main:app --reload
+
+worker:
+	uv run arq app.worker.WorkerSettings
 
 test:
 	uv run pytest

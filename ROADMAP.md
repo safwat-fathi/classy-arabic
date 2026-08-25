@@ -9,12 +9,12 @@ Sourced from `TijaratkBot_PRD.md` (§4–§5, §35, §37) and `TijaratkBot_SRD.m
 - API domains: `health`, `messages` (message ingest → full pipeline), `products`, `conversations`
 - Offline clustering job, seed/dev scripts
 - Demo frontend workspace (`/demo`): product catalog, message composer, AI insights panel
+- **Channel/webhook ingestion** — Facebook, Instagram, WhatsApp (via Twilio) text webhooks with signature verification, deduplication, and an arq worker queue. `ChannelConnection` provisioned manually; outbound replies not implemented. (SRD §7, §35–§37)
 
 ## Near-term — MVP gap-closers
 
 Everything below is in the PRD's MVP scope (§4) or Success Criteria (§35) but not yet in this repo:
 
-- **Channel/webhook ingestion** — Facebook, Instagram, WhatsApp adapters; webhook validation, deduplication, and idempotency (SRD §7, §35–§37)
 - **AI action validator + tool layer** — `search_products`, `get_product`, `add_to_cart`, `update_cart`, `remove_from_cart`, `get_checkout_state`, `update_customer_info`, `create_order`, `search_store_knowledge` (SRD §21, PRD §15)
 - **Cart & checkout services** — `Cart`, `CartItem` entities and the deterministic cart/checkout flow (SRD §25)
 - **Order service hardening** — validate customer info/delivery area, order snapshotting, order numbers (SRD §26–§27); the `Order` model exists but the surrounding service layer doesn't yet

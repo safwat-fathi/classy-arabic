@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.core.database import engine
-from app.models import Conversation, ConvState, Merchant
+from app.models import Channel, ChannelConnection, Conversation, ConvState, Merchant
 
 
 @pytest.fixture
@@ -61,3 +61,29 @@ def mock_ai(httpx2_mock):
     # httpx2's transport instead; `mock_ai` just forwards it so every existing
     # `mock_ai.post(...)` call site keeps working unchanged.
     yield httpx2_mock
+
+
+@pytest.fixture
+async def channel_connection(db_session, merchant):
+    connection = ChannelConnection(
+        merchant_id=merchant.id,
+        channel=Channel.FACEBOOK,
+        external_account_id="test-page-id",
+    )
+    db_session.add(connection)
+    await db_session.flush()
+    return connection
+
+
+class FakeArqPool:
+    def __init__(self):
+        self.enqueued: list[tuple[str, tuple, dict]] = []
+
+    async def enqueue_job(self, function: str, *args, **kwargs):
+        self.enqueued.append((function, args, kwargs))
+        return None
+
+
+@pytest.fixture
+def fake_arq_pool():
+    return FakeArqPool()

@@ -20,6 +20,16 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 8000 // You can change this port to whatever your Nginx proxy expects for the backend
       }
+    },
+    {
+      name: 'tijaratk-bot-worker',
+      script: 'uv',
+      args: 'run arq app.worker.WorkerSettings',
+      cwd: './backend',
+      interpreter: 'none',
+      env: {
+        NODE_ENV: 'production'
+      }
     }
   ]
 };

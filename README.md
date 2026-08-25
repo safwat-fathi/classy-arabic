@@ -19,9 +19,9 @@ This repo currently implements the **AI message-classification/routing engine** 
 - Product search domain (`app/domains/products`), conversation domain (`app/domains/conversations`)
 - Offline clustering job and seed/dev scripts (`backend/scripts/`)
 - A demo frontend workspace at `/demo` (product catalog + message composer + AI insights panel)
+- Channel/webhook ingestion: webhook endpoints at `/webhooks/meta` (Facebook + Instagram) and `/webhooks/whatsapp/twilio` (WhatsApp via Twilio) verify, deduplicate, and persist inbound messages, then enqueue them to an `arq`/Redis worker that runs the existing classification pipeline — `ChannelConnection` rows must be provisioned manually (no onboarding UI yet); outbound replies are not implemented.
 
 **Not yet built** (see `ROADMAP.md` for the full breakdown against PRD MVP scope):
-- Channel/webhook ingestion (Facebook, Instagram, WhatsApp) — there is no way for a real customer message to reach the API yet; `/messages` requires an existing `conversation_id`
 - AI action validator + tool layer (`search_products`, `add_to_cart`, etc. per SRD §21)
 - Cart, checkout, and order-processing services beyond the `Order` model itself
 - Multi-tenancy enforcement (the SRD's `Tenant` entity/isolation model)
