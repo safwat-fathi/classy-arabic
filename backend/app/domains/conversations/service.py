@@ -5,11 +5,8 @@ from app.domains.conversations.schemas import ConversationRead
 from app.models import Conversation
 
 
-async def list_conversations(db: AsyncSession, merchant_id: str | None) -> list[ConversationRead]:
-    stmt = select(Conversation)
-    if merchant_id is not None:
-        stmt = stmt.where(Conversation.merchant_id == merchant_id)
-    stmt = stmt.order_by(Conversation.last_message_at.desc())
+async def list_conversations(db: AsyncSession, merchant_id: str) -> list[ConversationRead]:
+    stmt = select(Conversation).where(Conversation.merchant_id == merchant_id).order_by(Conversation.last_message_at.desc())
     result = await db.execute(stmt)
     conversations = result.scalars().all()
     return [

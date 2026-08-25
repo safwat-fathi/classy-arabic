@@ -8,7 +8,9 @@ function DemoHeader() {
   return (
     <header className="border-b border-gray-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-4">
-        <BrandMark size="sm" />
+        <Link href="/">
+          <BrandMark size="sm" />
+        </Link>
         <Link
           href="/"
           className="text-sm font-medium text-gray-500 hover:text-emerald-700"
@@ -20,8 +22,23 @@ function DemoHeader() {
   );
 }
 
+const DEMO_STOPGAP_MERCHANT_ID = process.env.DEMO_STOPGAP_MERCHANT_ID;
+
 export default async function Home() {
-  const conversations = await getConversations();
+  if (!DEMO_STOPGAP_MERCHANT_ID) {
+    return (
+      <>
+        <DemoHeader />
+        <main className="mx-auto flex max-w-2xl flex-col gap-4 p-8">
+          <h1 className="text-2xl font-semibold">TijaratkBot — ديمو المحرك</h1>
+          <p className="text-sm text-red-600">
+            DEMO_STOPGAP_MERCHANT_ID مش متظبط. حطه في .env وبعدين حدّث الصفحة.
+          </p>
+        </main>
+      </>
+    );
+  }
+  const conversations = await getConversations(DEMO_STOPGAP_MERCHANT_ID);
   let conversation = conversations[0];
   let products: Product[] = [];
 
@@ -30,9 +47,7 @@ export default async function Home() {
       <>
         <DemoHeader />
         <main className="mx-auto flex max-w-2xl flex-col gap-4 p-8">
-          <h1 className="text-2xl font-semibold">
-            TijaratkBot — ديمو المحرك
-          </h1>
+          <h1 className="text-2xl font-semibold">TijaratkBot — ديمو المحرك</h1>
           <p className="text-sm text-red-600">
             مفيش محادثة موجودة. شغّل <code>make seed</code> في{" "}
             <code>backend/</code> الأول، وبعد كده حدّث الصفحة.

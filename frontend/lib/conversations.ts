@@ -7,14 +7,15 @@ export interface Conversation {
   last_message_at: string;
 }
 
-export async function getConversations(): Promise<Conversation[]> {
+export async function getConversations(merchantId: string): Promise<Conversation[]> {
   const baseUrl = process.env.BASE_API_URL;
   if (!baseUrl) {
     throw new Error("BASE_API_URL not configured");
   }
-  const response = await fetch(`${baseUrl}/conversations/`, {
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `${baseUrl}/conversations/?merchant_id=${encodeURIComponent(merchantId)}`,
+    { cache: "no-store" },
+  );
   if (!response.ok) {
     throw new Error(`Failed to fetch conversations: ${response.status}`);
   }

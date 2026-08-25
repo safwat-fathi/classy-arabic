@@ -232,7 +232,7 @@ async def test_process_message_routes_to_action_resolution_when_enabled(db_sessi
 
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         return_value=httpx.Response(
-            200, json=_chat_response('{"action": "get_checkout_state", "confidence": 0.95}')
+            200, json=_chat_response('{"action": "search_store_knowledge", "query": "test", "confidence": 0.95}')
         )
     )
 
@@ -242,6 +242,6 @@ async def test_process_message_routes_to_action_resolution_when_enabled(db_sessi
 
     # Assert that the message was routed to action_resolution and ModelTier.DEEPSEEK was set
     assert result.message.model_tier == ModelTier.DEEPSEEK
-    # Escalation reason should be set from the tool unavailability (get_checkout_state is stubbed and fails)
-    assert result.message.escalation_reason == "tool_unavailable:get_checkout_state"
+    # Escalation reason should be set from the tool unavailability (search_store_knowledge is stubbed and fails)
+    assert result.message.escalation_reason == "tool_unavailable:search_store_knowledge"
     assert result.order is None

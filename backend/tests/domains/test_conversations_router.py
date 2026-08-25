@@ -38,7 +38,7 @@ async def test_list_conversations_filters_by_merchant_id(db_session, merchant, c
     assert body[0]["merchant_id"] == merchant.id
 
 
-async def test_list_conversations_without_filter_returns_all(db_session, conversation):
+async def test_list_conversations_requires_merchant_id(db_session, conversation):
     async def _override_get_db():
         yield db_session
 
@@ -49,6 +49,4 @@ async def test_list_conversations_without_filter_returns_all(db_session, convers
     finally:
         app.dependency_overrides.pop(get_db, None)
 
-    assert response.status_code == 200
-    body = response.json()
-    assert any(c["id"] == conversation.id for c in body)
+    assert response.status_code == 422

@@ -21,9 +21,7 @@ async def test_resolve_action_executes_search_products(db_session, merchant, con
     mock_ai.post("https://openrouter.ai/api/v1/chat/completions").mock(
         return_value=httpx.Response(
             200,
-            json=_chat_response(
-                '{"action": "search_products", "query": "shirt", "filters": {}, "confidence": 0.92}'
-            ),
+            json=_chat_response('{"action": "search_products", "query": "shirt", "filters": {}, "confidence": 0.92}'),
         )
     )
 
@@ -51,14 +49,14 @@ async def test_resolve_action_escalates_on_rejected_action(db_session, merchant,
 async def test_resolve_action_escalates_on_unavailable_tool(db_session, merchant, conversation, message, mock_ai):
     mock_ai.post("https://openrouter.ai/api/v1/chat/completions").mock(
         return_value=httpx.Response(
-            200, json=_chat_response('{"action": "get_checkout_state", "confidence": 0.9}')
+            200, json=_chat_response('{"action": "search_store_knowledge", "query": "test", "confidence": 0.9}')
         )
     )
 
     resolution = await resolve_action(db_session, conversation, message)
 
     assert resolution.outcome.status == "failed"
-    assert resolution.escalation_reason == "tool_unavailable:get_checkout_state"
+    assert resolution.escalation_reason == "tool_unavailable:search_store_knowledge"
     assert "team" in resolution.response_text.lower() or "help" in resolution.response_text.lower()
 
 
@@ -66,9 +64,7 @@ async def test_resolve_action_escalates_on_invalid_json_after_retry(
     db_session, merchant, conversation, message, mock_ai
 ):
     mock_ai.post("https://openrouter.ai/api/v1/chat/completions").mock(
-        return_value=httpx.Response(
-            200, json=_chat_response('not valid json')
-        )
+        return_value=httpx.Response(200, json=_chat_response("not valid json"))
     )
 
     resolution = await resolve_action(db_session, conversation, message)
