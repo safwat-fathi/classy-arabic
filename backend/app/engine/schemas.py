@@ -22,9 +22,9 @@ class ExtractedLineItem(BaseModel):
 
 class ExtractionResult(BaseModel):
     line_items: list[ExtractedLineItem] = Field(default_factory=list)
-    address: str | None = None
-    phone: str | None = None
-    payment_method: str | None = None
+    address: str | None = Field(default=None, description="The shipping address explicitly mentioned in the message.")
+    phone: str | None = Field(default=None, description="The phone number explicitly mentioned in the message.")
+    payment_method: str | None = Field(default=None, description="The payment method explicitly mentioned in the message (e.g. 'InstaPay', 'Vodafone Cash', 'Cash on Delivery'). Watch out for slang like 'Insta', 'انستا', 'كاش', 'vf cash'.")
     ambiguous_fields: list[str] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
 
