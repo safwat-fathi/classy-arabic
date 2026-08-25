@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import DateTime, Float, ForeignKey, Index, String, func
+from sqlalchemy import DateTime, Float, ForeignKey, Index, String, func, text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,7 +19,15 @@ if TYPE_CHECKING:
 
 class Message(Base):
     __tablename__ = "messages"
-    __table_args__ = (Index("ix_messages_conversation_id_created_at", "conversation_id", "created_at"),)
+    __table_args__ = (
+        Index("ix_messages_conversation_id_created_at", "conversation_id", "created_at"),
+        Index(
+            "ix_messages_external_message_id_unique",
+            "external_message_id",
+            unique=True,
+            postgresql_where=text("external_message_id IS NOT NULL"),
+        ),
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=new_id)
     conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"), nullable=False)
@@ -30,6 +38,7 @@ class Message(Base):
     intent_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
     model_tier: Mapped[ModelTier | None] = mapped_column(SAEnum(ModelTier, name="modeltier"), nullable=True)
     escalation_reason: Mapped[str | None] = mapped_column(String, nullable=True)
+    external_message_id: Mapped[str | None] = mapped_column(String, nullable=True)
     embedding: Mapped[list[float] | None] = mapped_column(Vector(1024), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     clustered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

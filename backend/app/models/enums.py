@@ -24,3 +24,9 @@ class OrderStatus(enum.StrEnum):
     PENDING_REVIEW = "PENDING_REVIEW"
     CONFIRMED = "CONFIRMED"
     REJECTED = "REJECTED"
+
+
+class Channel(enum.StrEnum):
+    FACEBOOK = "FACEBOOK"
+    INSTAGRAM = "INSTAGRAM"
+    WHATSAPP = "WHATSAPP"
