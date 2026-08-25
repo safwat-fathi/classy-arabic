@@ -5,10 +5,10 @@ import { CheckIcon } from "@/components/ui/check-icon";
 export function Hero() {
   return (
     <section
-      className="relative"
+      className="relative overflow-hidden"
       style={{
         background:
-          "radial-gradient(1100px 520px at 82% -10%, rgba(16,185,129,0.24), transparent 60%), radial-gradient(700px 420px at 8% 110%, rgba(16,185,129,0.14), transparent 55%), #0a0f0d",
+          "radial-gradient(1200px 800px at 82% 0%, rgba(16,185,129,0.35), transparent 70%), radial-gradient(1000px 800px at 10% 100%, rgba(5,150,105,0.25), transparent 70%), #022c22",
       }}
     >
       <div className="mx-auto grid max-w-6xl items-start gap-10 px-5 pt-8 pb-16 sm:px-8 sm:pt-12 sm:pb-24 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:pt-16 lg:pb-28">
@@ -25,16 +25,16 @@ export function Hero() {
             </span>{" "}
             يفهم أسئلة واستفسارات عملاءك ويرد عليهم و يقفل الاوردرز تلقائيا.
           </p>
-          <div className="flex flex-wrap items-center gap-3.5 mb-5">
+          <div className="flex flex-col sm:flex-row items-center gap-3.5 mb-5 w-full">
             <Link
               href="/signup"
-              className="inline-flex min-h-11 items-center rounded-xl bg-emerald-600 px-6.5 py-3.5 text-[15px] font-bold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-700"
+              className="inline-flex min-h-11 w-full sm:w-auto justify-center items-center rounded-xl bg-emerald-600 px-6.5 py-3.5 text-[15px] font-bold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-700"
             >
               🚀 ابدأ تجربتك المجانية (30 أوردر علينا)
             </Link>
             <Link
               href="/demo"
-              className="inline-flex min-h-11 items-center rounded-xl border border-white/20 px-6.5 py-3.5 text-[15px] font-semibold text-gray-200 transition-colors hover:bg-white/10"
+              className="inline-flex min-h-11 w-full sm:w-auto justify-center items-center rounded-xl border border-white/20 px-6.5 py-3.5 text-[15px] font-semibold text-gray-200 transition-colors hover:bg-white/10"
             >
               📱 جرّب شات تجريبي حي الآن
             </Link>
