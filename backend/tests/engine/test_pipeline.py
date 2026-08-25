@@ -4,6 +4,17 @@ from sqlalchemy import select
 from app.core.config import settings
 from app.engine.pipeline import DEFAULT_INTENTS, _known_intents, process_message
 from app.models import AIUsageEvent, Direction, Message, ModelTier, OrderStatus, Product
+from app.models._ids import new_id
+
+
+def _inbound_message(conversation, raw_text: str, normalized_text: str) -> Message:
+    return Message(
+        id=new_id(),
+        conversation_id=conversation.id,
+        direction=Direction.INBOUND,
+        raw_text=raw_text,
+        normalized_text=normalized_text,
+    )
 
 
 def _chat_response(content: str) -> dict:
@@ -59,7 +70,7 @@ async def test_known_intents_adds_newly_observed_labels(db_session, conversation
 
 
 async def test_tier0_short_circuit_skips_ai_calls(db_session, conversation, mock_ai):
-    result = await process_message(db_session, conversation, "👍", "👍")
+    result = await process_message(db_session, conversation, _inbound_message(conversation, "👍", "👍"))
     assert result.message.intent == "reaction"
     assert result.message.model_tier == ModelTier.RULE
     assert result.order is None
@@ -82,7 +93,7 @@ async def test_purchase_intent_in_gathering_creates_order(db_session, conversati
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
-    result = await process_message(db_session, conversation, "عايز اطلب رز", "عايز اطلب رز")
+    result = await process_message(db_session, conversation, _inbound_message(conversation, "عايز اطلب رز", "عايز اطلب رز"))
 
     assert result.message.intent == "purchase_intent"
     assert result.message.model_tier == ModelTier.DEEPSEEK
@@ -112,7 +123,7 @@ async def test_purchase_intent_line_items_match_seeded_product(db_session, conve
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
-    result = await process_message(db_session, conversation, "عايز فستان صيفي", "عايز فستان صيفي")
+    result = await process_message(db_session, conversation, _inbound_message(conversation, "عايز فستان صيفي", "عايز فستان صيفي"))
 
     assert result.order is not None
     assert result.order.extracted_payload["line_items"][0]["product_id"] == product.id
@@ -129,7 +140,7 @@ async def test_classification_failure_persists_message_instead_of_losing_it(db_s
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
-    result = await process_message(db_session, conversation, "عايز اطلب حاجة", "عايز اطلب حاجة")
+    result = await process_message(db_session, conversation, _inbound_message(conversation, "عايز اطلب حاجة", "عايز اطلب حاجة"))
 
     assert result.message.id is not None
     assert result.message.escalation_reason == "ai_call_failed"
@@ -150,7 +161,7 @@ async def test_extraction_failure_persists_message_and_classification(db_session
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
-    result = await process_message(db_session, conversation, "عايز اطلب رز", "عايز اطلب رز")
+    result = await process_message(db_session, conversation, _inbound_message(conversation, "عايز اطلب رز", "عايز اطلب رز"))
 
     assert result.message.intent == "purchase_intent"
     assert result.message.escalation_reason == "ai_call_failed"
@@ -168,7 +179,7 @@ async def test_non_purchase_intent_does_not_create_order(db_session, conversatio
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
-    result = await process_message(db_session, conversation, "الاسعار كام؟", "الاسعار كام؟")
+    result = await process_message(db_session, conversation, _inbound_message(conversation, "الاسعار كام؟", "الاسعار كام؟"))
 
     assert result.message.intent == "question"
     assert result.message.model_tier == ModelTier.DEEPSEEK
@@ -188,7 +199,7 @@ async def test_process_message_persists_ai_usage_event(db_session, conversation,
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
-    result = await process_message(db_session, conversation, "الاسعار كام؟", "الاسعار كام؟")
+    result = await process_message(db_session, conversation, _inbound_message(conversation, "الاسعار كام؟", "الاسعار كام؟"))
 
     events = (
         (await db_session.execute(select(AIUsageEvent).where(AIUsageEvent.message_id == result.message.id)))

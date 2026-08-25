@@ -97,31 +97,33 @@ async def _merchant_name(session: AsyncSession, merchant_id: str) -> str:
     return result.scalar_one()
 
 
-async def process_message(
-    session: AsyncSession, conversation: Conversation, raw_text: str, normalized_text: str
-) -> PipelineResult:
+async def process_message(session: AsyncSession, conversation: Conversation, message: Message) -> PipelineResult:
+    # `message` may be a brand-new, not-yet-flushed object (the internal
+    # POST /messages caller) or an already-persistent row loaded by the arq
+    # worker (the channel-ingestion caller, which inserted it in a prior
+    # transaction for dedup purposes) — session.add() is a safe no-op for
+    # the latter. Either way `message.id` must already be set (both callers
+    # pass id=new_id() explicitly) so the history exclusion below works
+    # regardless of flush timing.
+    session.add(message)
+    normalized_text = message.normalized_text
     tier0_intent = match_tier0(normalized_text)
 
-    # Read history BEFORE adding the new message — session.execute() autoflushes,
+    # Read history BEFORE any flush of `message` — session.execute() autoflushes,
     # which would otherwise put the message being classified into its own history
-    # and duplicate it against build_context_prompt's current_line.
+    # and duplicate it against build_context_prompt's current_line. Excluding
+    # message.id explicitly (rather than relying on flush timing) makes this
+    # correct whether `message` is pending or already persistent.
     history = []
     if not tier0_intent:
         history_result = await session.execute(
             select(Message)
-            .where(Message.conversation_id == conversation.id)
+            .where(Message.conversation_id == conversation.id, Message.id != message.id)
             .order_by(Message.created_at.desc())
             .limit(settings.CONTEXT_HISTORY_TURNS)
         )
         history = list(reversed(history_result.scalars().all()))
 
-    message = Message(
-        conversation_id=conversation.id,
-        direction=Direction.INBOUND,
-        raw_text=raw_text,
-        normalized_text=normalized_text,
-    )
-    session.add(message)
     conversation.last_message_at = datetime.now(UTC)
 
     if tier0_intent:

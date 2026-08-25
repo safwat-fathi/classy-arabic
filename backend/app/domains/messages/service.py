@@ -7,7 +7,8 @@ from app.domains.messages.schemas import (
     OrderLineItem,
 )
 from app.engine.pipeline import process_message
-from app.models import Conversation
+from app.models import Conversation, Direction, Message
+from app.models._ids import new_id
 
 
 class ConversationNotFoundError(Exception):
@@ -19,7 +20,14 @@ async def ingest_message(db: AsyncSession, payload: MessageIngestRequest) -> Mes
     if conversation is None:
         raise ConversationNotFoundError(payload.conversation_id)
 
-    result = await process_message(db, conversation, payload.raw_text, payload.normalized_text)
+    message = Message(
+        id=new_id(),
+        conversation_id=conversation.id,
+        direction=Direction.INBOUND,
+        raw_text=payload.raw_text,
+        normalized_text=payload.normalized_text,
+    )
+    result = await process_message(db, conversation, message)
 
     order_detail = None
     if result.order is not None:
