@@ -25,19 +25,19 @@ export function Hero() {
             </span>{" "}
             يفهم أسئلة واستفسارات عملاءك ويرد عليهم و يقفل الاوردرز تلقائيا.
           </p>
-          <div className="flex flex-col sm:flex-row items-center gap-3.5 mb-5 w-full">
+          <div className="flex flex-col gap-3.5 mb-5 w-full">
             <Link
               href="/signup"
               className="inline-flex min-h-11 w-full sm:w-auto justify-center items-center rounded-xl bg-emerald-600 px-6.5 py-3.5 text-[15px] font-bold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-700"
             >
-              🚀 ابدأ تجربتك المجانية (30 أوردر علينا)
+              ابدأ تجربتك المجانية (30 أوردر علينا)
             </Link>
-            <Link
+            {/* <Link
               href="/demo"
               className="inline-flex min-h-11 w-full sm:w-auto justify-center items-center rounded-xl border border-white/20 px-6.5 py-3.5 text-[15px] font-semibold text-gray-200 transition-colors hover:bg-white/10"
             >
               📱 جرّب شات تجريبي حي الآن
-            </Link>
+            </Link> */}
           </div>
           <div className="flex flex-wrap items-center gap-4 text-[13px] text-gray-400">
             <span className="flex items-center gap-1.5">

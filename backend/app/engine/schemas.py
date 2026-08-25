@@ -26,7 +26,10 @@ class ExtractionResult(BaseModel):
     line_items: list[ExtractedLineItem] = Field(default_factory=list)
     address: str | None = Field(default=None, description="The shipping address explicitly mentioned in the message.")
     phone: str | None = Field(default=None, description="The phone number explicitly mentioned in the message.")
-    payment_method: str | None = Field(default=None, description="The payment method explicitly mentioned in the message (e.g. 'InstaPay', 'Vodafone Cash', 'Cash on Delivery'). Watch out for slang like 'Insta', 'انستا', 'كاش', 'vf cash'.")
+    payment_method: str | None = Field(
+        default=None,
+        description="The payment method explicitly mentioned in the message (e.g. 'InstaPay', 'Vodafone Cash', 'Cash on Delivery'). Watch out for slang like 'Insta', 'انستا', 'كاش', 'vf cash'.",
+    )
     ambiguous_fields: list[str] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
 
@@ -128,9 +131,7 @@ class CreateOrderAction(_ActionBase):
 class SearchStoreKnowledgeAction(_ActionBase):
     action: Literal["search_store_knowledge"]
     query: str = Field(min_length=1)
-    knowledge_type: (
-        Literal["faq", "shipping", "returns", "exchange", "payment", "general"] | None
-    ) = None
+    knowledge_type: Literal["faq", "shipping", "returns", "exchange", "payment", "general"] | None = None
 
 
 ProposedAction = Annotated[
@@ -149,4 +150,3 @@ ProposedAction = Annotated[
 
 class ProposedActionEnvelope(RootModel[ProposedAction]):
     pass
-

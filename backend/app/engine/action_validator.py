@@ -30,9 +30,7 @@ def check_product_belongs_to_merchant(product: Product, merchant_id: str) -> Val
     return None
 
 
-async def _check_product_ownership(
-    session: AsyncSession, product_id: str, merchant_id: str
-) -> list[ValidationError]:
+async def _check_product_ownership(session: AsyncSession, product_id: str, merchant_id: str) -> list[ValidationError]:
     product = await session.get(Product, product_id)
     if (err := check_product_exists(product)) is not None:
         return [err]
@@ -41,9 +39,7 @@ async def _check_product_ownership(
     return []
 
 
-async def evaluate_action(
-    session: AsyncSession, action: ProposedAction, *, merchant_id: str
-) -> ValidationResult:
+async def evaluate_action(session: AsyncSession, action: ProposedAction, *, merchant_id: str) -> ValidationResult:
     """Runs SRD S20's DB-checkable validator rules for the given action.
 
     Quantity validity is enforced at the Pydantic schema layer (schemas.py) and

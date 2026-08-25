@@ -584,7 +584,6 @@ RAW_EXAMPLES = [
             "confidence": 0.97,
         },
     },
-
     # --- 46 to 70: Product & Service Inquiries / Questions ---
     {
         "text": "السلام عليكم، هو الفستان الكتان الصيفي متاح منه مقاس لارج ولا خلص؟",
@@ -711,7 +710,6 @@ RAW_EXAMPLES = [
         "intent": "question",
         "extraction": None,
     },
-
     # --- 71 to 80: Greetings & Social Openers ---
     {
         "text": "السلام عليكم ورحمة الله وبركاته",
@@ -763,7 +761,6 @@ RAW_EXAMPLES = [
         "intent": "greeting",
         "extraction": None,
     },
-
     # --- 81 to 92: Complaints, Modifications, Tracking, Cancellations ---
     {
         "text": "معلش انا كنت طلبت امبارح بس عايز اغير مقاس الجاكيت اخليه XL بدل L قبل ما تشحنوا",
@@ -825,7 +822,6 @@ RAW_EXAMPLES = [
         "intent": "complaint",
         "extraction": None,
     },
-
     # --- 93 to 97: Reactions & Short Acknowledgments ---
     {
         "text": "تمام شكرا جدا لحضرتك في انتظار الاوردر",
@@ -852,7 +848,6 @@ RAW_EXAMPLES = [
         "intent": "reaction",
         "extraction": None,
     },
-
     # --- 98 to 100: Spam / Irrelevant ---
     {
         "text": "فرصة عمل للشباب من المنزل براتب يصل الى 10000 جنيه شهريا اضغط هنا https://work-from-home-eg.com",

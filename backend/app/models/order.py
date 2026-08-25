@@ -33,8 +33,10 @@ class Order(Base):
     extracted_by_tier: Mapped[ModelTier] = mapped_column(SAEnum(ModelTier, name="modeltier"), nullable=False)
     escalation_reason: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
     source: Mapped[OrderSource] = mapped_column(
-        SAEnum(OrderSource, name="ordersource"), nullable=False,
-        default=OrderSource.AI_EXTRACTION, server_default="AI_EXTRACTION",
+        SAEnum(OrderSource, name="ordersource"),
+        nullable=False,
+        default=OrderSource.AI_EXTRACTION,
+        server_default="AI_EXTRACTION",
     )
     cart_id: Mapped[str | None] = mapped_column(ForeignKey("carts.id"), nullable=True)
     order_number: Mapped[int | None] = mapped_column(Integer, nullable=True)

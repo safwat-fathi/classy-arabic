@@ -52,8 +52,10 @@ async def test_ingest_reuses_existing_conversation_for_same_customer(db_session,
     assert first_message.conversation_id == second_message.conversation_id
 
     conversations = (
-        await db_session.execute(select(Conversation).where(Conversation.customer_ref == "customer-1"))
-    ).scalars().all()
+        (await db_session.execute(select(Conversation).where(Conversation.customer_ref == "customer-1")))
+        .scalars()
+        .all()
+    )
     assert len(conversations) == 1
 
 

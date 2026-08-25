@@ -6,9 +6,14 @@ from app.models.enums import ModelTier
 
 async def test_order_item_round_trip(db_session, merchant, conversation, message):
     order = Order(
-        merchant_id=merchant.id, conversation_id=conversation.id, message_id=message.id,
-        extracted_payload={}, status=OrderStatus.PENDING_REVIEW, confidence_score=1.0,
-        extracted_by_tier=ModelTier.DEEPSEEK, source=OrderSource.CART_CHECKOUT,
+        merchant_id=merchant.id,
+        conversation_id=conversation.id,
+        message_id=message.id,
+        extracted_payload={},
+        status=OrderStatus.PENDING_REVIEW,
+        confidence_score=1.0,
+        extracted_by_tier=ModelTier.DEEPSEEK,
+        source=OrderSource.CART_CHECKOUT,
     )
     db_session.add(order)
     await db_session.flush()
@@ -24,8 +29,12 @@ async def test_order_item_round_trip(db_session, merchant, conversation, message
 
 async def test_order_source_defaults_to_ai_extraction(db_session, merchant, conversation, message):
     order = Order(
-        merchant_id=merchant.id, conversation_id=conversation.id, message_id=message.id,
-        extracted_payload={}, status=OrderStatus.PENDING_REVIEW, confidence_score=1.0,
+        merchant_id=merchant.id,
+        conversation_id=conversation.id,
+        message_id=message.id,
+        extracted_payload={},
+        status=OrderStatus.PENDING_REVIEW,
+        confidence_score=1.0,
         extracted_by_tier=ModelTier.DEEPSEEK,
     )
     db_session.add(order)

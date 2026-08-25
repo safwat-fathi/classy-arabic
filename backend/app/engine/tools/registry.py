@@ -9,7 +9,7 @@ from app.engine.schemas import ProposedAction
 from app.engine.tools.errors import ActionArgumentError, ToolUnavailableError
 from app.models.ai_action import AIAction
 
-ToolHandler = Callable[[AsyncSession, ProposedAction, str, str], Awaitable[dict]]
+ToolHandler = Callable[[AsyncSession, ProposedAction, str, str, str], Awaitable[dict]]
 
 _REGISTRY: dict[str, ToolHandler] = {}
 
@@ -66,8 +66,14 @@ async def dispatch_action(
     validation = await evaluate_action(session, action, merchant_id=merchant_id)
     if not validation.approved:
         await _record_ai_action(
-            session, action, merchant_id, conversation_id, message_id,
-            status="rejected", errors=validation.errors, result=None,
+            session,
+            action,
+            merchant_id,
+            conversation_id,
+            message_id,
+            status="rejected",
+            errors=validation.errors,
+            result=None,
         )
         await session.commit()
         return ActionOutcome(status="rejected", result=None, errors=validation.errors)
@@ -79,34 +85,58 @@ async def dispatch_action(
         # explicit ToolUnavailableError would, never raise a bare KeyError.
         errors = [ValidationError("tool_unavailable", f"no handler registered for action {action.action!r}")]
         await _record_ai_action(
-            session, action, merchant_id, conversation_id, message_id,
-            status="failed", errors=errors, result=None,
+            session,
+            action,
+            merchant_id,
+            conversation_id,
+            message_id,
+            status="failed",
+            errors=errors,
+            result=None,
         )
         await session.commit()
         return ActionOutcome(status="failed", result=None, errors=errors)
 
     try:
-        result = await handler(session, action, merchant_id, conversation_id)
+        result = await handler(session, action, merchant_id, conversation_id, message_id)
     except ActionArgumentError as exc:
         errors = [ValidationError("argument_invalid", msg) for msg in exc.errors]
         await _record_ai_action(
-            session, action, merchant_id, conversation_id, message_id,
-            status="rejected", errors=errors, result=None,
+            session,
+            action,
+            merchant_id,
+            conversation_id,
+            message_id,
+            status="rejected",
+            errors=errors,
+            result=None,
         )
         await session.commit()
         return ActionOutcome(status="rejected", result=None, errors=errors)
     except ToolUnavailableError as exc:
         errors = [ValidationError("tool_unavailable", str(exc))]
         await _record_ai_action(
-            session, action, merchant_id, conversation_id, message_id,
-            status="failed", errors=errors, result=None,
+            session,
+            action,
+            merchant_id,
+            conversation_id,
+            message_id,
+            status="failed",
+            errors=errors,
+            result=None,
         )
         await session.commit()
         return ActionOutcome(status="failed", result=None, errors=errors)
 
     await _record_ai_action(
-        session, action, merchant_id, conversation_id, message_id,
-        status="executed", errors=[], result=result,
+        session,
+        action,
+        merchant_id,
+        conversation_id,
+        message_id,
+        status="executed",
+        errors=[],
+        result=result,
     )
     await session.commit()
     return ActionOutcome(status="executed", result=result, errors=[])

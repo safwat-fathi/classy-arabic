@@ -54,14 +54,20 @@ async def resolve_action(session: AsyncSession, conversation: Conversation, mess
     history = list(reversed(history_result.all()))
 
     prompt = build_context_prompt(
-        history, conversation.slots, message.normalized_text or message.raw_text or "", max_turns=settings.CONTEXT_HISTORY_TURNS, mode="action"
+        history,
+        conversation.slots,
+        message.normalized_text or message.raw_text or "",
+        max_turns=settings.CONTEXT_HISTORY_TURNS,
+        mode="action",
     )
 
     merchant_name = await session.scalar(select(Merchant.name).where(Merchant.id == conversation.merchant_id))
 
     system_prompt = build_system_prompt(
-        task_block=ACTION_TASK_BLOCK, merchant_name=merchant_name,
-        conv_state=conversation.state, slots=conversation.slots,
+        task_block=ACTION_TASK_BLOCK,
+        merchant_name=merchant_name,
+        conv_state=conversation.state,
+        slots=conversation.slots,
     )
 
     provider = deepseek_provider()
@@ -69,8 +75,12 @@ async def resolve_action(session: AsyncSession, conversation: Conversation, mess
     for _attempt in range(2):  # S44: retry once on invalid JSON, then escalate
         try:
             envelope, _ = await complete(
-                provider, system_prompt=system_prompt, user_prompt=prompt,
-                schema_model=ProposedActionEnvelope, parse_model=ProposedActionEnvelope, schema_name="ProposedAction",
+                provider,
+                system_prompt=system_prompt,
+                user_prompt=prompt,
+                schema_model=ProposedActionEnvelope,
+                parse_model=ProposedActionEnvelope,
+                schema_name="ProposedAction",
             )
             break
         except AICallError:
@@ -78,15 +88,19 @@ async def resolve_action(session: AsyncSession, conversation: Conversation, mess
 
     if envelope is None:
         return ActionResolution(
-            proposed_action=None, outcome=None,
+            proposed_action=None,
+            outcome=None,
             response_text="Let me get a teammate to help with this.",
             escalation_reason="ai_call_failed",
         )
 
     action = envelope.root
     outcome = await dispatch_action(
-        session, action, merchant_id=conversation.merchant_id,
-        conversation_id=conversation.id, message_id=message.id,
+        session,
+        action,
+        merchant_id=conversation.merchant_id,
+        conversation_id=conversation.id,
+        message_id=message.id,
     )
 
     escalation_reason = None
@@ -96,7 +110,8 @@ async def resolve_action(session: AsyncSession, conversation: Conversation, mess
         escalation_reason = f"tool_unavailable:{action.action}"
 
     return ActionResolution(
-        proposed_action=action, outcome=outcome,
+        proposed_action=action,
+        outcome=outcome,
         response_text=_render_response(outcome, action),
         escalation_reason=escalation_reason,
     )

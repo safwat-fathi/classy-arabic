@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domains.cart.service import CartItemNotFoundError
 from app.domains.cart import service as cart_service
+from app.domains.cart.service import CartItemNotFoundError
 from app.engine.schemas import AddToCartAction, RemoveFromCartAction, UpdateCartAction
 from app.engine.tools.errors import ActionArgumentError
 from app.engine.tools.registry import register_tool
@@ -9,7 +9,7 @@ from app.engine.tools.registry import register_tool
 
 @register_tool("add_to_cart")
 async def handle_add_to_cart(
-    session: AsyncSession, action: AddToCartAction, merchant_id: str, conversation_id: str
+    session: AsyncSession, action: AddToCartAction, merchant_id: str, conversation_id: str, message_id: str
 ) -> dict:
     # product existence/ownership already validated by evaluate_action (Task 3)
     try:
@@ -20,7 +20,7 @@ async def handle_add_to_cart(
 
 @register_tool("update_cart")
 async def handle_update_cart(
-    session: AsyncSession, action: UpdateCartAction, merchant_id: str, conversation_id: str
+    session: AsyncSession, action: UpdateCartAction, merchant_id: str, conversation_id: str, message_id: str
 ) -> dict:
     try:
         return await cart_service.update_item(
@@ -32,7 +32,7 @@ async def handle_update_cart(
 
 @register_tool("remove_from_cart")
 async def handle_remove_from_cart(
-    session: AsyncSession, action: RemoveFromCartAction, merchant_id: str, conversation_id: str
+    session: AsyncSession, action: RemoveFromCartAction, merchant_id: str, conversation_id: str, message_id: str
 ) -> dict:
     try:
         await cart_service.remove_item(session, merchant_id, conversation_id, action.line_item_id)

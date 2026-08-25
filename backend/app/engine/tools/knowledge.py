@@ -8,7 +8,7 @@ from app.engine.tools.registry import register_tool
 
 @register_tool("search_store_knowledge")
 async def handle_search_store_knowledge(
-    session: AsyncSession, action: SearchStoreKnowledgeAction, merchant_id: str, conversation_id: str
+    session: AsyncSession, action: SearchStoreKnowledgeAction, merchant_id: str, conversation_id: str, message_id: str
 ) -> dict:
     try:
         results = await knowledge_service.search(merchant_id, action.query, action.knowledge_type)

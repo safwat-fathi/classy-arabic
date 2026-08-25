@@ -36,17 +36,25 @@ def test_classification_task_block_lists_known_intents():
 
 def test_action_task_block_lists_all_nine_actions():
     for name in (
-        "search_products", "get_product", "add_to_cart", "update_cart",
-        "remove_from_cart", "get_checkout_state", "update_customer_info",
-        "create_order", "search_store_knowledge",
+        "search_products",
+        "get_product",
+        "add_to_cart",
+        "update_cart",
+        "remove_from_cart",
+        "get_checkout_state",
+        "update_customer_info",
+        "create_order",
+        "search_store_knowledge",
     ):
         assert name in ACTION_TASK_BLOCK
 
 
 def test_build_system_prompt_accepts_action_task_block():
     prompt = build_system_prompt(
-        task_block=ACTION_TASK_BLOCK, merchant_name="Test Shop",
-        conv_state=ConvState.GATHERING, slots={},
+        task_block=ACTION_TASK_BLOCK,
+        merchant_name="Test Shop",
+        conv_state=ConvState.GATHERING,
+        slots={},
     )
     assert "Test Shop" in prompt
     assert "search_products" in prompt

@@ -19,5 +19,6 @@ async def main():
         await session.commit()
         print("Done re-embedding all products with new model.")
 
+
 if __name__ == "__main__":
     asyncio.run(main())

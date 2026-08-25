@@ -17,8 +17,8 @@ _BASE_TEMPLATE = (
     "that {merchant_name}'s system uses to run its order pipeline. Nothing you "
     "output is shown to the customer directly.\n\n"
     "Customers write in Egyptian Arabic (Arabic script), Arabizi (Egyptian Arabic "
-    "transliterated into Latin letters and digits, e.g. \"3ayz\", \"momken\", "
-    "\"ezayak\", \"7abeby\"), plain English, or a mix of these in the same message, "
+    'transliterated into Latin letters and digits, e.g. "3ayz", "momken", '
+    '"ezayak", "7abeby"), plain English, or a mix of these in the same message, '
     "often with typos and no punctuation. Treat all of these as equally valid "
     "input — never ask the customer to rephrase or switch language, and never "
     "penalize confidence just because a message is in Arabizi rather than Arabic "
@@ -26,7 +26,7 @@ _BASE_TEMPLATE = (
     "Conversation stage: {conv_state}\n"
     "Already gathered for this order so far: {slots_json}\n\n"
     "Use the conversation stage and what's already gathered as context for this "
-    "message — e.g. a short reply like \"2 كيلو\" during GATHERING is almost "
+    'message — e.g. a short reply like "2 كيلو" during GATHERING is almost '
     "always filling in a quantity for whatever product is already in slots, not "
     "describing a new unrelated order.\n\n"
     "{task_block}"

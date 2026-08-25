@@ -227,7 +227,7 @@ async def test_twilio_post_rejects_invalid_signature(monkeypatch, db_session, fa
                     "MessageSid": "SM111",
                     "From": "whatsapp:+201234567890",
                     "To": "whatsapp:+14155238886",
-                    "Body": "hi"
+                    "Body": "hi",
                 },
                 headers={"X-Twilio-Signature": "not-real"},
             )

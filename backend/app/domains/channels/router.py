@@ -56,7 +56,9 @@ async def receive_meta_webhook(
         processing_error = str(exc)
         logger.warning("meta_webhook_parse_failed error=%s", exc)
 
-    channel = Channel.INSTAGRAM if isinstance(payload, dict) and payload.get("object") == "instagram" else Channel.FACEBOOK
+    channel = (
+        Channel.INSTAGRAM if isinstance(payload, dict) and payload.get("object") == "instagram" else Channel.FACEBOOK
+    )
     db.add(WebhookEvent(channel=channel, raw_payload=payload, processing_error=processing_error))
 
     new_message_ids = []

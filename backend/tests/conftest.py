@@ -57,8 +57,7 @@ async def conversation(db_session, merchant):
 @pytest.fixture
 async def message(db_session, conversation):
     msg = Message(
-        id=new_id(), conversation_id=conversation.id, direction=Direction.INBOUND,
-        normalized_text="عايز اشوف الاحذية"
+        id=new_id(), conversation_id=conversation.id, direction=Direction.INBOUND, normalized_text="عايز اشوف الاحذية"
     )
     db_session.add(msg)
     await db_session.flush()

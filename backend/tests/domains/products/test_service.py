@@ -1,4 +1,3 @@
-
 from app.domains.products.service import get_product, search_products
 from app.models.merchant import Merchant
 from app.models.product import Product

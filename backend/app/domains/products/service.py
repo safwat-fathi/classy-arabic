@@ -21,9 +21,7 @@ async def list_products(db: AsyncSession, merchant_id: str) -> list[ProductRead]
     ]
 
 
-async def search_products(
-    db: AsyncSession, merchant_id: str, query: str, filters: dict
-) -> list[ProductRead]:
+async def search_products(db: AsyncSession, merchant_id: str, query: str, filters: dict) -> list[ProductRead]:
     stmt = select(Product).where(
         Product.merchant_id == merchant_id,
         or_(Product.name.ilike(f"%{query}%"), Product.aliases.any(query)),
@@ -40,6 +38,9 @@ async def get_product(db: AsyncSession, merchant_id: str, product_id: str) -> Pr
     if product is None or product.merchant_id != merchant_id:
         return None
     return ProductRead(
-        id=product.id, merchant_id=product.merchant_id, name=product.name,
-        aliases=product.aliases, variants=product.variants,
+        id=product.id,
+        merchant_id=product.merchant_id,
+        name=product.name,
+        aliases=product.aliases,
+        variants=product.variants,
     )

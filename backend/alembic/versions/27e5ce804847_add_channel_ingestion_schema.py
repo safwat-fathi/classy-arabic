@@ -5,6 +5,7 @@ Revises: 681687521d6f
 Create Date: 2026-08-25 14:36:14.283715
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -13,8 +14,8 @@ from sqlalchemy.dialects.postgresql import ENUM, JSON
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '27e5ce804847'
-down_revision: str | Sequence[str] | None = '681687521d6f'
+revision: str = "27e5ce804847"
+down_revision: str | Sequence[str] | None = "681687521d6f"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -40,9 +41,7 @@ def upgrade() -> None:
             "channel", "external_account_id", name="uq_channel_connections_channel_external_account_id"
         ),
     )
-    op.create_index(
-        "ix_channel_connections_merchant_id", "channel_connections", ["merchant_id"]
-    )
+    op.create_index("ix_channel_connections_merchant_id", "channel_connections", ["merchant_id"])
 
     op.create_table(
         "webhook_events",
