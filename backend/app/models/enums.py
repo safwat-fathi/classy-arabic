@@ -30,3 +30,13 @@ class Channel(enum.StrEnum):
     FACEBOOK = "FACEBOOK"
     INSTAGRAM = "INSTAGRAM"
     WHATSAPP = "WHATSAPP"
+
+
+class CartStatus(enum.StrEnum):
+    ACTIVE = "ACTIVE"
+    CHECKED_OUT = "CHECKED_OUT"
+
+
+class OrderSource(enum.StrEnum):
+    AI_EXTRACTION = "AI_EXTRACTION"
+    CART_CHECKOUT = "CART_CHECKOUT"
