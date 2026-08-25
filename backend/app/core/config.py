@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     CLASSIFICATION_CONFIDENCE_THRESHOLD: float = 0.7
     CONTEXT_HISTORY_TURNS: int = 10
     DEEPSEEK_TEMPERATURE: float = 0.1
+    AI_MAX_OUTPUT_TOKENS: int = 1024
     AI_REQUEST_TIMEOUT_SECONDS: float = 30.0
     AI_MAX_RETRIES: int = 2
     SQL_ECHO: bool = False

@@ -56,6 +56,7 @@ async def complete[T: BaseModel](
         ],
         "response_format": json_schema_response_format(schema_model, schema_name),
         "temperature": provider.temperature,
+        "max_tokens": settings.AI_MAX_OUTPUT_TOKENS,
     }
     if settings.OPENROUTER_PROVIDERS:
         kwargs["extra_body"] = {"provider": {"order": settings.OPENROUTER_PROVIDERS}}
@@ -105,6 +106,7 @@ async def complete_json(provider: Provider, *, system_prompt: str, user_prompt: 
         ],
         "response_format": {"type": "json_object"},
         "temperature": provider.temperature,
+        "max_tokens": settings.AI_MAX_OUTPUT_TOKENS,
     }
     if settings.OPENROUTER_PROVIDERS:
         kwargs["extra_body"] = {"provider": {"order": settings.OPENROUTER_PROVIDERS}}

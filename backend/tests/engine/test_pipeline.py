@@ -264,3 +264,18 @@ async def test_process_message_routes_to_action_resolution_when_enabled(db_sessi
     # Escalation reason should be set from the tool unavailability (search_store_knowledge is stubbed and fails)
     assert result.message.escalation_reason == "tool_unavailable:search_store_knowledge"
     assert result.order is None
+
+import json
+
+async def test_classification_call_sets_max_tokens(db_session, conversation, mock_ai):
+    route = mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
+    )
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    await process_message(db_session, conversation, _inbound_message(conversation, "الاسعار كام؟", "الاسعار كام؟"))
+
+    sent_body = json.loads(route.calls[0].request.content)
+    assert sent_body["max_tokens"] == settings.AI_MAX_OUTPUT_TOKENS
