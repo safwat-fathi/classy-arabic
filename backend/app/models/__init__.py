@@ -9,6 +9,7 @@ from app.models.labeled_example import LabeledExample
 from app.models.merchant import Merchant
 from app.models.message import Message
 from app.models.order import Order
+from app.models.order_item import OrderItem
 from app.models.product import Product
 from app.models.webhook_event import WebhookEvent
 
@@ -28,6 +29,7 @@ __all__ = [
     "Message",
     "ModelTier",
     "Order",
+    "OrderItem",
     "OrderSource",
     "OrderStatus",
     "Product",

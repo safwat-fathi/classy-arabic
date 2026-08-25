@@ -225,6 +225,7 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
             else OrderStatus.PENDING_REVIEW
         )
         order = Order(
+            merchant_id=conversation.merchant_id,
             conversation_id=conversation.id,
             message_id=message.id,
             extracted_payload=extraction.model_dump(mode="json"),
