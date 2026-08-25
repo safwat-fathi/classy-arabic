@@ -68,9 +68,18 @@ def _usage_event(
     )
 
 
-async def _known_intents(session: AsyncSession) -> list[str]:
-    messages = await session.execute(select(Message.intent).where(Message.intent.is_not(None)).distinct())
-    labeled = await session.execute(select(LabeledExample.intent).where(LabeledExample.intent.is_not(None)).distinct())
+async def _known_intents(session: AsyncSession, merchant_id: str) -> list[str]:
+    messages = await session.execute(
+        select(Message.intent)
+        .join(Conversation, Conversation.id == Message.conversation_id)
+        .where(Message.intent.is_not(None), Conversation.merchant_id == merchant_id)
+        .distinct()
+    )
+    labeled = await session.execute(
+        select(LabeledExample.intent)
+        .where(LabeledExample.intent.is_not(None), LabeledExample.merchant_id == merchant_id)
+        .distinct()
+    )
     observed = {row[0] for row in messages.all()} | {row[0] for row in labeled.all()}
     return sorted(observed | set(DEFAULT_INTENTS))
 
@@ -149,7 +158,7 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
         examples=examples,
     )
 
-    known_intents = await _known_intents(session)
+    known_intents = await _known_intents(session, conversation.merchant_id)
     correction_count = await _correction_count(session, conversation.id)
     merchant_name, ai_tool_ordering_enabled = await _merchant_info(session, conversation.merchant_id)
 

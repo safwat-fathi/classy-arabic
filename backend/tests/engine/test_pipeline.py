@@ -3,7 +3,7 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.engine.pipeline import DEFAULT_INTENTS, _known_intents, process_message
-from app.models import AIUsageEvent, Direction, Merchant, Message, ModelTier, OrderStatus, Product
+from app.models import Conversation, ConvState, Merchant, Message, LabeledExample, AIUsageEvent, Direction, ModelTier, OrderStatus, Product
 from app.models._ids import new_id
 
 
@@ -37,35 +37,54 @@ def _embedding_response() -> dict:
 
 
 async def test_known_intents_includes_defaults_even_when_db_has_narrower_history(db_session, conversation):
-    # Regression test: a DB that only ever recorded "question" (e.g. a
-    # freshly seeded one) must not narrow the model's option list down to
-    # just that value — it should still see the full default set alongside
-    # whatever's been observed, or the classifier gets told "question" is
-    # the only valid answer and keeps reinforcing itself.
-    db_session.add(
-        Message(conversation_id=conversation.id, direction=Direction.INBOUND, normalized_text="hi", intent="question")
-    )
-    await db_session.flush()
-
-    intents = await _known_intents(db_session)
-
-    assert set(DEFAULT_INTENTS) <= set(intents)
-
-
-async def test_known_intents_adds_newly_observed_labels(db_session, conversation):
     db_session.add(
         Message(
             conversation_id=conversation.id,
             direction=Direction.INBOUND,
             normalized_text="hi",
-            intent="delivery_question",
+            intent="greeting",
+        )
+    )
+    await db_session.flush()
+    intents = await _known_intents(db_session, conversation.merchant_id)
+    assert set(DEFAULT_INTENTS).issubset(set(intents))
+
+
+async def test_known_intents_adds_newly_observed_labels(db_session, conversation):
+    db_session.add(
+        LabeledExample(
+            merchant_id=conversation.merchant_id,
+            normalized_text="foo",
+            intent="custom_intent",
+            source="test"
+        )
+    )
+    await db_session.flush()
+    intents = await _known_intents(db_session, conversation.merchant_id)
+    assert "custom_intent" in intents
+
+
+async def test_known_intents_scoped_to_merchant(db_session, merchant, conversation):
+    other_merchant = Merchant(name="Other Merchant")
+    db_session.add(other_merchant)
+    await db_session.flush()
+    other_conversation = Conversation(
+        merchant_id=other_merchant.id, customer_ref="other-cust",
+        state=ConvState.NEW, slots={}, last_message_at=conversation.last_message_at,
+    )
+    db_session.add(other_conversation)
+    await db_session.flush()
+    db_session.add(
+        Message(
+            conversation_id=other_conversation.id, direction=Direction.INBOUND,
+            normalized_text="hi", intent="other_merchants_secret_intent",
         )
     )
     await db_session.flush()
 
-    intents = await _known_intents(db_session)
+    intents = await _known_intents(db_session, merchant.id)
 
-    assert "delivery_question" in intents
+    assert "other_merchants_secret_intent" not in intents
     assert set(DEFAULT_INTENTS) <= set(intents)
 
 

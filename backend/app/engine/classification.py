@@ -53,7 +53,14 @@ async def classify_message(
         schema_name="intent_classification",
     )
 
-    reason = evaluate_preflight(text=text, correction_count=correction_count) or evaluate_postflight(
-        confidence=result.confidence, threshold=threshold
+    vocabulary_reason = None
+    if result.intent not in known_intents:
+        vocabulary_reason = "intent_outside_known_vocabulary"
+        result = IntentClassification(intent="other", confidence=result.confidence)
+
+    reason = (
+        vocabulary_reason
+        or evaluate_preflight(text=text, correction_count=correction_count)
+        or evaluate_postflight(confidence=result.confidence, threshold=threshold)
     )
     return result, reason, usage

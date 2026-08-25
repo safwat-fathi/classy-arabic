@@ -41,7 +41,7 @@ async def test_classify_message_flags_low_confidence(mock_ai):
     )
     result, reason, usage = await classify_message(
         "customer: ممكن اعرف",
-        ["purchase_intent"],
+        ["purchase_intent", "other"],
         threshold=0.7,
         correction_count=0,
         text="customer: ممكن اعرف",
@@ -53,3 +53,20 @@ async def test_classify_message_flags_low_confidence(mock_ai):
     assert reason == "confidence_below_threshold"
     assert usage is not None
     assert usage.tier == "deepseek"
+
+async def test_classify_message_rejects_off_vocabulary_intent(mock_ai):
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        return_value=httpx.Response(200, json=_chat_response('{"intent": "totally_made_up_intent", "confidence": 0.95}'))
+    )
+    result, reason, usage = await classify_message(
+        "customer: hi",
+        ["greeting", "other"],
+        threshold=0.7,
+        correction_count=0,
+        text="customer: hi",
+        merchant_name="Test Merchant",
+        conv_state=ConvState.GATHERING,
+        slots={},
+    )
+    assert result.intent == "other"
+    assert reason == "intent_outside_known_vocabulary"
