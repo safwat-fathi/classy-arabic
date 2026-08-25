@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     SQL_ECHO: bool = False
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
+    # Channel/Webhook Settings
+    REDIS_URL: str = "redis://localhost:6379/0"
+    META_APP_SECRET: str = ""
+    META_VERIFY_TOKEN: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_WEBHOOK_URL: str = ""
+
     @property
     def sqlalchemy_database_uri(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
