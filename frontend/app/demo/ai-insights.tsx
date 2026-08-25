@@ -79,6 +79,12 @@ export function AIInsights({
                   <span>{state.data.order.phone}</span>
                 </li>
               )}
+              {state.data.order.payment_method && (
+                <li className="flex gap-2">
+                  <span className="font-medium text-gray-900">طريقة الدفع:</span>
+                  <span>{state.data.order.payment_method}</span>
+                </li>
+              )}
             </ul>
 
             <div className="mt-2">

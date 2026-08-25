@@ -51,5 +51,9 @@ CLASSIFICATION_TASK_BLOCK = (
 EXTRACTION_TASK_BLOCK = (
     "Extract order details as json matching the schema: line_items, address, phone, "
     "payment_method, ambiguous_fields (list any field you are not sure about), confidence.\n"
-    "Note: Customers use slang for payments (e.g. 'Insta' or 'insta' means InstaPay, 'vf cash' means Vodafone Cash)."
+    "CRITICAL RULES:\n"
+    "1. ONLY extract information explicitly stated in the CURRENT customer message.\n"
+    "2. DO NOT copy address, phone, or other details from the few-shot examples.\n"
+    "3. If a field is not present in the current message, leave it null/empty.\n"
+    "4. Customers use slang for payments (e.g. 'Insta' or 'insta' means InstaPay, 'vf cash' means Vodafone Cash)."
 )
