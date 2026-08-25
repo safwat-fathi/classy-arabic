@@ -60,3 +60,14 @@ async def test_dispatch_executes_approved_action(db_session, merchant, conversat
     )
     assert outcome.status == "executed"
     assert outcome.result == {"product": {"id": "p-ok"}}
+
+
+async def test_dispatch_action_commits_the_audit_row(db_session, merchant, conversation):
+    action = GetProductAction(action="get_product", product_id="missing", confidence=0.9)
+    await dispatch_action(
+        db_session, action, merchant_id=merchant.id,
+        conversation_id=conversation.id, message_id="msg-commit-check",
+    )
+    # in_transaction() is False only once a commit has actually happened —
+    # flush() alone leaves the transaction open.
+    assert db_session.in_transaction() is False

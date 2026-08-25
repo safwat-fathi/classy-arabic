@@ -69,6 +69,7 @@ async def dispatch_action(
             session, action, merchant_id, conversation_id, message_id,
             status="rejected", errors=validation.errors, result=None,
         )
+        await session.commit()
         return ActionOutcome(status="rejected", result=None, errors=validation.errors)
 
     handler = _REGISTRY.get(action.action)
@@ -81,6 +82,7 @@ async def dispatch_action(
             session, action, merchant_id, conversation_id, message_id,
             status="failed", errors=errors, result=None,
         )
+        await session.commit()
         return ActionOutcome(status="failed", result=None, errors=errors)
 
     try:
@@ -91,6 +93,7 @@ async def dispatch_action(
             session, action, merchant_id, conversation_id, message_id,
             status="rejected", errors=errors, result=None,
         )
+        await session.commit()
         return ActionOutcome(status="rejected", result=None, errors=errors)
     except ToolUnavailableError as exc:
         errors = [ValidationError("tool_unavailable", str(exc))]
@@ -98,10 +101,12 @@ async def dispatch_action(
             session, action, merchant_id, conversation_id, message_id,
             status="failed", errors=errors, result=None,
         )
+        await session.commit()
         return ActionOutcome(status="failed", result=None, errors=errors)
 
     await _record_ai_action(
         session, action, merchant_id, conversation_id, message_id,
         status="executed", errors=[], result=result,
     )
+    await session.commit()
     return ActionOutcome(status="executed", result=result, errors=[])
