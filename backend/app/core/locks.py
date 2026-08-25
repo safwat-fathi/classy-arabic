@@ -1,10 +1,11 @@
+import asyncio
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from arq import ArqRedis
 
-_LOCK_TTL_SECONDS = 30
+_LOCK_TTL_SECONDS = 300
 _ACQUIRE_POLL_SECONDS = 0.05
 
 _RELEASE_SCRIPT = """
@@ -29,8 +30,6 @@ async def conversation_lock(redis: ArqRedis, conversation_id: str) -> AsyncItera
     key = f"conversation:{conversation_id}:lock"
     token = uuid.uuid4().hex
     while not await redis.set(key, token, nx=True, ex=_LOCK_TTL_SECONDS):
-        import asyncio
-
         await asyncio.sleep(_ACQUIRE_POLL_SECONDS)
     try:
         yield

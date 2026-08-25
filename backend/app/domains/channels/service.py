@@ -98,4 +98,12 @@ async def ingest_channel_message(session: AsyncSession, parsed: ParsedInboundMes
         .returning(Message.id)
     )
     result = await session.execute(insert_stmt)
-    return result.scalar_one_or_none()
+    message_id = result.scalar_one_or_none()
+    if message_id is not None:
+        return message_id
+
+    # Conflict hit; select the existing message
+    existing = await session.execute(
+        select(Message.id).where(Message.external_message_id == parsed.external_message_id)
+    )
+    return existing.scalar_one_or_none()

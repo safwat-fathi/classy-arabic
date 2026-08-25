@@ -120,7 +120,7 @@ async def test_meta_post_creates_message_and_enqueues_job(monkeypatch, db_sessio
     assert events[0].processing_error is None
 
 
-async def test_meta_post_duplicate_delivery_does_not_double_enqueue(
+async def test_meta_post_duplicate_delivery_enqueues_again_for_worker_idempotency(
     monkeypatch, db_session, channel_connection, fake_arq_pool
 ):
     monkeypatch.setattr(settings, "META_APP_SECRET", "test-app-secret")
@@ -140,7 +140,7 @@ async def test_meta_post_duplicate_delivery_does_not_double_enqueue(
         app.dependency_overrides.pop(get_db, None)
         app.dependency_overrides.pop(get_arq_pool, None)
 
-    assert len(fake_arq_pool.enqueued) == 1
+    assert len(fake_arq_pool.enqueued) == 2
 
 
 async def test_meta_post_unparseable_body_still_returns_200(monkeypatch, db_session, fake_arq_pool):

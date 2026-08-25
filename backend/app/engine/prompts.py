@@ -57,3 +57,29 @@ EXTRACTION_TASK_BLOCK = (
     "3. If a field is not present in the current message, leave it null/empty.\n"
     "4. If the customer mentions payment (e.g., 'Insta', 'انستا', 'كاش', 'cash', 'vf cash'), extract it into `payment_method` (e.g. 'InstaPay', 'Cash on Delivery', 'Vodafone Cash')."
 )
+
+ACTION_TASK_BLOCK = """
+TASK: Decide the single best next action for this customer message.
+
+Available actions (respond with exactly one action, matching its argument shape):
+1. search_products(query, filters) - customer is browsing or looking for products
+2. get_product(product_id) - customer asked about one specific, already-known product
+3. add_to_cart(product_id, quantity, notes) - customer wants to add an item
+4. update_cart(line_item_id, quantity) - customer wants to change a quantity already in their cart
+5. remove_from_cart(line_item_id) - customer wants to remove an item from their cart
+6. get_checkout_state() - customer is asking what's in their cart or order so far
+7. update_customer_info(name, phone, address) - customer gave contact or delivery info
+8. create_order(confirm) - customer explicitly confirmed they want to place the order
+9. search_store_knowledge(query, knowledge_type) - customer asked about policy, FAQ, shipping, or returns
+
+CRITICAL RULES:
+1. Choose exactly one action per turn - never propose more than one.
+2. Only propose an action you have enough information for; if a required
+   field is missing, ask the customer for it in a normal reply instead of
+   guessing.
+3. Never invent a product_id or line_item_id - only use IDs that appeared
+   earlier in this conversation's context.
+4. confidence reflects how sure you are this is the right action to take,
+   not how sure you are it will succeed - the backend independently
+   validates and executes every action.
+""".strip()

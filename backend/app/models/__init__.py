@@ -1,3 +1,4 @@
+from app.models.ai_action import AIAction
 from app.models.ai_usage_event import AIUsageEvent
 from app.models.channel_connection import ChannelConnection
 from app.models.conversation import Conversation
@@ -10,6 +11,7 @@ from app.models.product import Product
 from app.models.webhook_event import WebhookEvent
 
 __all__ = [
+    "AIAction",
     "AIUsageEvent",
     "Channel",
     "ChannelConnection",

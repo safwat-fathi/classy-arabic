@@ -4,7 +4,9 @@ import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.core.database import engine
-from app.models import Channel, ChannelConnection, Conversation, ConvState, Merchant
+from app.models import Channel, ChannelConnection, Conversation, ConvState, Merchant, Message
+from app.models._ids import new_id
+from app.models.enums import Direction
 
 
 @pytest.fixture
@@ -50,6 +52,17 @@ async def conversation(db_session, merchant):
     db_session.add(c)
     await db_session.flush()
     return c
+
+
+@pytest.fixture
+async def message(db_session, conversation):
+    msg = Message(
+        id=new_id(), conversation_id=conversation.id, direction=Direction.INBOUND,
+        normalized_text="عايز اشوف الاحذية"
+    )
+    db_session.add(msg)
+    await db_session.flush()
+    return msg
 
 
 @pytest.fixture

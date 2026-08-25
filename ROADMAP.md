@@ -15,7 +15,7 @@ Sourced from `TijaratkBot_PRD.md` (§4–§5, §35, §37) and `TijaratkBot_SRD.m
 
 Everything below is in the PRD's MVP scope (§4) or Success Criteria (§35) but not yet in this repo:
 
-- **AI action validator + tool layer** — `search_products`, `get_product`, `add_to_cart`, `update_cart`, `remove_from_cart`, `get_checkout_state`, `update_customer_info`, `create_order`, `search_store_knowledge` (SRD §21, PRD §15)
+- ~~**AI action validator + tool layer**~~ **Built** — validator, registry, `AIAction` audit trail, and all 9 tool contracts exist; `search_products`/`get_product`/`update_customer_info` are functional, the other 6 are validated-and-audited but stubbed pending the items below (SRD §21, PRD §15)
 - **Cart & checkout services** — `Cart`, `CartItem` entities and the deterministic cart/checkout flow (SRD §25)
 - **Order service hardening** — validate customer info/delivery area, order snapshotting, order numbers (SRD §26–§27); the `Order` model exists but the surrounding service layer doesn't yet
 - **Multi-tenancy** — `Tenant` entity and enforced isolation across all tenant-owned records (SRD §4, §6)

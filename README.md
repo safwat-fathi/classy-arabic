@@ -20,9 +20,9 @@ This repo currently implements the **AI message-classification/routing engine** 
 - Offline clustering job and seed/dev scripts (`backend/scripts/`)
 - A demo frontend workspace at `/demo` (product catalog + message composer + AI insights panel)
 - Channel/webhook ingestion: webhook endpoints at `/webhooks/meta` (Facebook + Instagram) and `/webhooks/whatsapp/twilio` (WhatsApp via Twilio) verify, deduplicate, and persist inbound messages, then enqueue them to an `arq`/Redis worker that runs the existing classification pipeline — `ChannelConnection` rows must be provisioned manually (no onboarding UI yet); outbound replies are not implemented.
+- **AI action validator + tool layer** — `search_products`/`get_product`/`update_customer_info` fully functional; `add_to_cart`/`update_cart`/`remove_from_cart`/`get_checkout_state`/`create_order`/`search_store_knowledge` fully validated and audited (`AIAction`) but stubbed pending Cart/Order/StoreKnowledge services. Opt-in per merchant via `Merchant.ai_tool_ordering_enabled` (off by default); the existing classify→extract→auto-order flow is unchanged for merchants that don't opt in. (SRD §20-21, PRD §14-15)
 
 **Not yet built** (see `ROADMAP.md` for the full breakdown against PRD MVP scope):
-- AI action validator + tool layer (`search_products`, `add_to_cart`, etc. per SRD §21)
 - Cart, checkout, and order-processing services beyond the `Order` model itself
 - Multi-tenancy enforcement (the SRD's `Tenant` entity/isolation model)
 - Delivery-area/fee service, store-knowledge retrieval, human handoff

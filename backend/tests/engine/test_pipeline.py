@@ -3,7 +3,7 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.engine.pipeline import DEFAULT_INTENTS, _known_intents, process_message
-from app.models import AIUsageEvent, Direction, Message, ModelTier, OrderStatus, Product
+from app.models import AIUsageEvent, Direction, Merchant, Message, ModelTier, OrderStatus, Product
 from app.models._ids import new_id
 
 
@@ -93,7 +93,9 @@ async def test_purchase_intent_in_gathering_creates_order(db_session, conversati
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
-    result = await process_message(db_session, conversation, _inbound_message(conversation, "عايز اطلب رز", "عايز اطلب رز"))
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "عايز اطلب رز", "عايز اطلب رز")
+    )
 
     assert result.message.intent == "purchase_intent"
     assert result.message.model_tier == ModelTier.DEEPSEEK
@@ -123,7 +125,9 @@ async def test_purchase_intent_line_items_match_seeded_product(db_session, conve
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
-    result = await process_message(db_session, conversation, _inbound_message(conversation, "عايز فستان صيفي", "عايز فستان صيفي"))
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "عايز فستان صيفي", "عايز فستان صيفي")
+    )
 
     assert result.order is not None
     assert result.order.extracted_payload["line_items"][0]["product_id"] == product.id
@@ -140,7 +144,9 @@ async def test_classification_failure_persists_message_instead_of_losing_it(db_s
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
-    result = await process_message(db_session, conversation, _inbound_message(conversation, "عايز اطلب حاجة", "عايز اطلب حاجة"))
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "عايز اطلب حاجة", "عايز اطلب حاجة")
+    )
 
     assert result.message.id is not None
     assert result.message.escalation_reason == "ai_call_failed"
@@ -161,7 +167,9 @@ async def test_extraction_failure_persists_message_and_classification(db_session
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
-    result = await process_message(db_session, conversation, _inbound_message(conversation, "عايز اطلب رز", "عايز اطلب رز"))
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "عايز اطلب رز", "عايز اطلب رز")
+    )
 
     assert result.message.intent == "purchase_intent"
     assert result.message.escalation_reason == "ai_call_failed"
@@ -179,7 +187,9 @@ async def test_non_purchase_intent_does_not_create_order(db_session, conversatio
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
-    result = await process_message(db_session, conversation, _inbound_message(conversation, "الاسعار كام؟", "الاسعار كام؟"))
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "الاسعار كام؟", "الاسعار كام؟")
+    )
 
     assert result.message.intent == "question"
     assert result.message.model_tier == ModelTier.DEEPSEEK
@@ -199,7 +209,9 @@ async def test_process_message_persists_ai_usage_event(db_session, conversation,
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
-    result = await process_message(db_session, conversation, _inbound_message(conversation, "الاسعار كام؟", "الاسعار كام؟"))
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "الاسعار كام؟", "الاسعار كام؟")
+    )
 
     events = (
         (await db_session.execute(select(AIUsageEvent).where(AIUsageEvent.message_id == result.message.id)))
@@ -210,3 +222,26 @@ async def test_process_message_persists_ai_usage_event(db_session, conversation,
     assert events[0].tier == "deepseek"
     assert events[0].conversation_id == conversation.id
     assert events[0].latency_ms > 0
+
+
+async def test_process_message_routes_to_action_resolution_when_enabled(db_session, conversation, mock_ai):
+    # Set the feature flag on the merchant
+    merchant = await db_session.get(Merchant, conversation.merchant_id)
+    merchant.ai_tool_ordering_enabled = True
+    await db_session.flush()
+
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        return_value=httpx.Response(
+            200, json=_chat_response('{"action": "get_checkout_state", "confidence": 0.95}')
+        )
+    )
+
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "order status", "order status")
+    )
+
+    # Assert that the message was routed to action_resolution and ModelTier.DEEPSEEK was set
+    assert result.message.model_tier == ModelTier.DEEPSEEK
+    # Escalation reason should be set from the tool unavailability (get_checkout_state is stubbed and fails)
+    assert result.message.escalation_reason == "tool_unavailable:get_checkout_state"
+    assert result.order is None

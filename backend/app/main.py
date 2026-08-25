@@ -7,6 +7,7 @@ from app.api.router import api_router
 from app.core.config import settings
 from app.core.database import engine
 from app.core.logging import configure_logging
+from app.core.redis import close_arq_pool
 from app.engine.clients import close_ai_clients
 
 
@@ -14,6 +15,7 @@ from app.engine.clients import close_ai_clients
 async def lifespan(app: FastAPI):
     configure_logging()
     yield
+    await close_arq_pool()
     await close_ai_clients()
     await engine.dispose()
 

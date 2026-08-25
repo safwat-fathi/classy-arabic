@@ -1,7 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import { BrandMark } from "./logo";
 import { PricingSection } from "./pricing";
+
+export const metadata = {
+  title: "تِجارتك | منصة البيع الذكي وأتمتة أوردرات فيسبوك، إنستجرام وواتساب",
+  description:
+    "حوّل شات السوشيال ميديا لمتجر إلكتروني متكامل يبيع 24/7. تصفح الكتالوج داخل الشات، رد فوري بالذكاء الاصطناعي يفهم العامية والفرانكو، وتفريغ تلقائي لبيانات الشحن بدون أخطاء. جرب أول 30 أوردر مجاناً!",
+  keywords: [
+    "بوت أوردرات فيسبوك",
+    "أتمتة مبيعات إنستجرام",
+    "شات بوت تجارة إلكترونية",
+    "إدارة مبيعات واتساب",
+    "استخراج بيانات شات العملاء",
+    "بيع عبر السوشيال ميديا",
+    "Social Commerce CRM Egypt",
+  ],
+};
 
 function CheckIcon({ className = "" }: { className?: string }) {
   return (
@@ -23,49 +39,52 @@ function CheckIcon({ className = "" }: { className?: string }) {
 
 function Nav() {
   return (
-    <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-4 sm:px-8">
-        <BrandMark />
-        <nav className="hidden items-center gap-8 md:flex">
-          <a
-            href="#how"
-            className="text-sm font-medium text-gray-700 transition-colors hover:text-emerald-700"
-          >
-            كيف يعمل
-          </a>
-          <a
-            href="#features"
-            className="text-sm font-medium text-gray-700 transition-colors hover:text-emerald-700"
-          >
-            المميزات
-          </a>
-          <a
-            href="#example"
-            className="text-sm font-medium text-gray-700 transition-colors hover:text-emerald-700"
-          >
-            مثال حي
-          </a>
-          <a
-            href="#pricing"
-            className="text-sm font-medium text-gray-700 transition-colors hover:text-emerald-700"
-          >
-            الأسعار
-          </a>
-          <a
-            href="#testimonials"
-            className="text-sm font-medium text-gray-700 transition-colors hover:text-emerald-700"
-          >
-            آراء التجار
-          </a>
-        </nav>
-        <Link
-          href="/demo"
-          className="inline-flex min-h-10 items-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-700"
-        >
-          جرّب مجانًا
+    <>
+      <div className="bg-emerald-700 text-white px-4 py-2.5 text-center text-[13.5px] font-bold">
+        🔥 إحصائية رسمية: 93% من طلبات الأونلاين في مصر بتتم داخل الشات.. وفّر
+        وقت الرد وابدأ بيع بذكاء الآن!{" "}
+        <Link href="/demo" className="underline hover:text-emerald-200 ms-1">
+          ابدأ تجربتك المجانية 🚀
         </Link>
       </div>
-    </header>
+      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-4 sm:px-8">
+          <BrandMark />
+          <nav className="hidden items-center gap-8 md:flex">
+            <a
+              href="#how"
+              className="text-sm font-medium text-gray-700 transition-colors hover:text-emerald-700"
+            >
+              كيف يعمل
+            </a>
+            <a
+              href="#features"
+              className="text-sm font-medium text-gray-700 transition-colors hover:text-emerald-700"
+            >
+              المميزات
+            </a>
+            <a
+              href="#pricing"
+              className="text-sm font-medium text-gray-700 transition-colors hover:text-emerald-700"
+            >
+              الأسعار
+            </a>
+            <a
+              href="#faq"
+              className="text-sm font-medium text-gray-700 transition-colors hover:text-emerald-700"
+            >
+              الأسئلة الشائعة
+            </a>
+          </nav>
+          <Link
+            href="/demo"
+            className="inline-flex min-h-10 items-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-700"
+          >
+            جرّب مجانًا
+          </Link>
+        </div>
+      </header>
+    </>
   );
 }
 
@@ -78,58 +97,63 @@ function Hero() {
           "radial-gradient(1100px 520px at 82% -10%, rgba(16,185,129,0.24), transparent 60%), radial-gradient(700px 420px at 8% 110%, rgba(16,185,129,0.14), transparent 55%), #0a0f0d",
       }}
     >
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:py-28">
+      <div className="mx-auto grid max-w-6xl items-start gap-10 px-5 pt-8 pb-16 sm:px-8 sm:pt-12 sm:pb-24 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:pt-16 lg:pb-28">
         <div>
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/35 bg-emerald-500/15 px-3.5 py-1.5 text-sm font-bold text-emerald-300">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 2l1.8 5.6L19 9l-5.2 1.4L12 16l-1.8-5.6L5 9l5.2-1.4L12 2z" />
-            </svg>
-            <span>مدعوم بالذكاء الاصطناعي لتجار السوشيال ميديا</span>
-          </div>
           <h1 className="font-display mb-5 text-4xl leading-tight font-black text-white sm:text-5xl lg:text-6xl">
-            حوّل رسايل الواتساب والإنستجرام لطلبات جاهزة تلقائيًا
+            مش محتاج موقع إلكتروني.. <br /> شات الفيسبوك هو متجرك الآلكتروني
           </h1>
           <p className="mb-8 max-w-xl text-lg leading-loose text-gray-400">
-            محرك ذكاء اصطناعي يفهم العربي المصري والعرباوي زي ما بيكتب بيه
-            عملاؤك فعلًا، يستخرج بيانات الطلب أول بأول، ويصعّد للمراجعة البشرية
-            بس لما الرسالة فعلًا محتاجة حد يشوفها.
+            اربط كتالوج منتجاتك بفيسبوك، إنستجرام، وواتساب في مكان واحد. عميلك
+            هيشوف منتجاتك ويطلب مباشرة من الشات من خلال{" "}
+            <strong className="text-gray-300">كتالوج تفاعلي منظم</strong> و{" "}
+            <span className="rounded-md border border-emerald-500/30 bg-emerald-500/15 p-2 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.15)] leading-relaxed">
+              <span className="text-[13px]">✨</span> ذكاء اصطناعي
+            </span>{" "}
+            يفهم أسئلة واستفسارات عملاءك ويرد عليهم و يقفل الاوردرز تلقائيا.
           </p>
-          <div className="flex flex-wrap items-center gap-3.5">
+          <div className="flex flex-wrap items-center gap-3.5 mb-5">
             <Link
               href="/demo"
               className="inline-flex min-h-11 items-center rounded-xl bg-emerald-600 px-6.5 py-3.5 text-[15px] font-bold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-700"
             >
-              ابدأ تجربتك المجانية
+              🚀 ابدأ تجربتك المجانية (30 أوردر علينا)
             </Link>
             <a
-              href="#how"
+              href="#example"
               className="inline-flex min-h-11 items-center rounded-xl border border-white/20 px-6.5 py-3.5 text-[15px] font-semibold text-gray-200 transition-colors hover:bg-white/10"
             >
-              شاهد كيف يعمل
+              📱 جرّب شات تجريبي حي الآن
             </a>
+          </div>
+          <div className="flex flex-wrap items-center gap-4 text-[13px] text-gray-400">
+            <span className="flex items-center gap-1.5">
+              <CheckIcon className="text-emerald-500 w-4 h-4" /> بدون الحاجة
+              لبطاقة بنكية
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-emerald-500 text-base">⚡</span> إعداد متجرك
+              في دقيقتين
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-emerald-500 text-base">🔒</span> الأسعار
+              والمخزون مؤكدة 100%
+            </span>
           </div>
         </div>
 
         <div className="relative">
           <div className="flex flex-col gap-2.5 rounded-2xl bg-white p-4.5 shadow-2xl">
             <div className="flex items-center gap-2 border-b border-gray-200 pb-2.5">
-              <span className="h-2 w-2 rounded-full bg-green-500" />
+              <span className="h-2 w-2 rounded-full bg-blue-500" />
               <span className="text-xs font-bold text-gray-500">
-                محادثة واردة &middot; واتساب بيزنس
+                محادثة واردة &middot; ماسنجر
               </span>
             </div>
-            <div className="max-w-[84%] self-start rounded-2xl rounded-bl-md bg-gray-100 px-3.5 py-2.5 text-sm leading-relaxed text-gray-900">
-              عايزة فستان صيفي كتان زي اللي في الستوري، مقاس M، وابعتيلي على
-              العنوان اللي بعتهولك قبل كده وأدفع كاش عند الاستلام 🌿
+            <div
+              dir="ltr"
+              className="max-w-[84%] self-start rounded-2xl rounded-bl-md bg-gray-100 px-3.5 py-2.5 text-[13.5px] leading-relaxed text-gray-900 text-left font-medium"
+            >
+              3ayz 2 tshirt aswd XL w whed abyad L f 15 shary el tahrir el dokki
             </div>
             <div className="flex items-center gap-2 self-start rounded-lg border border-dashed border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
               <svg
@@ -143,33 +167,53 @@ function Hero() {
               >
                 <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
               </svg>
-              <span>جاري الفهم والاستخراج بالذكاء الاصطناعي...</span>
+              <span>جاري الفهم وتحديد المخزون...</span>
             </div>
-            <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3">
-              <Image
-                src="/images/linen_dress.jpg"
-                alt="فستان كتان صيفي"
-                width={52}
-                height={52}
-                className="h-13 w-13 shrink-0 rounded-lg object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-extrabold text-gray-900">
-                  فستان كتان صيفي &middot; مقاس M
+
+            {/* Split Screen Logic Representation */}
+            <div className="flex flex-col gap-2 mt-1">
+              <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3">
+                <div className="h-12 w-12 shrink-0 rounded-lg bg-gray-900 flex items-center justify-center text-white text-xs font-bold">
+                  تيشيرت
                 </div>
-                <div className="mt-0.5 text-xs text-gray-500">
-                  الدفع: كاش عند الاستلام &middot; العنوان: محفوظ من قبل
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] font-extrabold text-gray-900">
+                    2x تيشيرت أساسي أسود (XL)
+                  </div>
+                  <div className="mt-0.5 text-xs text-gray-500">
+                    1x تيشيرت أساسي أبيض (L)
+                  </div>
+                </div>
+                <span className="rounded-full bg-emerald-100 px-2 py-1 text-[11px] font-extrabold whitespace-nowrap text-emerald-800">
+                  متوفر
+                </span>
+              </div>
+              <div className="flex flex-col gap-1.5 rounded-xl border border-gray-100 bg-gray-50 p-3">
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>العنوان:</span>
+                  <span className="font-bold text-gray-900">
+                    15 شارع التحرير، الدقي
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>إجمالي المنتجات:</span>
+                  <span className="font-bold text-gray-900">750 ج.م</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>الشحن (الدقي):</span>
+                  <span className="font-bold text-gray-900">45 ج.م</span>
+                </div>
+                <div className="flex justify-between text-sm mt-1 pt-1 border-t border-gray-200">
+                  <span className="text-gray-900 font-bold">الإجمالي:</span>
+                  <span className="font-bold text-emerald-700">795 ج.م</span>
                 </div>
               </div>
-              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-extrabold whitespace-nowrap text-emerald-800">
-                تأكيد تلقائي
-              </span>
             </div>
           </div>
           <div className="absolute start-[-18px] bottom-[-18px] flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 shadow-xl">
             <CheckIcon className="text-emerald-700" />
             <span className="text-xs font-extrabold text-gray-900">
-              ثقة الفهم 96%
+              أوردر جاهز للشحن 📦
             </span>
           </div>
         </div>
@@ -188,10 +232,11 @@ function MarketProof() {
               السوق المصري
             </span>
             <h2 className="font-display mt-2 mb-4 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              أكثر من 93% من الشراء بيتم في الشات
+              ليه الاعتماد على الموقع لوحده بيضيع عليك 90% من الزبائن؟
             </h2>
             <p className="text-[15px] leading-loose text-gray-500">
-              عشان كده أتمتة الردود وتأكيد الطلبات على رسايل فيسبوك وواتساب هي الاستثمار الأهم لنجاح بيزنسك. عملاؤك متواجدين هناك، وسرعة الرد هي اللي بتحسم البيعة.
+              زبونك المصري مش هيستنى يفتح رابط موقع أو يسجل حساب.. زبونك متعود
+              يشتري من الشات، وإحنا بنخلي الشات يبيع له كأنه متجر كامل!
             </p>
           </div>
 
@@ -203,7 +248,10 @@ function MarketProof() {
                   <span>61.7%</span>
                 </div>
                 <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
-                  <div className="h-full rounded-full bg-blue-600" style={{ width: "61.7%" }}></div>
+                  <div
+                    className="h-full rounded-full bg-blue-600"
+                    style={{ width: "61.7%" }}
+                  ></div>
                 </div>
               </div>
 
@@ -213,7 +261,10 @@ function MarketProof() {
                   <span>31.8%</span>
                 </div>
                 <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
-                  <div className="h-full rounded-full bg-green-500" style={{ width: "31.8%" }}></div>
+                  <div
+                    className="h-full rounded-full bg-green-500"
+                    style={{ width: "31.8%" }}
+                  ></div>
                 </div>
               </div>
 
@@ -223,14 +274,18 @@ function MarketProof() {
                   <span>3.7%</span>
                 </div>
                 <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
-                  <div className="h-full rounded-full bg-gray-400" style={{ width: "3.7%" }}></div>
+                  <div
+                    className="h-full rounded-full bg-gray-400"
+                    style={{ width: "3.7%" }}
+                  ></div>
                 </div>
               </div>
             </div>
 
             <div className="border-t border-gray-200 pt-4">
               <p className="text-xs text-gray-400">
-                المصدر: تقرير مسح استخدام التجارة الإلكترونية، وزارة الاتصالات و <span dir="ltr">CAPMAS</span>
+                المصدر: تقرير مسح استخدام التجارة الإلكترونية، وزارة الاتصالات و{" "}
+                <span dir="ltr">CAPMAS</span>
               </p>
             </div>
           </div>
@@ -242,9 +297,9 @@ function MarketProof() {
 
 const STEPS = [
   {
-    label: "خطوة 1",
-    title: "استقبال الرسالة",
-    body: "الرسالة توصل زي ما هي من واتساب أو انستجرام، بعامية التاجر وعميله، من غير أي تنسيق مسبق.",
+    label: "الخطوة 1",
+    title: "اربط صفحاتك",
+    body: "وصّل صفحة فيسبوك، إنستجرام، أو واتساب بدون أي أوراق أو سجلات تجارية معقدة.",
     icon: (
       <svg
         width="22"
@@ -262,9 +317,9 @@ const STEPS = [
     ),
   },
   {
-    label: "خطوة 2",
-    title: "فهم النية",
-    body: "تحديد سريع: طلب شراء، استفسار، شكوى، ولا رسالة عادية مالهاش داعي لمجهود زيادة.",
+    label: "الخطوة 2",
+    title: "ارفع منتجاتك",
+    body: "أضف كتالوج منتجاتك، الأسعار، المقاسات المتاحة، ومناطق الشحن بضغطة زر.",
     icon: (
       <svg
         width="22"
@@ -282,9 +337,9 @@ const STEPS = [
     ),
   },
   {
-    label: "خطوة 3",
-    title: "استخراج بيانات الطلب",
-    body: "المنتج، المقاس، العنوان، رقم التليفون، وطريقة الدفع، كل ده في بيانات منظمة جاهزة للطلب.",
+    label: "الخطوة 3",
+    title: "استقبل الأوردرات والأرباح",
+    body: "النظام يتولى الرد، إتمام السلة، وتجهيز شيت الأوردرات لشركة الشحن فوراً!",
     icon: (
       <svg
         width="22"
@@ -301,25 +356,6 @@ const STEPS = [
       </svg>
     ),
   },
-  {
-    label: "خطوة 4",
-    title: "تصعيد عند الحاجة بس",
-    body: "الرسايل الغامضة أو المعقدة توديها لموديل أقوى للمراجعة، مش كل الرسايل بترجع تصعيد.",
-    icon: (
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M12 2a5 5 0 015 5v3h1a2 2 0 012 2v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7a2 2 0 012-2h1V7a5 5 0 015-5z" />
-      </svg>
-    ),
-  },
 ];
 
 function HowItWorks() {
@@ -328,17 +364,13 @@ function HowItWorks() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-12 max-w-xl">
           <span className="text-sm font-extrabold tracking-wide text-emerald-700">
-            خط سير الرسالة
+            كيف تبدأ؟
           </span>
           <h2 className="font-display mt-2 mb-3 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            من رسالة عشوائية لطلب منظم في أربع خطوات
+            ابدأ استقبال أوردراتك الآلية في دقائق معدودة
           </h2>
-          <p className="text-[15px] leading-loose text-gray-500">
-            مش كل رسالة محتاجة نفس المجهود. الموديل الأساسي بيتولى الأغلبية،
-            وبيصعّد بس لما يحتاج فعلًا.
-          </p>
         </div>
-        <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-7 sm:grid-cols-3">
           {STEPS.map((step) => (
             <div key={step.title} className="flex flex-col gap-3.5">
               <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
@@ -365,8 +397,28 @@ function HowItWorks() {
 
 const FEATURES = [
   {
-    title: "فهم عربي مصري وعرباوي حقيقي",
-    body: "من غير ما التاجر يدرّب عملاؤه على صياغة معينة أو يحول لغة فصحى.",
+    title: "سلة تسوق وإتمام طلبات داخل المحادثة",
+    body: "عميلك لا يحتاج للخروج من الماسنجر أو إنستجرام؛ يضيف المنتجات للسلة، يعدل الكميات، ويحدد عنوانه ليصله إشعار التأكيد فوراً.",
+    icon: (
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <path d="M16 10a4 4 0 01-8 0" />
+      </svg>
+    ),
+  },
+  {
+    title: 'ذكاء اصطناعي يفهم "كلام المصريين"',
+    body: 'سواء كتب العميل "عايز التيشيرت الكحلي مقاس لارج" أو "3ayz 2 mno"، النظام يفهم المطلوب بدقة ويطابقه مع المنتجات.',
     icon: (
       <svg
         width="24"
@@ -383,8 +435,8 @@ const FEATURES = [
     ),
   },
   {
-    title: "استخراج بيانات منظم",
-    body: "المنتج والعنوان والتليفون وطريقة الدفع، جاهزين كبيانات مش نص عشوائي.",
+    title: "أمان تجاري كامل — لا مجال للهلوسة",
+    body: "نظامنا يفصل تماماً بين فهم الذكاء الاصطناعي وقاعدة بيانات الأسعار والمخزون، ويعتمد على حساباتك الحتمية 100%.",
     icon: (
       <svg
         width="24"
@@ -396,16 +448,13 @@ const FEATURES = [
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <rect x="3" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="3" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" />
-        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       </svg>
     ),
   },
   {
-    title: "هيكلة ذكاء اصطناعي متعددة الطبقات",
-    body: "توجيه ذكي: قواعد سريعة للطلبات البسيطة، ذكاء اصطناعي للرد العادي، وتصعيد لموديل متقدم للمواقف المعقدة.",
+    title: "التحويل البشري الفوري",
+    body: "هل طلب العميل التحدث مع شخص حقيقي؟ النظام يحوّل المحادثة لك فوراً ويوقف ردود الـ AI لتتولى الرد بنفسك.",
     icon: (
       <svg
         width="24"
@@ -417,14 +466,16 @@ const FEATURES = [
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <path d="M17 8l4 4-4 4M7 16l-4-4 4-4" />
-        <path d="M14 4L10 20" />
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 00-3-3.87" />
+        <path d="M16 3.13a4 4 0 010 7.75" />
       </svg>
     ),
   },
   {
-    title: "تعلم مستمر من تصحيحاتك",
-    body: "كل تعديل بتعمله على طلب بيتحول لإشارة تدريب لتحسين الموديل الأساسي.",
+    title: "تصدير فوري لشركات الشحن",
+    body: "تصدير فوري لكافة بيانات العملاء إلى ملفات إكسيل وشيتس مهيأة مباشرة للطباعة والتسليم لمندوب الشحن.",
     icon: (
       <svg
         width="24"
@@ -436,14 +487,15 @@ const FEATURES = [
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <path d="M3 12a9 9 0 019-9c2.5 0 4.7 1 6.3 2.6M21 12a9 9 0 01-9 9c-2.5 0-4.7-1-6.3-2.6" />
-        <path d="M18 3v5h-5M6 21v-5h5" />
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+        <line x1="8" y1="21" x2="16" y2="21" />
+        <line x1="12" y1="17" x2="12" y2="21" />
       </svg>
     ),
   },
   {
-    title: "ميزانية سياق ذكية للسرعة",
-    body: "المحادثة بتتلخص بذكاء عشان الرد يفضل سريع من غير ما يفقد التفاصيل المهمة.",
+    title: "مساعد ذكي لسياسات المتجر",
+    body: "درّب المساعد في دقيقة واحدة على مواعيد عملك، شروط الاستبدال، وتفاصيل مصاريف الشحن ليرد بأسلوب متجرك.",
     icon: (
       <svg
         width="24"
@@ -455,27 +507,7 @@ const FEATURES = [
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 7v5l3.5 2" />
-      </svg>
-    ),
-  },
-  {
-    title: "مراجعة بشرية (الملاذ الأخير)",
-    body: "إنت وفريقك تتدخلوا بس في الحالات اللي الذكاء الاصطناعي ماقدرش يحلها أو لو العميل طلب يكلم إنسان.",
-    icon: (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />
-        <path d="M9.5 12l1.8 1.8L14.5 10" />
+        <path d="M12 2a5 5 0 015 5v3h1a2 2 0 012 2v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7a2 2 0 012-2h1V7a5 5 0 015-5z" />
       </svg>
     ),
   },
@@ -490,10 +522,10 @@ function Features() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-11 max-w-xl">
           <span className="text-sm font-extrabold tracking-wide text-emerald-700">
-            المميزات
+            المميزات الأساسية
           </span>
           <h2 className="font-display mt-2 mb-3 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            مبني عشان يفهم البيزنس المصري فعلًا
+            كل ما تحتاجه للتحكم في مبيعات السوشيال ميديا من مكان واحد
           </h2>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -517,230 +549,85 @@ function Features() {
   );
 }
 
-function LiveExample() {
+function ROIAndProfitLogic() {
   return (
-    <section id="example" className="bg-white px-5 py-16 sm:px-8 sm:py-24">
+    <section className="bg-emerald-900 px-5 py-16 sm:px-8 sm:py-24 text-white">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-11 max-w-xl">
-          <span className="text-sm font-extrabold tracking-wide text-emerald-700">
-            مثال حي
+        <div className="mb-12 max-w-2xl text-center mx-auto">
+          <span className="text-sm font-extrabold tracking-wide text-emerald-300">
+            لغة الأرقام
           </span>
-          <h2 className="font-display mt-2 mb-3 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            من محادثة عادية لطلب مؤكد
+          <h2 className="font-display mt-2 mb-4 text-3xl font-extrabold sm:text-4xl">
+            إزاي "تِجارتك" بيدفع ثمنه من أول أسبوع؟
           </h2>
-          <p className="text-[15px] leading-loose text-gray-500">
-            مثال توضيحي ببيانات تجريبية &mdash; كده بيتصرف المحرك مع رسالة
-            حقيقية من عميل.
+          <p className="text-[15px] leading-loose text-emerald-100/80">
+            التكلفة مش اشتراك المنصة، التكلفة الحقيقية هي الأوردرات اللي بتضيع
+            بسبب التأخير في الرد.
           </p>
         </div>
 
-        <div className="grid gap-10 lg:grid-cols-2">
-          <div className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-5">
-            <div className="mb-1 text-xs font-extrabold text-gray-400">
-              محادثة انستجرام
+        <div className="overflow-hidden rounded-2xl bg-white text-gray-900 shadow-xl">
+          <div className="grid md:grid-cols-2">
+            <div className="p-8 border-b md:border-b-0 md:border-l border-gray-100">
+              <h3 className="text-xl font-bold text-red-600 mb-6 flex items-center gap-2">
+                <span className="text-2xl">❌</span> الطريقة التقليدية
+              </h3>
+              <ul className="space-y-4 text-sm font-medium">
+                <li className="flex justify-between border-b border-gray-50 pb-3">
+                  <span className="text-gray-500">وقت الرد</span>
+                  <span className="font-bold">من 15 دقيقة لساعات</span>
+                </li>
+                <li className="flex justify-between border-b border-gray-50 pb-3">
+                  <span className="text-gray-500">معدل إغلاق البيعة</span>
+                  <span className="font-bold text-red-600">
+                    30% (الزبون بيبرد)
+                  </span>
+                </li>
+                <li className="flex justify-between border-b border-gray-50 pb-3">
+                  <span className="text-gray-500">أخطاء الشحن</span>
+                  <span className="font-bold text-red-600">
+                    واردة (Copy/Paste)
+                  </span>
+                </li>
+                <li className="flex justify-between pb-3">
+                  <span className="text-gray-500">تكلفة المودريتورز</span>
+                  <span className="font-bold">مرتبات + عمولات متزايدة</span>
+                </li>
+              </ul>
             </div>
-            <div className="max-w-[88%] self-start rounded-2xl rounded-bl-md border border-gray-200 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-gray-900">
-              هاي، الجاكيت الجينز اللي في آخر بوست، متوفر مقاس L؟
-            </div>
-            <div className="max-w-[88%] self-end rounded-2xl rounded-br-md bg-emerald-600 px-3.5 py-2.5 text-sm leading-relaxed text-white">
-              أيوة متوفر، تحبي تأكدي الطلب دلوقتي؟
-            </div>
-            <div className="max-w-[88%] self-start rounded-2xl rounded-bl-md border border-gray-200 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-gray-900">
-              أيوة، ابعتيه لنفس عنوان أوضة عرب اللي طلبت منه قبل كده، وهدفع عند
-              الاستلام
-            </div>
-            <div className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
-              <CheckIcon />
-              <span>تم استخراج الطلب تلقائيًا</span>
+
+            <div className="p-8 bg-emerald-50">
+              <h3 className="text-xl font-bold text-emerald-700 mb-6 flex items-center gap-2">
+                <span className="text-2xl">✅</span> مع تِجارتك
+              </h3>
+              <ul className="space-y-4 text-sm font-medium">
+                <li className="flex justify-between border-b border-emerald-100 pb-3">
+                  <span className="text-emerald-800/70">وقت الرد</span>
+                  <span className="font-bold text-emerald-900">
+                    0 ثانية (فوري 24/7)
+                  </span>
+                </li>
+                <li className="flex justify-between border-b border-emerald-100 pb-3">
+                  <span className="text-emerald-800/70">معدل إغلاق البيعة</span>
+                  <span className="font-bold text-emerald-700">
+                    70%+ (العميل سخن)
+                  </span>
+                </li>
+                <li className="flex justify-between border-b border-emerald-100 pb-3">
+                  <span className="text-emerald-800/70">أخطاء الشحن</span>
+                  <span className="font-bold text-emerald-700">
+                    0% (استخراج آلي)
+                  </span>
+                </li>
+                <li className="flex justify-between pb-3">
+                  <span className="text-emerald-800/70">التكلفة</span>
+                  <span className="font-bold text-emerald-900">
+                    اشتراك ثابت ورمزي
+                  </span>
+                </li>
+              </ul>
             </div>
           </div>
-
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-md">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-xs font-extrabold text-gray-400">
-                بيانات الطلب المستخرجة
-              </span>
-              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-extrabold text-emerald-800">
-                ثقة 94%
-              </span>
-            </div>
-            <div className="mb-4 flex gap-3">
-              <Image
-                src="/images/denim_jacket.jpg"
-                alt="جاكيت جينز كلاسيك"
-                width={64}
-                height={64}
-                className="h-16 w-16 shrink-0 rounded-xl object-cover"
-              />
-              <div>
-                <div className="text-[14.5px] font-extrabold text-gray-900">
-                  جاكيت جينز كلاسيك
-                </div>
-                <div className="mt-0.5 text-xs text-gray-500">
-                  مقاس L &middot; قطعة واحدة
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2.5 border-t border-gray-100 pt-3.5">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">العنوان</span>
-                <span className="font-bold text-gray-900">
-                  محفوظ من طلب سابق
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">رقم التليفون</span>
-                <span dir="ltr" className="font-bold text-gray-900">
-                  01••••••••
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">طريقة الدفع</span>
-                <span className="font-bold text-gray-900">
-                  كاش عند الاستلام
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">الحالة</span>
-                <span className="font-extrabold text-emerald-700">
-                  تأكيد تلقائي
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-7 grid gap-4 sm:grid-cols-2">
-          <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
-            <Image
-              src="/images/linen_dress.jpg"
-              alt="فستان كتان صيفي"
-              width={44}
-              height={44}
-              className="h-11 w-11 shrink-0 rounded-lg object-cover"
-            />
-            <div className="min-w-0">
-              <div className="text-[12.5px] font-extrabold text-gray-900">
-                فستان كتان صيفي
-              </div>
-              <div className="text-[11px] text-gray-400">
-                آخر مزامنة: منذ دقيقتين
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
-            <Image
-              src="/images/denim_jacket.jpg"
-              alt="جاكيت جينز كلاسيك"
-              width={44}
-              height={44}
-              className="h-11 w-11 shrink-0 rounded-lg object-cover"
-            />
-            <div className="min-w-0">
-              <div className="text-[12.5px] font-extrabold text-gray-900">
-                جاكيت جينز كلاسيك
-              </div>
-              <div className="text-[11px] text-gray-400">
-                آخر مزامنة: منذ 5 دقايق
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Stats() {
-  const stats = [
-    { value: "92%", label: "من الطلبات تتأكد تلقائيًا" },
-    { value: "<2s", label: "متوسط زمن فهم الرسالة" },
-    { value: "10K+", label: "رسالة تتم معالجتها يوميًا" },
-    { value: "8%", label: "بس بتحتاج تصعيد لمراجعة" },
-  ];
-  return (
-    <section className="bg-emerald-50 px-5 py-12 sm:px-8 sm:py-16">
-      <div className="mx-auto max-w-6xl">
-        <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div
-                dir="ltr"
-                className="font-display text-3xl font-black text-emerald-700 sm:text-4xl"
-              >
-                {stat.value}
-              </div>
-              <div className="mt-1 text-[13px] font-semibold text-emerald-900">
-                {stat.label}
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* <p className="mt-7 text-center text-[11.5px] text-emerald-700/70">أرقام توضيحية لغرض العرض</p> */}
-      </div>
-    </section>
-  );
-}
-
-const TESTIMONIALS = [
-  {
-    quote:
-      "بقيت مبسوطة إني مش بارد يدوي على كل رسالة. الطلبات بقت بتتسجل لوحدها وأنا بس بأكد عليها.",
-    name: "سارة عبد الرحمن",
-    role: "لبس حريمي · انستجرام",
-    initial: "س",
-  },
-  {
-    quote:
-      "أهم حاجة إنه بيفهم العرباوي زي ما بنكتب بالظبط، مش لغة فصحى مصطنعة محدش بيتكلم بيها.",
-    name: "محمود العدوي",
-    role: "إكسسوارات · واتساب بيزنس",
-    initial: "م",
-  },
-  {
-    quote:
-      "التصعيد للمراجعة بس لما يحصل لخبطة فعلًا وفّر عليا وقت كتير كنت بضيعه في متابعة كل حاجة يدوي.",
-    name: "نور الشريف",
-    role: "بوتيك أونلاين · فيسبوك",
-    initial: "ن",
-  },
-];
-
-function Testimonials() {
-  return (
-    <section id="testimonials" className="bg-white px-5 py-16 sm:px-8 sm:py-24">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-11 max-w-xl">
-          <span className="text-sm font-extrabold tracking-wide text-emerald-700">
-            آراء التجار
-          </span>
-          <h2 className="font-display mt-2 mb-3 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            تجار بيبيعوا على السوشيال ميديا بيستخدموه فعلًا
-          </h2>
-          <p className="text-xs text-gray-400">شهادات تجريبية لغرض العرض</p>
-        </div>
-        <div className="grid gap-5 lg:grid-cols-3">
-          {TESTIMONIALS.map((t) => (
-            <div
-              key={t.name}
-              className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-5.5"
-            >
-              <p className="text-sm leading-loose text-gray-700">
-                &ldquo;{t.quote}&rdquo;
-              </p>
-              <div className="flex items-center gap-2.5">
-                <span className="font-display flex size-9.5 items-center justify-center rounded-full bg-emerald-600 text-sm font-extrabold text-white">
-                  {t.initial}
-                </span>
-                <div>
-                  <div className="text-[13px] font-extrabold text-gray-900">
-                    {t.name}
-                  </div>
-                  <div className="text-[11.5px] text-gray-500">{t.role}</div>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </section>
@@ -756,10 +643,11 @@ function ProductModes() {
             أوضاع التشغيل
           </span>
           <h2 className="font-display mt-2 mb-4 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            نظامين مختلفين لتلبية احتياجاتك
+            أنت المتحكم: تجربتان ذكيتان للبيع عبر الشات
           </h2>
           <p className="text-[15px] leading-loose text-gray-500">
-            تطبيقنا بيقدملك طريقتين للبيع، تقدر تختار الأنسب لحجم وأسلوب بيزنسك، مع إمكانية الترقية في أي وقت.
+            تطبيقنا بيقدملك طريقتين للبيع، تقدر تختار الأنسب لحجم وأسلوب بيزنسك،
+            مع إمكانية الترقية في أي وقت.
           </p>
         </div>
 
@@ -767,33 +655,82 @@ function ProductModes() {
           {/* Catalog Mode */}
           <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-6 sm:p-8">
             <div className="flex size-12 items-center justify-center rounded-xl bg-gray-200 text-gray-700">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </div>
-            <h3 className="text-xl font-extrabold text-gray-900">وضع الكتالوج الأساسي</h3>
+            <h3 className="text-xl font-extrabold text-gray-900">
+              الكتالوج التفاعلي (Structured Commerce)
+            </h3>
             <p className="text-[15px] leading-relaxed text-gray-600">
-              تجربة تسوق هيكلية سريعة. العميل بيتصفح الأقسام والمنتجات ويضيف للسلة من خلال أزرار وقوائم واضحة داخل الشات.
+              بيع هيكلي سريع يتيح للعميل استعراض المنتجات، اختيار المقاسات،
+              وإضافة العناصر للسلة من خلال أزرار وقوائم سريعة داخل الشات، دون
+              تكلفة الذكاء الاصطناعي.
             </p>
             <ul className="mt-2 flex flex-col gap-2.5">
-              <li className="flex items-center gap-2 text-sm text-gray-600"><CheckIcon className="text-emerald-600"/> بيع أوتوماتيكي ومباشر</li>
-              <li className="flex items-center gap-2 text-sm text-gray-600"><CheckIcon className="text-emerald-600"/> لا توجد تكلفة ذكاء اصطناعي</li>
-              <li className="flex items-center gap-2 text-sm text-gray-600"><CheckIcon className="text-emerald-600"/> سريع ومناسب للمنتجات المحددة</li>
+              <li className="flex items-center gap-2 text-sm text-gray-600">
+                <CheckIcon className="text-emerald-600" /> بيع أوتوماتيكي ومباشر
+              </li>
+              <li className="flex items-center gap-2 text-sm text-gray-600">
+                <CheckIcon className="text-emerald-600" /> لا توجد تكلفة ذكاء
+                اصطناعي
+              </li>
+              <li className="flex items-center gap-2 text-sm text-gray-600">
+                <CheckIcon className="text-emerald-600" /> سريع ومناسب للطلبات
+                المباشرة
+              </li>
             </ul>
           </div>
 
           {/* AI Commerce Mode */}
           <div className="relative flex flex-col gap-4 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6 sm:p-8">
-            <div className="absolute top-6 left-6 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">الملحق الإضافي</div>
-            <div className="flex size-12 items-center justify-center rounded-xl bg-emerald-600 text-white">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l1.8 5.6L19 9l-5.2 1.4L12 16l-1.8-5.6L5 9l5.2-1.4L12 2z"/></svg>
+            <div className="absolute top-6 left-6 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+              إضافة مدفوعة
             </div>
-            <h3 className="text-xl font-extrabold text-gray-900">وضع التجارة بالذكاء الاصطناعي</h3>
+            <div className="flex size-12 items-center justify-center rounded-xl bg-emerald-600 text-white">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 2l1.8 5.6L19 9l-5.2 1.4L12 16l-1.8-5.6L5 9l5.2-1.4L12 2z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-extrabold text-gray-900">
+              البيع بالذكاء الاصطناعي (AI Commerce Assistant)
+            </h3>
             <p className="text-[15px] leading-relaxed text-gray-600">
-              يحول الشات لمساعد مبيعات ذكي. بيفهم لغة العميل العامية والفرانكو، يقترح منتجات، ويستخرج الطلب من الكلام العشوائي.
+              محرك ذكي يفهم الرسائل (العامية والفرانكو)، يستخرج الطلبات من الجمل
+              المعقدة، يرد على الاستفسارات من سياسات متجرك، ويصعد المحادثة لك
+              عند الضرورة.
             </p>
             <ul className="mt-2 flex flex-col gap-2.5">
-              <li className="flex items-center gap-2 text-sm text-gray-600"><CheckIcon className="text-emerald-600"/> محادثة طبيعية كأنها إنسان</li>
-              <li className="flex items-center gap-2 text-sm text-gray-600"><CheckIcon className="text-emerald-600"/> الإجابة من سياسات المتجر</li>
-              <li className="flex items-center gap-2 text-sm text-gray-600"><CheckIcon className="text-emerald-600"/> تصعيد ذكي للمواقف الصعبة</li>
+              <li className="flex items-center gap-2 text-sm text-gray-600">
+                <CheckIcon className="text-emerald-600" /> محادثة طبيعية كأنها
+                إنسان
+              </li>
+              <li className="flex items-center gap-2 text-sm text-gray-600">
+                <CheckIcon className="text-emerald-600" /> الإجابة من سياسات
+                المتجر
+              </li>
+              <li className="flex items-center gap-2 text-sm text-gray-600">
+                <CheckIcon className="text-emerald-600" /> تصعيد ذكي للمواقف
+                الصعبة
+              </li>
             </ul>
           </div>
         </div>
@@ -802,164 +739,102 @@ function ProductModes() {
   );
 }
 
-function PricingOld() {
+const FAQS = [
+  {
+    q: "هل بيحتاج ربط معقد بفيسبوك وواتساب؟",
+    a: "إطلاقاً. الربط بيتم بضغطة زر واحدة (Login with Facebook)، وبنفس الطريقة لواتساب بيزنس، مفيش أي أكواد أو خبرة تقنية مطلوبة.",
+  },
+  {
+    q: "هل الذكاء الاصطناعي ممكن يدي العميل سعر غلط؟",
+    a: "مستحيل. الذكاء الاصطناعي عندنا مفصول عن الأسعار والمخزون، هو بيفهم طلب العميل بس، وبيسحب السعر والمخزون الحقيقي من الكتالوج بتاعك.",
+  },
+  {
+    q: "هل بيشتغل على التعليقات (الكومنتات)؟",
+    a: "حالياً النظام متخصص في المحادثات الخاصة (Direct Messages)، لأنه المكان الفعلي لإتمام البيع وأخذ بيانات الشحن.",
+  },
+  {
+    q: "لو العميل كتب عنوانه بطريقة عشوائية، هل هيفهمه؟",
+    a: "أيوة، دي أقوى ميزة في نظامنا! مهما كان كلام العميل ملخبط أو كاتبه بالفرانكو، الموديل بيستخرج المحافظة، المنطقة، والشارع ويرتبهم في الشيت.",
+  },
+  {
+    q: "إزاي بحاسب شركة الشحن بالأوردرات دي؟",
+    a: "النظام بيجمع كل الأوردرات في ملف جاهز (إكسيل أو شيتس) متوافق تماماً مع صيغة شركات الشحن (زي بوسطة، طرد، أو غيرهم)، بتاخده وترفعه عندهم في ثواني.",
+  },
+  {
+    q: "هل ينفع أتدخل وأرد بنفسي في أي وقت؟",
+    a: "طبعاً! بمجرد ما تبعت رسالة للعميل، النظام بيوقف الرد الآلي فوراً عشان تكمل إنت المحادثة وتتفق معاه براحتك.",
+  },
+];
+
+function FAQSection() {
   return (
-    <section
-      id="pricing"
-      className="border-t border-gray-200 bg-gray-50 px-5 py-16 sm:px-8 sm:py-24"
-    >
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-11 max-w-xl">
-          <span className="text-sm font-extrabold tracking-wide text-emerald-700">
-            الأسعار
-          </span>
-          <h2 className="font-display mt-2 mb-3 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            باقة تناسب حجم بيزنسك
+    <section id="faq" className="bg-gray-50 px-5 py-16 sm:px-8 sm:py-24">
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-12 text-center">
+          <h2 className="font-display text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            أسئلة شائعة (إجابات صريحة)
           </h2>
-          <p className="text-[15px] leading-loose text-gray-500">
-            ابدأ تجربتك المجانية لأول 30 أوردر، واختر الباقة المناسبة لحجم
-            أعمالك.
-          </p>
         </div>
-
-        <div className="grid items-stretch gap-5 lg:grid-cols-3">
-          <div className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6.5">
-            <h3 className="mb-1.5 text-base font-extrabold text-gray-900">
-              الأساسية (Starter)
-            </h3>
-            <p className="mb-5 text-[13px] leading-relaxed text-gray-500">
-              للبائع المستقل أو الصفحات والمتاجر الناشئة.
-            </p>
-            <div className="mb-5.5 flex items-baseline gap-1.5">
-              <span className="font-display text-3xl font-black text-gray-900">
-                390
-              </span>
-              <span className="text-[13px] font-bold text-gray-500">
-                جنيه / شهريًا
-              </span>
-            </div>
-            <Link
-              href="/demo"
-              className="mb-6 flex min-h-11 items-center justify-center rounded-lg border border-gray-300 px-5 text-sm font-bold text-gray-900 transition-colors hover:bg-gray-50"
+        <div className="grid gap-4 md:grid-cols-2">
+          {FAQS.map((faq, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-gray-200 bg-white p-6"
             >
-              ابدأ الآن
-            </Link>
-            <ul className="flex flex-col gap-3 border-t border-gray-100 pt-5">
-              {[
-                "حتى 100 أوردر شهريًا",
-                "ربط صفحات فيسبوك وإنستجرام",
-                "تفريغ للإكسيل",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-2.5">
-                  <CheckIcon className="text-emerald-700" />
-                  <span className="text-[13.5px] text-gray-700">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="relative flex flex-col rounded-2xl border border-emerald-700 bg-[#0a0f0d] p-6.5 shadow-2xl">
-            <span className="absolute -top-3.5 start-6.5 rounded-full bg-emerald-500 px-3 py-1 text-xs font-extrabold text-white">
-              الأكثر شيوعًا
-            </span>
-            <h3 className="mt-2 mb-1.5 text-base font-extrabold text-white">
-              النمو (Growth)
-            </h3>
-            <p className="mb-5 text-[13px] leading-relaxed text-gray-400">
-              للمتاجر النشطة ذات الحملات الإعلانية المستمرة.
-            </p>
-            <div className="mb-5.5 flex items-baseline gap-1.5">
-              <span className="font-display text-3xl font-black text-white">
-                590
-              </span>
-              <span className="text-[13px] font-bold text-gray-400">
-                جنيه / شهريًا
-              </span>
+              <h3 className="mb-3 text-[15px] font-bold text-gray-900 leading-snug">
+                {faq.q}
+              </h3>
+              <p className="text-[13.5px] leading-relaxed text-gray-600">
+                {faq.a}
+              </p>
             </div>
-            <Link
-              href="/demo"
-              className="mb-6 flex min-h-11 items-center justify-center rounded-lg bg-emerald-600 px-5 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
-            >
-              ابدأ الآن
-            </Link>
-            <ul className="flex flex-col gap-3 border-t border-white/10 pt-5">
-              {[
-                "حتى 500 أوردر شهريًا",
-                "دعم واتساب",
-                "تصدير تلقائي مباشر لـ Google Sheets",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-2.5">
-                  <CheckIcon className="text-emerald-400" />
-                  <span className="text-[13.5px] text-gray-200">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6.5">
-            <h3 className="mb-1.5 text-base font-extrabold text-gray-900">
-              المحترفين (Pro)
-            </h3>
-            <p className="mb-5 text-[13px] leading-relaxed text-gray-500">
-              للبراندات والمتاجر الكبيرة ذات حجم الطلبيات المرتفع.
-            </p>
-            <div className="mb-5.5 flex items-baseline gap-1.5">
-              <span className="font-display text-3xl font-black text-gray-900">
-                1,190
-              </span>
-              <span className="text-[13px] font-bold text-gray-500">
-                جنيه / شهريًا
-              </span>
-            </div>
-            <Link
-              href="/demo"
-              className="mb-6 flex min-h-11 items-center justify-center rounded-lg border border-gray-300 px-5 text-sm font-bold text-gray-900 transition-colors hover:bg-gray-50"
-            >
-              ابدأ الآن
-            </Link>
-            <ul className="flex flex-col gap-3 border-t border-gray-100 pt-5">
-              {[
-                "أوردرات غير محدودة",
-                "مستخدمين متعددين",
-                "دعم فني مباشر وأولوية ربط",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-2.5">
-                  <CheckIcon className="text-emerald-700" />
-                  <span className="text-[13.5px] text-gray-700">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-function CtaAndFooter() {
+function FinalCTA() {
   return (
     <div className="bg-[#0a0f0d]">
-      <section
-        id="cta"
-        className="border-b border-white/10 px-5 py-16 text-center sm:px-8 sm:py-20"
-      >
-        <div className="mx-auto max-w-xl">
-          <h2 className="font-display mb-3.5 text-3xl font-black text-white sm:text-4xl">
-            جاهز تبطّل ترد يدويًا على كل رسالة؟
+      <section className="border-b border-white/10 px-5 py-16 text-center sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-2xl">
+          <h2 className="font-display mb-4 text-3xl font-black text-white sm:text-4xl lg:text-5xl leading-tight">
+            وفر وقتك، ضاعف مبيعاتك، وارتاح من ضغط الرسايل
           </h2>
-          <p className="mb-7 text-[15px] leading-loose text-gray-400">
-            جرّب المحرك على رسايل بيزنسك الحقيقية وشوف قد إيه هيوفر وقتك.
+          <p className="mb-8 text-[16px] leading-loose text-gray-400">
+            أول 30 أوردر علينا مجاناً بالكامل لتجربة النظام على أرض الواقع. بدون
+            إدخال بطاقة ائتمانية.
           </p>
-          <Link
-            href="/demo"
-            className="inline-flex min-h-11 items-center rounded-xl bg-emerald-600 px-7.5 py-3.5 text-[15px] font-bold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-700"
-          >
-            ابدأ تجربتك المجانية الآن
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/demo"
+              className="inline-flex min-h-12 w-full sm:w-auto items-center justify-center rounded-xl bg-emerald-600 px-8 py-3.5 text-[15.5px] font-bold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-700 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+            >
+              ابدأ تجربتك المجانية الآن 🚀
+            </Link>
+            <a
+              href="#example"
+              className="inline-flex min-h-12 w-full sm:w-auto items-center justify-center rounded-xl border border-white/20 px-8 py-3.5 text-[15.5px] font-bold text-white transition-colors hover:bg-white/10"
+            >
+              جرّب الشات الحي
+            </a>
+          </div>
         </div>
       </section>
 
-      <footer className="px-5 pt-12 pb-7 sm:px-8">
+      {/* Sticky Mobile CTA */}
+      <div className="fixed bottom-4 left-4 right-4 z-50 md:hidden">
+        <Link
+          href="/demo"
+          className="flex h-14 w-full items-center justify-center rounded-2xl bg-emerald-600 text-[15px] font-bold text-white shadow-2xl transition-transform active:scale-95"
+        >
+          جرب 30 أوردر مجاناً 🚀
+        </Link>
+      </div>
+
+      <footer className="px-5 pt-12 pb-24 md:pb-7 sm:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="mb-9 grid gap-10 lg:grid-cols-[1.3fr_0.7fr_0.7fr]">
             <div>
@@ -967,8 +842,8 @@ function CtaAndFooter() {
                 <BrandMark tone="dark" />
               </div>
               <p className="mb-4.5 max-w-md text-[13px] leading-loose text-gray-400">
-                محرك ذكاء اصطناعي يحوّل محادثات السوشيال ميديا لطلبات جاهزة،
-                مبني خصيصًا لتجار العربي المصري.
+                منصة التجارة الذكية الأولى في مصر. حوّل شات السوشيال ميديا
+                لمبيعات مؤكدة بدون تدخل بشري.
               </p>
             </div>
             <div>
@@ -989,12 +864,6 @@ function CtaAndFooter() {
                   المميزات
                 </a>
                 <a
-                  href="#example"
-                  className="text-[13.5px] text-gray-300 hover:text-white"
-                >
-                  مثال حي
-                </a>
-                <a
                   href="#pricing"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
@@ -1011,26 +880,20 @@ function CtaAndFooter() {
                   href="#"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
-                  من نحن
-                </a>
-                <a
-                  href="#"
-                  className="text-[13.5px] text-gray-300 hover:text-white"
-                >
                   تواصل معنا
                 </a>
                 <a
-                  href="#testimonials"
+                  href="#faq"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
-                  آراء التجار
+                  الأسئلة الشائعة
                 </a>
               </div>
             </div>
           </div>
           <div className="border-t border-white/10 pt-5 text-center">
             <span className="text-[12.5px] text-gray-500">
-              © 2026 TijaratkBot. جميع الحقوق محفوظة.
+              © 2026 Tijaratk. جميع الحقوق محفوظة.
             </span>
           </div>
         </div>
@@ -1040,19 +903,47 @@ function CtaAndFooter() {
 }
 
 export default function Page() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "تِجارتك (Tijaratk)",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "EGP",
+      description: "تجربة مجانية لأول 30 أوردر",
+    },
+    description:
+      "منصة التجارة عبر المحادثات الأولى في مصر. أتمتة الردود، الكتالوج، وتأكيد طلبات فيسبوك وإنستجرام وواتساب بذكاء اصطناعي يفهم العامية.",
+  };
+
   return (
-    <main>
+    <main className="pb-16 md:pb-0">
+      <Script
+        id="json-ld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Nav />
       <Hero />
       <MarketProof />
-      <HowItWorks />
+      <ROIAndProfitLogic />
       <Features />
-      <LiveExample />
-      <Stats />
-      <Testimonials />
+      <HowItWorks />
+
+      {/* 
+        Legacy components extracted to frontend/components/legacy/:
+        <Stats /> 
+        <Testimonials /> 
+        <LiveExample />
+      */}
+
       <ProductModes />
       <PricingSection />
-      <CtaAndFooter />
+      <FAQSection />
+      <FinalCTA />
     </main>
   );
 }

@@ -18,7 +18,7 @@ async def _process_channel_message(
     message_id: str,
 ) -> None:
     message = await session.get(Message, message_id)
-    if message is None:
+    if message is None or message.intent is not None:
         return
     conversation = await session.get(Conversation, message.conversation_id)
     async with lock_cm(conversation.id):

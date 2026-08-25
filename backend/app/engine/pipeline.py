@@ -91,9 +91,11 @@ async def _correction_count(session: AsyncSession, conversation_id: str) -> int:
     return result.scalar_one()
 
 
-async def _merchant_name(session: AsyncSession, merchant_id: str) -> str:
-    result = await session.execute(select(Merchant.name).where(Merchant.id == merchant_id))
-    return result.scalar_one()
+async def _merchant_info(session: AsyncSession, merchant_id: str) -> tuple[str, bool]:
+    result = await session.execute(
+        select(Merchant.name, Merchant.ai_tool_ordering_enabled).where(Merchant.id == merchant_id)
+    )
+    return result.one()
 
 
 async def process_message(session: AsyncSession, conversation: Conversation, message: Message) -> PipelineResult:
@@ -149,7 +151,16 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
 
     known_intents = await _known_intents(session)
     correction_count = await _correction_count(session, conversation.id)
-    merchant_name = await _merchant_name(session, conversation.merchant_id)
+    merchant_name, ai_tool_ordering_enabled = await _merchant_info(session, conversation.merchant_id)
+
+    if ai_tool_ordering_enabled:
+        from app.engine.action_resolution import resolve_action
+
+        resolution = await resolve_action(session, conversation, message)
+        message.model_tier = ModelTier.DEEPSEEK
+        message.escalation_reason = resolution.escalation_reason
+        await session.flush()
+        return PipelineResult(message=message, order=None)
     try:
         classification, reason, usage = await classify_message(
             prompt,

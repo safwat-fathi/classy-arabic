@@ -34,12 +34,19 @@ def parse_meta_payload(payload: dict) -> list[ParsedInboundMessage]:
             text = message.get("text")
             if not text:
                 continue
+            sender = event.get("sender")
+            if not sender or not sender.get("id"):
+                continue
+            mid = message.get("mid")
+            if not mid:
+                continue
+
             parsed.append(
                 ParsedInboundMessage(
                     channel=channel,
                     external_account_id=page_id,
-                    external_customer_id=event["sender"]["id"],
-                    external_message_id=message["mid"],
+                    external_customer_id=sender["id"],
+                    external_message_id=mid,
                     text=text,
                 )
             )

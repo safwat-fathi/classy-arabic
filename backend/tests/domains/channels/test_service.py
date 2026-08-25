@@ -72,7 +72,7 @@ async def test_ingest_is_idempotent_on_duplicate_external_message_id(db_session,
     await db_session.flush()
 
     assert first_id is not None
-    assert second_id is None
+    assert second_id == first_id
 
 
 async def test_ingest_drops_messages_for_unmapped_account(db_session):
