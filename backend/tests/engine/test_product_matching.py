@@ -23,7 +23,7 @@ async def test_matches_close_product(db_session, merchant, mock_ai):
     db_session.add(product)
     await db_session.flush()
 
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response(close_vector))
     )
 
@@ -42,7 +42,7 @@ async def test_no_match_when_too_far(db_session, merchant, mock_ai):
     db_session.add(product)
     await db_session.flush()
 
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response(query_vector))
     )
 
@@ -62,7 +62,7 @@ async def test_does_not_match_across_merchants(db_session, merchant, mock_ai):
     db_session.add(other_product)
     await db_session.flush()
 
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response(close_vector))
     )
 

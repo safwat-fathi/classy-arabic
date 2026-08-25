@@ -6,7 +6,7 @@ from app.models import LabeledExample, Merchant
 
 
 async def test_embed_text_calls_embedding_endpoint(mock_ai):
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(
             200,
             json={

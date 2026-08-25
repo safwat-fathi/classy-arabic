@@ -85,7 +85,7 @@ async def test_ingest_purchase_intent_returns_full_order_detail(db_session, conv
             ),
         ]
     )
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response())
     )
 

@@ -78,7 +78,7 @@ async def test_purchase_intent_in_gathering_creates_order(db_session, conversati
             ),
         ]
     )
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
@@ -108,7 +108,7 @@ async def test_purchase_intent_line_items_match_seeded_product(db_session, conve
             ),
         ]
     )
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
@@ -125,7 +125,7 @@ async def test_classification_failure_persists_message_instead_of_losing_it(db_s
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         return_value=httpx.Response(200, json=_chat_response("not json"))
     )
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
@@ -146,7 +146,7 @@ async def test_extraction_failure_persists_message_and_classification(db_session
             httpx.Response(200, json=_chat_response("not json")),
         ]
     )
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
@@ -164,7 +164,7 @@ async def test_non_purchase_intent_does_not_create_order(db_session, conversatio
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
     )
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response())
     )
 
@@ -184,7 +184,7 @@ async def test_process_message_persists_ai_usage_event(db_session, conversation,
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         return_value=httpx.Response(200, json=_chat_response('{"intent": "greeting", "confidence": 0.95}'))
     )
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/embeddings").mock(
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response())
     )
 

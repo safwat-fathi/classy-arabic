@@ -1,14 +1,14 @@
 # TijaratkBot: Message Classification & AI Engine — Technical Spec (Core)
 
-Scope: storage → normalization → classification → structured extraction, with NileChat-4B as the primary model from huggingface and a defined escalation path to a higher-tier model (DeepSeek v4 Flash via OpenRouter API). Embeddings use a self-hosted multilingual model (`BAAI/bge-m3`). No channel/webhook integration in this doc — starts from "a message has arrived and is ready to be processed."
+Scope: storage → normalization → classification → structured extraction, using DeepSeek v4 Flash (via OpenRouter API) as the sole LLM tier for both stages — see §1.1 for why an earlier design used a dedicated dialect-tuned model (NileChat-4B) here instead, and §1.2/`app/engine/prompts.py` for how that dialect strength is mitigated now. Embeddings use a multilingual model (`BAAI/bge-m3`) via OpenRouter. No channel/webhook integration in this doc — starts from "a message has arrived and is ready to be processed."
 
 ---
 
 ## 1. Model References
 
-### 1.1 Primary Model (Tier 1): MBZUAI-Paris/Nile-Chat-4B
+### 1.1 Retired Model (formerly Tier 1): MBZUAI-Paris/Nile-Chat-4B
 
-Grounding the spec in what this model actually is, since the routing design depends on its real limits:
+**Historical.** NileChat-4B was the original primary classifier/extractor; it has been fully removed from the codebase and replaced by DeepSeek v4 Flash as the sole LLM tier (§1.2). Kept here for context on why a dialect-aware system prompt (`app/engine/prompts.py`) was needed after retiring it — not because current routing depends on any of these limits:
 
 | Property                         | Value                                                                                                                  | Design implication                                                                                                                                                                                                                                   |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -22,12 +22,12 @@ Grounding the spec in what this model actually is, since the routing design depe
 | Structured output                | No native function-calling/tool-use interface documented                                                               | Must enforce JSON schema via constrained/guided decoding (e.g., vLLM guided decoding, `outlines`, or grammar-constrained sampling) rather than assuming native structured output support                                                             |
 | Embedding capability             | **None** — this is a generative chat model, not an embedding model                                                     | Embeddings need a dedicated model — see §1.3 and §5                                                                                                                                                                                                  |
 
-### 1.2 Escalated Model (Tier 2): DeepSeek v4 Flash (via OpenRouter API)
+### 1.2 Sole LLM Tier: DeepSeek v4 Flash (via OpenRouter API)
 
 | Property             | Value                                                              | Design implication                                                                                                                                                           |
 | -------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Role                 | Tier-2 Escalated AI Model                                          | Handles high-reasoning tasks, context overflows, ambiguous extractions, and low-confidence classifications                                                                   |
-| Context capacity     | Large context window (128k+ tokens)                                | Ingests full thread histories + slot states without truncation when exceeding NileChat's 2048-token limit                                                                    |
+| Role                 | Sole LLM tier — classification + extraction                       | Handles every message that reaches a model call, from routine to high-reasoning, ambiguous, or low-confidence cases alike                                                    |
+| Context capacity     | Large context window (128k+ tokens)                                | Ingests full thread histories + slot states without truncation — no fixed context-budget ceiling (§7)                                                                        |
 | Reasoning & Tool use | Frontier-grade multi-step reasoning & structured output capability | Handles complex cross-referencing, multi-intent resolution, and edge-case field extractions                                                                                  |
 | Serving & Provider   | **OpenRouter API** (`https://openrouter.ai/api/v1`)                | Accessible via standard OpenAI SDK/HTTP client (`deepseek/deepseek-chat` or provider alias on OpenRouter). Requires `OPENROUTER_API_KEY`, eliminating direct GPU self-hosting |
 
@@ -76,8 +76,8 @@ model Message {
   normalizedText     String?
   intent             String?
   intentConfidence   Float?
-  modelTier          ModelTier?       // RULE | NILECHAT | ESCALATED
-  escalationReason   String?          // populated only if modelTier = ESCALATED
+  modelTier          ModelTier?       // RULE | DEEPSEEK
+  escalationReason   String?          // populated when a preflight/postflight trigger flags the result for review (see §4)
   embedding          Unsupported("vector(1024)")?  // 1024-dim dense vector from BAAI/bge-m3
   createdAt          DateTime @default(now())
 }
@@ -115,12 +115,11 @@ model LabeledExample {
 
 enum ModelTier {
   RULE
-  NILECHAT
-  ESCALATED
+  DEEPSEEK
 }
 ```
 
-`modelTier` and `escalationReason` are not optional extras — they're what let you later answer "how often am I escalating, and why," which is your main cost and quality signal.
+`modelTier` and `escalationReason` are not optional extras — they're what let you later answer "how often am I flagging for review, and why," which is your main cost and quality signal.
 
 ---
 
@@ -134,48 +133,42 @@ Message (already stored, normalizedText populated)
    keyword/regex check for greeting, obvious spam, single-emoji reactions
         │ (no match)
         ▼
-[Context Budget Assembler]
-   builds prompt: last N turns + slot state, trimmed to fit NileChat's
-   2048-token training ceiling
+[Context Assembler]
+   builds prompt: last N turns + slot state (no fixed token ceiling — §7)
         │
         ▼
-[Tier 1: NileChat-4B — Intent Classification]
+[DeepSeek v4 Flash — Intent Classification]
    constrained decoding → one of the fixed intent labels + confidence
         │
-        ├─ confidence ≥ threshold ────────────────► proceed with intent
-        │
-        └─ confidence < threshold ──► [Tier 2: DeepSeek v4 Flash (OpenRouter)] ──► intent
-        │
         ▼ (if intent == purchase_intent AND state ∈ {GATHERING, CONFIRMING})
-[Tier 1: NileChat-4B — Structured Extraction]
+[DeepSeek v4 Flash — Structured Extraction]
    schema-constrained JSON output (line_items, address, phone, payment_method,
    ambiguous_fields)
         │
-        ├─ ambiguous_fields empty AND confidence ≥ threshold ──► use as-is
+        ▼
+[Review-flagging — single pass, no retry/second call]
+   confidence < threshold, OR ambiguous_fields non-empty, OR repeated
+   correction, OR reasoning-heavy content
         │
-        └─ ambiguous_fields non-empty OR confidence < threshold
-           OR prompt exceeded context budget
-           OR 2nd correction on this conversation thread
-                  │
-                  ▼
-           [Tier 2: DeepSeek v4 Flash (OpenRouter) — re-run extraction with full context]
+        ├─ none hold ──► Message.escalationReason = null, Order.status = AUTO_CONFIRMED
+        │
+        └─ any hold ───► Message.escalationReason = <trigger>, Order.status = PENDING_REVIEW
 ```
 
 ---
 
-## 4. Model Routing / Escalation Policy
+## 4. Review-Flagging Policy
 
-This is the part that needs to be exact, since "escalate when needed" is meaningless without hard triggers. Escalate from NileChat-4B to the Tier-2 model (**DeepSeek v4 Flash via OpenRouter**) when **any** of the following hold:
+This is the part that needs to be exact, since "flag for review when needed" is meaningless without hard triggers. There is no second model and no escalation target — DeepSeek v4 Flash is the sole LLM tier (§1.2), so every message gets exactly one classification call and, if applicable, one extraction call. These triggers (checked via `evaluate_preflight`/`evaluate_postflight` in `app/engine/routing_policy.py`) only decide whether that single result gets flagged for human review — flag it when **any** of the following hold:
 
 1. **Confidence threshold breach** — classification or extraction confidence below a tuned cutoff (start at 0.7, adjust empirically per merchant/label once you have data).
-2. **Non-empty `ambiguous_fields`** in the extraction output — NileChat is explicitly telling you it wasn't sure.
-3. **Context budget overflow** — assembled prompt (conversation history + slot state + any retrieved examples) exceeds the ~2048-token working ceiling. Don't silently truncate and hope; route to DeepSeek v4 Flash via OpenRouter (Tier 2), which has a much larger context window and can use the full thread.
-4. **Repeated correction** — the merchant has rejected/edited NileChat's extraction twice already in the same conversation. Escalate the rest of that thread automatically rather than repeating the same failure mode a third time.
-5. **Reasoning-heavy content, not just dialect-heavy content** — messages that require multi-step reasoning, cross-referencing past orders, or resolving a genuine ambiguity in intent (not just vocabulary) rather than fluent-but-simple dialect. Flag this heuristically at first (e.g., message length + question-mark density + presence of conditional language "لو... يبقى...") and refine once you see real escalation patterns.
+2. **Non-empty `ambiguous_fields`** in the extraction output — the model is explicitly telling you it wasn't sure.
+3. **Repeated correction** — the merchant has rejected/edited the extraction twice already in the same conversation.
+4. **Reasoning-heavy content, not just dialect-heavy content** — messages that require multi-step reasoning, cross-referencing past orders, or resolving a genuine ambiguity in intent (not just vocabulary) rather than fluent-but-simple dialect. Flagged heuristically (message length + question-mark density + presence of conditional language "لو... يبقى...").
 
-Everything that doesn't hit a trigger stays on NileChat-4B. The goal is that DeepSeek v4 Flash (Tier 2) handles a small minority of traffic — if you find yourself escalating most messages, that's a signal your thresholds are miscalibrated, not that NileChat is the wrong choice.
+Everything that doesn't hit a trigger is used as-is (`Order.status = AUTO_CONFIRMED`). The goal is that flagging stays a small minority of traffic — if you find yourself flagging most messages, that's a signal your thresholds are miscalibrated, not a reason to reintroduce a second model.
 
-**Track every escalation** with its reason in `Message.escalationReason`. This is your prioritized signal for what to fine-tune NileChat on next — if 40% of escalations are the same failure pattern, that's a targeted LoRA fine-tune, not a permanent DeepSeek v4 Flash dependency.
+**Track every flag** with its reason in `Message.escalationReason`. This remains the prioritized signal for what to improve next — if 40% of flags are the same failure pattern, that's a targeted prompt/threshold tune (`app/engine/prompts.py`, `app/engine/routing_policy.py`), not a case for bringing back a two-tier setup.
 
 ---
 
@@ -203,7 +196,7 @@ Real, embedding-based clustering of accumulated messages to discover new user in
 - **Representative Extraction:** For each discovered cluster, we find the messages closest to its own centroid (via cosine similarity) to serve as the highly representative examples.
 - **Batched LLM Labeling:** Only the human-readable intent label and one-sentence summary per cluster come from a single, batched LLM call to DeepSeek v4 Flash (via OpenRouter API). The LLM is provided the size of the cluster and its top representative messages.
 - **Graceful Degradation:** The pipeline never loses the underlying local grouping. If the OpenRouter API fails or is unavailable, it degrades gracefully to generic fallback labels (e.g., "unknown_intent_0") rather than failing outright.
-- **Persistence:** The top representative messages from these labeled clusters are written to `LabeledExample` (`source = "cluster_labeling"`), making them immediately available as few-shot context for NileChat's real-time extraction.
+- **Persistence:** The top representative messages from these labeled clusters are written to `LabeledExample` (`source = "cluster_labeling"`), making them immediately available as few-shot context for DeepSeek's real-time classification/extraction.
 
 ---
 
@@ -211,4 +204,4 @@ Real, embedding-based clustering of accumulated messages to discover new user in
 
 - **DeepSeek v4 Flash:** Point your AI-client module at the OpenRouter API (`https://openrouter.ai/api/v1`) using `OPENROUTER_API_KEY` with OpenAI-compatible payload structure. It serves as the sole LLM tier for all classification and extraction, relying on the dialect-aware system prompt (`app/engine/prompts.py`) to mitigate the loss of NileChat's native dialect training.
 - **Embeddings (`BAAI/bge-m3`):** Run self-hosted embedding inference via Hugging Face TEI (Text Embeddings Inference) Docker container or local ONNX/FastEmbed runtime for low latency and zero per-token cost.
-- **Observability:** Log token counts and latencies per call regardless of tier — this lets you catch context-budget overflows (§4, trigger 3) before they degrade output quality.
+- **Observability:** Log token counts and latencies per call — useful for cost/latency monitoring; there's no fixed context-budget ceiling to enforce against (§1.2).

@@ -78,7 +78,7 @@ make dev                # uvicorn --reload
 
 Other backend commands: `make run` (no reload), `make test`, `make lint`, `make format`, `make migrate` (new Alembic revision), `make seed` (seed demo data via `scripts/seed.py`).
 
-Config is loaded from `.env` via `app/core/config.py`'s pydantic-settings `Settings`. See `backend/.env.example` for every variable, including the NileChat/OpenRouter endpoints, the classification confidence threshold, and the NileChat context token budget.
+Config is loaded from `.env` via `app/core/config.py`'s pydantic-settings `Settings`. See `backend/.env.example` for every variable, including the OpenRouter endpoint/model settings and the classification confidence threshold.
 
 ### Frontend
 
