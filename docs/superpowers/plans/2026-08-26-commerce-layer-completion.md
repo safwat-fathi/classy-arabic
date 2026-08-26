@@ -141,7 +141,7 @@ Lines 21–27 (Multi-tenancy, Delivery service, Store knowledge retrieval, Human
 
 - [x] **Step 14: Verify prose self-consistency** — grep sweep done, clean (see Status note above).
 
-- [ ] **Step 15: Commit**
+- [x] **Step 15: Commit**
 
 ```bash
 git add ROADMAP.md README.md CLAUDE.md
@@ -164,7 +164,7 @@ git commit -m "docs: reconcile roadmap/readme/claude.md with landed cart, checko
 - Consumes: existing `get_checkout_state(session, merchant_id, conversation_id) -> dict` (`checkout/service.py:24-50`, returns `{"items": [...], "subtotal": "...", "currency": "..."}`).
 - Produces: `create_order(...)` return value gains a new shape for the `confirm=False` case: `{"confirmed": False, "items": [...], "subtotal": "...", "currency": "..."}`. The `confirm=True` return shape (`{"order_id", "order_number", "total"}`) is unchanged.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 async def test_create_order_confirm_false_previews_without_creating_order(db_session, merchant, conversation, message):
@@ -214,12 +214,12 @@ async def test_create_order_confirm_true_after_preview_still_creates_order(db_se
 
 Add both to `backend/tests/domains/checkout/test_service.py`.
 
-- [ ] **Step 2: Run and verify both fail**
+- [x] **Step 2: Run and verify both fail**
 
 Run: `cd backend && uv run pytest tests/domains/checkout/test_service.py::test_create_order_confirm_false_previews_without_creating_order tests/domains/checkout/test_service.py::test_create_order_confirm_true_after_preview_still_creates_order -v`
 Expected: first test FAILs with `KeyError: 'confirmed'` (a real order is created instead); second currently passes coincidentally (confirm is ignored either way) — note that, then proceed.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `backend/app/domains/checkout/service.py`, insert a preview branch right after the existing missing-customer-info check (`if missing: raise ActionArgumentError(...)`) and before the "Atomic conversion guard" comment:
 
@@ -234,12 +234,12 @@ In `backend/app/domains/checkout/service.py`, insert a preview branch right afte
     # Atomic conversion guard (SRD S37): ...
 ```
 
-- [ ] **Step 4: Run and verify both pass**
+- [x] **Step 4: Run and verify both pass**
 
 Run: `cd backend && uv run pytest tests/domains/checkout/test_service.py tests/engine/test_tools_checkout.py -v`
 Expected: PASS, including the two new tests and all pre-existing ones (no regressions).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/domains/checkout/service.py backend/tests/domains/checkout/test_service.py
@@ -260,7 +260,7 @@ git commit -m "feat: make create_order's confirm=False return a preview instead 
 **Interfaces:**
 - Produces: `add_item(session, merchant_id, conversation_id, product_id, quantity, notes=None) -> dict`. Return dict gains a `"notes"` key. On a repeat add to an existing line, a new non-`None` `notes` replaces the stored one; omitting `notes` (the schema default) **preserves** whatever was already stored via `COALESCE(excluded.notes, cart_items.notes)` — quantity accumulates, notes does not get erased by a follow-up quantity-only add.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # backend/tests/domains/cart/test_service.py
@@ -304,12 +304,12 @@ async def test_handle_add_to_cart_threads_notes_through(db_session, merchant, co
     assert result["notes"] == "size 42"
 ```
 
-- [ ] **Step 2: Run and verify both fail**
+- [x] **Step 2: Run and verify both fail**
 
 Run: `cd backend && uv run pytest tests/domains/cart/test_service.py::test_add_item_persists_notes tests/domains/cart/test_service.py::test_add_item_repeat_without_notes_preserves_existing_notes tests/engine/test_tools_cart.py::test_handle_add_to_cart_threads_notes_through -v`
 Expected: FAIL with `TypeError: add_item() got an unexpected keyword argument 'notes'`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `backend/app/domains/cart/service.py` — top-of-file import gains `func`:
 
@@ -361,12 +361,12 @@ async def handle_add_to_cart(
         raise ActionArgumentError([str(exc)]) from exc
 ```
 
-- [ ] **Step 4: Run and verify all three pass, plus no regressions**
+- [x] **Step 4: Run and verify all three pass, plus no regressions**
 
 Run: `cd backend && uv run pytest tests/domains/cart/test_service.py tests/engine/test_tools_cart.py tests/domains/checkout/test_service.py tests/engine/test_tools_checkout.py -v`
 Expected: PASS. (Checkout tests included because `checkout/service.py` also calls `add_item` — confirm the added optional `notes` parameter with its default doesn't break any existing positional call.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/domains/cart/service.py backend/app/engine/tools/cart.py backend/tests/domains/cart/test_service.py backend/tests/engine/test_tools_cart.py
@@ -386,7 +386,7 @@ Today `_get_or_create_active_cart` accepts `merchant_id` but never filters by it
 **Interfaces:**
 - Produces: `_get_item_for_conversation(session, merchant_id, conversation_id, line_item_id) -> CartItem` (gains a `merchant_id` parameter and an active-cart-only filter). `update_item`/`remove_item`'s public signatures are unchanged — they already take `merchant_id`, they just start using it.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 async def test_update_item_rejects_line_item_from_another_merchant(db_session, merchant, conversation):
@@ -424,12 +424,12 @@ async def test_update_item_rejects_line_item_from_checked_out_cart(db_session, m
         await update_item(db_session, merchant.id, conversation.id, added["line_item_id"], 5)
 ```
 
-- [ ] **Step 2: Run and verify both fail**
+- [x] **Step 2: Run and verify both fail**
 
 Run: `cd backend && uv run pytest tests/domains/cart/test_service.py::test_update_item_rejects_line_item_from_another_merchant tests/domains/cart/test_service.py::test_update_item_rejects_line_item_from_checked_out_cart -v`
 Expected: FAIL — both currently succeed (no `CartItemNotFoundError` raised) because merchant/status aren't filtered.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 async def _get_or_create_active_cart(session: AsyncSession, merchant_id: str, conversation_id: str) -> Cart:
@@ -483,12 +483,12 @@ async def remove_item(session: AsyncSession, merchant_id: str, conversation_id: 
     await session.flush()
 ```
 
-- [ ] **Step 4: Run and verify all pass, no regressions**
+- [x] **Step 4: Run and verify all pass, no regressions**
 
 Run: `cd backend && uv run pytest tests/domains/cart/test_service.py tests/engine/test_tools_cart.py tests/domains/checkout/test_service.py tests/engine/test_tools_checkout.py -v`
 Expected: PASS, including all pre-existing tests (`test_remove_item_deletes_row`, `test_update_item_raises_for_unknown_line_item`, etc. — none of them exercise cross-merchant or checked-out-cart access, so none should change behavior).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/domains/cart/service.py backend/tests/domains/cart/test_service.py
@@ -531,4 +531,10 @@ Per the writing-plans skill's Scope Check: these are independent subsystems, eac
 
 ## Execution log
 
-- 2026-08-26: Plan drafted, reviewed by advisor twice (once on the doc-reconciliation scope, once on Tasks 2–4's code — caught and fixed a real bug in Task 3's original `on_conflict_do_update` that would have silently nulled out notes on a repeat add), `confirm` semantics for Task 2 confirmed with the user via AskUserQuestion (preview/dry-run, chosen over PENDING_REVIEW or dropping the field). Task 1 executed and verified. Tasks 2–4 executed inline immediately after (see commits).
+- 2026-08-26: Plan drafted, reviewed by advisor twice (once on the doc-reconciliation scope, once on Tasks 2–4's code — caught and fixed a real bug in Task 3's original `on_conflict_do_update` that would have silently nulled out notes on a repeat add), `confirm` semantics for Task 2 confirmed with the user via AskUserQuestion (preview/dry-run, chosen over PENDING_REVIEW or dropping the field). All four tasks executed inline the same day:
+  - Task 1 (`3a87bad`) — `docs: reconcile roadmap/readme/claude.md with landed cart, checkout, and order-hardening work`. Grep-sweep verified clean.
+  - Task 2 (`ebf13a1`) — `feat: make create_order's confirm=False return a preview instead of ignoring it`. 16/16 checkout tests pass.
+  - Task 3 (`c70343d`) — `feat: persist add_to_cart's notes field instead of discarding it`. 29/29 cart+checkout tests pass.
+  - Task 4 (`3c6757d`) — `fix: scope cart item lookups to owning merchant and active cart`. 31/31 cart+checkout tests pass.
+  - Final sanity pass: full tool-layer + cart/checkout/order/model test slice (58 tests) green.
+  - Deferred item and the 6 Recommended follow-up plans remain untouched, as scoped.
