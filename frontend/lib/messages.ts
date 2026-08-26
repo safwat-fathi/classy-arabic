@@ -32,4 +32,5 @@ export interface MessageIngestResponse {
   order_id: string | null;
   order_status: string | null;
   order: OrderDetail | null;
+  answer_text: string | null;
 }

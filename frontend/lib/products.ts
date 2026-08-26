@@ -4,6 +4,7 @@ export interface Product {
   name: string;
   aliases: string[];
   variants: Record<string, unknown>;
+  price: number | null;
 }
 
 export async function getProducts(merchantId: string): Promise<Product[]> {

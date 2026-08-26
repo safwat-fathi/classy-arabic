@@ -1,5 +1,6 @@
 import type { Product } from "@/lib/products";
 import type { IngestState } from "./actions";
+import * as m from "@/paraglide/messages";
 
 function findProduct(
   products: Product[],
@@ -9,15 +10,6 @@ function findProduct(
   return products.find((p) => p.id === productId) ?? null;
 }
 
-const intentLabels: Record<string, string> = {
-  purchase_intent: "طلب شراء",
-  question: "استفسار",
-  greeting: "تحية",
-  spam: "سبام",
-  reaction: "تفاعل",
-  other: "أخرى",
-};
-
 export function AIInsights({
   state,
   products,
@@ -25,12 +17,21 @@ export function AIInsights({
   state: IngestState;
   products: Product[];
 }) {
+  const intentLabels: Record<string, string> = {
+    purchase_intent: m.intent_purchase(),
+    question: m.intent_question(),
+    greeting: m.intent_greeting(),
+    spam: m.intent_spam(),
+    reaction: m.intent_reaction(),
+    other: m.intent_other(),
+  };
+
   let content;
 
   if (state.status === "idle") {
     content = (
       <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
-        ابعت رسالة عشان تشوف الذكاء الاصطناعي بيفهمها إزاي.
+        {m.demo_ai_empty()}
       </div>
     );
   } else if (state.status === "error") {
@@ -46,42 +47,42 @@ export function AIInsights({
           <span className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-2.5 py-1 text-sm font-medium text-blue-800">
             {state.data.intent
               ? intentLabels[state.data.intent] || state.data.intent
-              : "غير معروف"}
+              : m.demo_ai_unknown()}
           </span>
           {state.data.intent_confidence !== null && (
             <span className="inline-flex items-center rounded-md bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800">
-              نسبة التأكد: {(state.data.intent_confidence * 100).toFixed(0)}%
+              {m.demo_ai_confidence()} {(state.data.intent_confidence * 100).toFixed(0)}%
             </span>
           )}
         </div>
 
         {state.data.escalation_reason && (
           <div className="rounded-md bg-amber-100 p-3 text-sm text-amber-900">
-            <span className="font-semibold">تنبيه:</span>{" "}
+            <span className="font-semibold">{m.demo_ai_alert()}</span>{" "}
             {state.data.escalation_reason}
           </div>
         )}
 
         {state.data.order ? (
           <div className="flex flex-col gap-4 border-t border-emerald-100 pt-4">
-            <h3 className="font-semibold text-gray-900">تفاصيل الطلب:</h3>
+            <h3 className="font-semibold text-gray-900">{m.demo_ai_order_details()}</h3>
 
             <ul className="flex flex-col gap-2 text-sm text-gray-700">
               {state.data.order.address && (
                 <li className="flex gap-2">
-                  <span className="font-medium text-gray-900">العنوان:</span>
+                  <span className="font-medium text-gray-900">{m.demo_ai_address()}</span>
                   <span>{state.data.order.address}</span>
                 </li>
               )}
               {state.data.order.phone && (
                 <li className="flex gap-2">
-                  <span className="font-medium text-gray-900">الموبايل:</span>
+                  <span className="font-medium text-gray-900">{m.demo_ai_phone()}</span>
                   <span>{state.data.order.phone}</span>
                 </li>
               )}
               {state.data.order.payment_method && (
                 <li className="flex gap-2">
-                  <span className="font-medium text-gray-900">طريقة الدفع:</span>
+                  <span className="font-medium text-gray-900">{m.demo_ai_payment()}</span>
                   <span>{state.data.order.payment_method}</span>
                 </li>
               )}
@@ -89,7 +90,7 @@ export function AIInsights({
 
             <div className="mt-2">
               <h4 className="mb-2 text-sm font-medium text-gray-900">
-                المنتجات المطلوبة:
+                {m.demo_ai_products()}
               </h4>
               <ul className="flex flex-col gap-2">
                 {state.data.order.line_items.map((item, i) => {
@@ -106,17 +107,17 @@ export function AIInsights({
                         {item.product_name}
                         {item.notes && (
                           <span className="mt-1 block text-xs text-gray-500">
-                            المواصفات: {item.notes}
+                            {m.demo_ai_specs()} {item.notes}
                           </span>
                         )}
                       </div>
                       {matched ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
-                          موجود في الكتالوج
+                          {m.demo_ai_in_catalog()}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
-                          مش موجود
+                          {m.demo_ai_not_found()}
                         </span>
                       )}
                     </li>
@@ -125,9 +126,14 @@ export function AIInsights({
               </ul>
             </div>
           </div>
+        ) : state.data.answer_text ? (
+          <div className="flex flex-col gap-2 border-t border-emerald-100 pt-4">
+            <h3 className="font-semibold text-gray-900">{m.demo_ai_answer_title()}</h3>
+            <p className="text-sm text-gray-700">{state.data.answer_text}</p>
+          </div>
         ) : (
           <div className="text-sm text-gray-600">
-            مفيش تفاصيل طلب واضحة في الرسالة.
+            {m.demo_ai_no_order()}
           </div>
         )}
       </div>
@@ -137,7 +143,7 @@ export function AIInsights({
   return (
     <section className="flex flex-col gap-4">
       <h2 className="font-display text-xl font-semibold tracking-tight">
-        طلب العميل من خلال الرسالة:
+        {m.demo_ai_title()}
       </h2>
       {content}
     </section>

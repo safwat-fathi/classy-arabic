@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { Product } from "@/lib/products";
+import * as m from "@/paraglide/messages";
 
 function formatVariants(variants: Record<string, unknown>) {
   return Object.entries(variants).map(([key, value]) => {
@@ -9,15 +10,11 @@ function formatVariants(variants: Record<string, unknown>) {
 }
 
 function getImageForProduct(name: string) {
-  if (name.toLowerCase().includes("denim")) return "/images/denim_jacket.jpg";
-  if (name.toLowerCase().includes("linen")) return "/images/linen_dress.jpg";
+  const lower = name.toLowerCase();
+  if (lower.includes("denim")) return "/images/denim_jacket.jpg";
+  if (lower.includes("linen")) return "/images/linen_dress.jpg";
+  if (lower.includes("shirt")) return "/images/black_tshirt.jpg";
   return "/images/denim_jacket.jpg"; // fallback
-}
-
-function getDummyPrice(name: string) {
-  if (name.toLowerCase().includes("denim")) return "899 جنيه";
-  if (name.toLowerCase().includes("linen")) return "1,299 جنيه";
-  return "499 جنيه"; // fallback
 }
 
 export function ProductCatalog({
@@ -29,7 +26,7 @@ export function ProductCatalog({
 }) {
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="font-display text-xl font-semibold tracking-tight">منتجاتك</h2>
+      <h2 className="font-display text-xl font-semibold tracking-tight">{m.demo_catalog_title()}</h2>
       <div className="grid gap-6 sm:grid-cols-2">
         {products.map((product) => {
           const isHighlighted = highlightedProductIds.includes(product.id);
@@ -46,7 +43,7 @@ export function ProductCatalog({
             >
               {isHighlighted && (
                 <div className="absolute end-2 top-2 z-10 rounded-full bg-emerald-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">
-                  متطابق
+                  {m.demo_catalog_matched()}
                 </div>
               )}
               <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
@@ -62,13 +59,15 @@ export function ProductCatalog({
               <div className="flex flex-1 flex-col p-4">
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-medium text-gray-900">{product.name}</h3>
-                  <span className="font-semibold text-gray-900">
-                    {getDummyPrice(product.name)}
-                  </span>
+                  {product.price !== null && (
+                    <span className="font-semibold text-gray-900">
+                      {product.price} {m.demo_catalog_egp()}
+                    </span>
+                  )}
                 </div>
                 {product.aliases.length > 0 && (
                   <p className="mt-1 text-xs text-gray-500">
-                    معروف أيضًا بـ {product.aliases.join(", ")}
+                    {m.demo_catalog_aka()} {product.aliases.join(", ")}
                   </p>
                 )}
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -82,7 +81,7 @@ export function ProductCatalog({
                   ))}
                   {variants.length === 0 && (
                     <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
-                      لا توجد خيارات
+                      {m.demo_catalog_no_options()}
                     </span>
                   )}
                 </div>
@@ -92,7 +91,7 @@ export function ProductCatalog({
         })}
         {products.length === 0 && (
           <div className="col-span-full rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500">
-            لا توجد منتجات مضافة بعد.
+            {m.demo_catalog_empty()}
           </div>
         )}
       </div>
