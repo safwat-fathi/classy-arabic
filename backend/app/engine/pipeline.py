@@ -6,6 +6,7 @@ from sqlalchemy import String, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.domains.store_knowledge import service as knowledge_service
 from app.engine.classification import classify_message
 from app.engine.clients import AICallError
 from app.engine.context_budget import build_context_prompt
@@ -36,6 +37,7 @@ logger = logging.getLogger(__name__)
 class PipelineResult:
     message: Message
     order: Order | None
+    answer_text: str | None = None
 
 
 def _usage_event(
@@ -250,5 +252,11 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
         if extraction_reason and not message.escalation_reason:
             message.escalation_reason = extraction_reason
 
+    answer_text = None
+    if order is None:
+        knowledge_matches = await knowledge_service.search(session, conversation.merchant_id, normalized_text)
+        if knowledge_matches:
+            answer_text = knowledge_matches[0]["content"]
+
     await session.flush()
-    return PipelineResult(message=message, order=order)
+    return PipelineResult(message=message, order=order, answer_text=answer_text)

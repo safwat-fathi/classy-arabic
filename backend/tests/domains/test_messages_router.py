@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 from app.core.config import settings
 from app.core.database import get_db
 from app.main import app
-from app.models import Product
+from app.models import Product, StoreKnowledge
 
 
 def _chat_response(content: str) -> dict:
@@ -113,3 +113,40 @@ async def test_ingest_purchase_intent_returns_full_order_detail(db_session, conv
     assert body["order"]["address"] == "6 October City"
     assert body["order"]["phone"] == "01012345678"
     assert body["order"]["line_items"][0]["product_id"] == product.id
+
+
+async def test_ingest_question_returns_answer_text(db_session, conversation, mock_ai):
+    db_session.add(
+        StoreKnowledge(
+            merchant_id=conversation.merchant_id, knowledge_type="shipping", title="سياسة الشحن",
+            content="بنشحن لكل محافظات مصر خلال يومين لأربعة أيام.", keywords=["شحن"],
+        )
+    )
+    await db_session.flush()
+
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
+    )
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    async def _override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = _override_get_db
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post(
+                "/messages",
+                json={
+                    "conversation_id": conversation.id,
+                    "raw_text": "بتشحنوا فين؟",
+                    "normalized_text": "بتشحنوا فين؟",
+                },
+            )
+    finally:
+        app.dependency_overrides.pop(get_db, None)
+
+    assert response.status_code == 200
+    assert response.json()["answer_text"] == "بنشحن لكل محافظات مصر خلال يومين لأربعة أيام."

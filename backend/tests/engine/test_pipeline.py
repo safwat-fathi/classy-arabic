@@ -3,7 +3,19 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.engine.pipeline import DEFAULT_INTENTS, _known_intents, process_message
-from app.models import Conversation, ConvState, Merchant, Message, LabeledExample, AIUsageEvent, Direction, ModelTier, OrderStatus, Product
+from app.models import (
+    AIUsageEvent,
+    Conversation,
+    ConvState,
+    Direction,
+    LabeledExample,
+    Merchant,
+    Message,
+    ModelTier,
+    OrderStatus,
+    Product,
+    StoreKnowledge,
+)
 from app.models._ids import new_id
 
 
@@ -294,3 +306,76 @@ async def test_classification_call_sets_max_tokens(db_session, conversation, moc
 
     sent_body = json.loads(route.calls[0].request.content)
     assert sent_body["max_tokens"] == settings.AI_MAX_OUTPUT_TOKENS
+
+
+async def test_question_intent_returns_seeded_knowledge_answer(db_session, conversation, mock_ai):
+    db_session.add(
+        StoreKnowledge(
+            merchant_id=conversation.merchant_id,
+            knowledge_type="shipping",
+            title="سياسة الشحن",
+            content="بنشحن لكل محافظات مصر خلال يومين لأربعة أيام.",
+            keywords=["شحن", "توصيل"],
+        )
+    )
+    await db_session.flush()
+
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
+    )
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "الشحن بيوصل امتى؟", "الشحن بيوصل امتى؟")
+    )
+
+    assert result.answer_text == "بنشحن لكل محافظات مصر خلال يومين لأربعة أيام."
+
+
+async def test_no_matching_knowledge_leaves_answer_text_none(db_session, conversation, mock_ai):
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
+    )
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "الاسعار كام؟", "الاسعار كام؟")
+    )
+
+    assert result.answer_text is None
+
+
+async def test_purchase_intent_with_order_skips_knowledge_lookup(db_session, conversation, mock_ai):
+    db_session.add(
+        StoreKnowledge(
+            merchant_id=conversation.merchant_id, knowledge_type="general", title="x",
+            content="should not appear when an order was produced", keywords=["رز"],
+        )
+    )
+    await db_session.flush()
+
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        side_effect=[
+            httpx.Response(200, json=_chat_response('{"intent": "purchase_intent", "confidence": 0.9}')),
+            httpx.Response(
+                200,
+                json=_chat_response(
+                    '{"line_items": [{"product_name": "رز", "quantity": 1}], "ambiguous_fields": [], "confidence": 0.9}'
+                ),
+            ),
+        ]
+    )
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "عايز اطلب رز", "عايز اطلب رز")
+    )
+
+    assert result.order is not None
+    assert result.answer_text is None

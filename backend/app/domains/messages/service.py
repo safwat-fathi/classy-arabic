@@ -53,4 +53,5 @@ async def ingest_message(db: AsyncSession, payload: MessageIngestRequest) -> Mes
         order_id=result.order.id if result.order else None,
         order_status=result.order.status.value if result.order else None,
         order=order_detail,
+        answer_text=result.answer_text,
     )
