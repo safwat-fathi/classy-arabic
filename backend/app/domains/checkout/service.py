@@ -97,6 +97,10 @@ async def create_order(
     if missing:
         raise ActionArgumentError([f"missing required customer info: {', '.join(missing)}"])
 
+    if not confirm:
+        state = await get_checkout_state(session, merchant_id, conversation_id)
+        return {"confirmed": False, **state}
+
     # Atomic conversion guard (SRD S37): if this conditional UPDATE returns no
     # row, the cart was already checked out and this call is a retry - return
     # the existing order instead of creating a duplicate.

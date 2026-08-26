@@ -122,3 +122,48 @@ async def test_create_order_allows_new_cart_after_checkout(db_session, merchant,
     assert first["order_number"] == 1
     assert second["order_number"] == 2
     assert first["order_id"] != second["order_id"]
+
+
+async def test_create_order_confirm_false_previews_without_creating_order(db_session, merchant, conversation, message):
+    product = Product(merchant_id=merchant.id, name="Shoes", price=250)
+    db_session.add(product)
+    await db_session.flush()
+    await add_item(db_session, merchant.id, conversation.id, product.id, 2)
+    conversation.slots = {
+        "customer_name": "Sara",
+        "customer_phone": "01012345678",
+        "customer_address": "Nasr City",
+    }
+    await db_session.flush()
+
+    result = await create_order(db_session, merchant.id, conversation.id, False, message_id=message.id)
+
+    assert result["confirmed"] is False
+    assert result["subtotal"] == "500.00"
+    assert result["items"][0]["product_id"] == product.id
+
+    from sqlalchemy import select
+
+    from app.models.order import Order
+
+    orders = (await db_session.execute(select(Order).where(Order.merchant_id == merchant.id))).scalars().all()
+    assert orders == []
+
+
+async def test_create_order_confirm_true_after_preview_still_creates_order(db_session, merchant, conversation, message):
+    product = Product(merchant_id=merchant.id, name="Shoes", price=250)
+    db_session.add(product)
+    await db_session.flush()
+    await add_item(db_session, merchant.id, conversation.id, product.id, 1)
+    conversation.slots = {
+        "customer_name": "Sara",
+        "customer_phone": "01012345678",
+        "customer_address": "Nasr City",
+    }
+    await db_session.flush()
+
+    preview = await create_order(db_session, merchant.id, conversation.id, False, message_id=message.id)
+    assert preview["confirmed"] is False
+
+    result = await create_order(db_session, merchant.id, conversation.id, True, message_id=message.id)
+    assert result["order_number"] == 1
