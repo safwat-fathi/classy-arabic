@@ -85,3 +85,38 @@ async def test_add_item_repeat_without_notes_preserves_existing_notes(db_session
 
     assert again["notes"] == "size 42"
     assert again["quantity"] == 2
+
+
+async def test_update_item_rejects_line_item_from_another_merchant(db_session, merchant, conversation):
+    from app.models.merchant import Merchant
+
+    other_merchant = Merchant(name="Other Merchant")
+    db_session.add(other_merchant)
+    await db_session.flush()
+
+    product = Product(merchant_id=merchant.id, name="Shoes", price=250)
+    db_session.add(product)
+    await db_session.flush()
+    added = await add_item(db_session, merchant.id, conversation.id, product.id, 1)
+
+    with pytest.raises(CartItemNotFoundError):
+        await update_item(db_session, other_merchant.id, conversation.id, added["line_item_id"], 5)
+
+
+async def test_update_item_rejects_line_item_from_checked_out_cart(db_session, merchant, conversation):
+    from sqlalchemy import select
+
+    from app.models.cart import Cart
+    from app.models.enums import CartStatus
+
+    product = Product(merchant_id=merchant.id, name="Shoes", price=250)
+    db_session.add(product)
+    await db_session.flush()
+    added = await add_item(db_session, merchant.id, conversation.id, product.id, 1)
+
+    cart = (await db_session.execute(select(Cart).where(Cart.conversation_id == conversation.id))).scalar_one()
+    cart.status = CartStatus.CHECKED_OUT
+    await db_session.flush()
+
+    with pytest.raises(CartItemNotFoundError):
+        await update_item(db_session, merchant.id, conversation.id, added["line_item_id"], 5)

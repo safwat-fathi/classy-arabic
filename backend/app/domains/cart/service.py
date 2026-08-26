@@ -14,7 +14,11 @@ class CartItemNotFoundError(Exception):
 
 async def _get_or_create_active_cart(session: AsyncSession, merchant_id: str, conversation_id: str) -> Cart:
     result = await session.execute(
-        select(Cart).where(Cart.conversation_id == conversation_id, Cart.status == CartStatus.ACTIVE)
+        select(Cart).where(
+            Cart.conversation_id == conversation_id,
+            Cart.merchant_id == merchant_id,
+            Cart.status == CartStatus.ACTIVE,
+        )
     )
     cart = result.scalar_one_or_none()
     if cart is not None:
@@ -62,28 +66,35 @@ async def add_item(
     return {"line_item_id": row.id, "product_id": product_id, "quantity": row.quantity, "notes": row.notes}
 
 
-async def _get_item_for_conversation(session: AsyncSession, conversation_id: str, line_item_id: str) -> CartItem:
+async def _get_item_for_conversation(
+    session: AsyncSession, merchant_id: str, conversation_id: str, line_item_id: str
+) -> CartItem:
     result = await session.execute(
         select(CartItem)
         .join(Cart, Cart.id == CartItem.cart_id)
-        .where(CartItem.id == line_item_id, Cart.conversation_id == conversation_id)
+        .where(
+            CartItem.id == line_item_id,
+            Cart.conversation_id == conversation_id,
+            Cart.merchant_id == merchant_id,
+            Cart.status == CartStatus.ACTIVE,
+        )
     )
     item = result.scalar_one_or_none()
     if item is None:
-        raise CartItemNotFoundError(f"line_item_id {line_item_id!r} not found in this conversation's cart")
+        raise CartItemNotFoundError(f"line_item_id {line_item_id!r} not found in this conversation's active cart")
     return item
 
 
 async def update_item(
     session: AsyncSession, merchant_id: str, conversation_id: str, line_item_id: str, quantity: float
 ) -> dict:
-    item = await _get_item_for_conversation(session, conversation_id, line_item_id)
+    item = await _get_item_for_conversation(session, merchant_id, conversation_id, line_item_id)
     item.quantity = quantity
     await session.flush()
     return {"line_item_id": item.id, "product_id": item.product_id, "quantity": item.quantity}
 
 
 async def remove_item(session: AsyncSession, merchant_id: str, conversation_id: str, line_item_id: str) -> None:
-    item = await _get_item_for_conversation(session, conversation_id, line_item_id)
+    item = await _get_item_for_conversation(session, merchant_id, conversation_id, line_item_id)
     await session.delete(item)
     await session.flush()
