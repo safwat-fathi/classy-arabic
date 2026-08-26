@@ -11,6 +11,7 @@ from app.models.message import Message
 from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.product import Product
+from app.models.store_knowledge import StoreKnowledge
 from app.models.webhook_event import WebhookEvent
 
 __all__ = [
@@ -33,5 +34,6 @@ __all__ = [
     "OrderSource",
     "OrderStatus",
     "Product",
+    "StoreKnowledge",
     "WebhookEvent",
 ]

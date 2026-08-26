@@ -11,6 +11,7 @@ from app.models._ids import new_id
 if TYPE_CHECKING:
     from app.models.conversation import Conversation
     from app.models.product import Product
+    from app.models.store_knowledge import StoreKnowledge
 
 
 class Merchant(Base):
@@ -24,3 +25,4 @@ class Merchant(Base):
 
     products: Mapped[list[Product]] = relationship(back_populates="merchant")
     conversations: Mapped[list[Conversation]] = relationship(back_populates="merchant")
+    store_knowledge: Mapped[list[StoreKnowledge]] = relationship(back_populates="merchant")
