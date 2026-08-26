@@ -20,12 +20,13 @@ This repo currently implements the **AI message-classification/routing engine** 
 - Offline clustering job and seed/dev scripts (`backend/scripts/`)
 - A demo frontend workspace at `/demo` (product catalog + message composer + AI insights panel)
 - Channel/webhook ingestion: webhook endpoints at `/webhooks/meta` (Facebook + Instagram) and `/webhooks/whatsapp/twilio` (WhatsApp via Twilio) verify, deduplicate, and persist inbound messages, then enqueue them to an `arq`/Redis worker that runs the existing classification pipeline — `ChannelConnection` rows must be provisioned manually (no onboarding UI yet); outbound replies are not implemented.
-- **AI action validator + tool layer** — validator, registry, `AIAction` audit trail; 8 of 9 tool contracts fully functional (`search_products`/`get_product`/`add_to_cart`/`update_cart`/`remove_from_cart`/`get_checkout_state`/`update_customer_info`/`create_order`), only `search_store_knowledge` still stubbed. Opt-in per merchant via `Merchant.ai_tool_ordering_enabled` (off by default); the existing classify→extract→auto-order flow is unchanged for merchants that don't opt in. (SRD §20-21, PRD §14-15)
+- **AI action validator + tool layer** — validator, registry, `AIAction` audit trail; all 9 tool contracts fully functional (`search_products`/`get_product`/`add_to_cart`/`update_cart`/`remove_from_cart`/`get_checkout_state`/`update_customer_info`/`create_order`/`search_store_knowledge`). Opt-in per merchant via `Merchant.ai_tool_ordering_enabled` (off by default); the existing classify→extract→auto-order flow is unchanged for merchants that don't opt in. (SRD §20-21, PRD §14-15)
 - **Cart, checkout & order creation** — `Cart`/`CartItem` models (one active cart per conversation), add/update/remove item, checkout-state subtotal, and order creation with product/price snapshotting, atomic order numbers, and retry-idempotency (`app/domains/cart`, `app/domains/checkout`; SRD §25–§27). Reachable only through the AI tool layer above — no HTTP router — and only for merchants with `ai_tool_ordering_enabled=True`. Not built: variant/stock validation, delivery fee calculation, order-status transitions after creation.
+- **Store knowledge retrieval (keyword-match MVP)** — `StoreKnowledge` model + keyword-substring search per merchant (SRD §23); answers FAQ/shipping/returns/payment questions from `POST /messages` when no order is produced, and via the `search_store_knowledge` AI tool. Not built: full-text/semantic retrieval, an authoring UI.
 
 **Not yet built** (see `ROADMAP.md` for the full breakdown against PRD MVP scope):
 - Multi-tenancy enforcement (the SRD's `Tenant` entity/isolation model)
-- Delivery-area/fee service, store-knowledge retrieval, human handoff
+- Delivery-area/fee service, human handoff
 - Merchant dashboard (conversations inbox, order management, AI settings) beyond the `/demo` page
 - Billing (base plans, AI add-on, fair-use tracking)
 
