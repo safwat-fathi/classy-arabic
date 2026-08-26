@@ -8,7 +8,7 @@ Full product/architecture definition lives in [`TijaratkBot_PRD.md`](./TijaratkB
 
 ## Status
 
-This repo currently implements the **AI message-classification/routing engine** (the SRD's L0/L1/L2 pipeline, §14–§22) and a thin API around it. It does **not** yet implement the full commerce platform described in the PRD/SRD.
+This repo currently implements the **AI message-classification/routing engine** (the SRD's L0/L1/L2 pipeline, §14–§22) plus an early, flag-gated commerce layer (cart, checkout, order creation — reachable only through the AI tool layer, not yet through any dashboard). It does **not** yet implement the full commerce platform described in the PRD/SRD — billing, multi-tenancy, delivery, and a merchant dashboard are still missing.
 
 **Built:**
 - Tier 0 rule-based short-circuit (`app/engine/tier0_rules.py`)
@@ -20,10 +20,10 @@ This repo currently implements the **AI message-classification/routing engine** 
 - Offline clustering job and seed/dev scripts (`backend/scripts/`)
 - A demo frontend workspace at `/demo` (product catalog + message composer + AI insights panel)
 - Channel/webhook ingestion: webhook endpoints at `/webhooks/meta` (Facebook + Instagram) and `/webhooks/whatsapp/twilio` (WhatsApp via Twilio) verify, deduplicate, and persist inbound messages, then enqueue them to an `arq`/Redis worker that runs the existing classification pipeline — `ChannelConnection` rows must be provisioned manually (no onboarding UI yet); outbound replies are not implemented.
-- **AI action validator + tool layer** — `search_products`/`get_product`/`update_customer_info` fully functional; `add_to_cart`/`update_cart`/`remove_from_cart`/`get_checkout_state`/`create_order`/`search_store_knowledge` fully validated and audited (`AIAction`) but stubbed pending Cart/Order/StoreKnowledge services. Opt-in per merchant via `Merchant.ai_tool_ordering_enabled` (off by default); the existing classify→extract→auto-order flow is unchanged for merchants that don't opt in. (SRD §20-21, PRD §14-15)
+- **AI action validator + tool layer** — validator, registry, `AIAction` audit trail; 8 of 9 tool contracts fully functional (`search_products`/`get_product`/`add_to_cart`/`update_cart`/`remove_from_cart`/`get_checkout_state`/`update_customer_info`/`create_order`), only `search_store_knowledge` still stubbed. Opt-in per merchant via `Merchant.ai_tool_ordering_enabled` (off by default); the existing classify→extract→auto-order flow is unchanged for merchants that don't opt in. (SRD §20-21, PRD §14-15)
+- **Cart, checkout & order creation** — `Cart`/`CartItem` models (one active cart per conversation), add/update/remove item, checkout-state subtotal, and order creation with product/price snapshotting, atomic order numbers, and retry-idempotency (`app/domains/cart`, `app/domains/checkout`; SRD §25–§27). Reachable only through the AI tool layer above — no HTTP router — and only for merchants with `ai_tool_ordering_enabled=True`. Not built: variant/stock validation, delivery fee calculation, order-status transitions after creation.
 
 **Not yet built** (see `ROADMAP.md` for the full breakdown against PRD MVP scope):
-- Cart, checkout, and order-processing services beyond the `Order` model itself
 - Multi-tenancy enforcement (the SRD's `Tenant` entity/isolation model)
 - Delivery-area/fee service, store-knowledge retrieval, human handoff
 - Merchant dashboard (conversations inbox, order management, AI settings) beyond the `/demo` page
@@ -107,9 +107,9 @@ Run a single test: `uv run pytest tests/engine/test_routing_policy.py::test_esca
 backend/
   app/
     core/       # settings, async SQLAlchemy engine/session, logging
-    models/     # merchant, conversation, message, product, order, labeled_example
-    engine/     # tier0_rules, classification, extraction, routing_policy, pipeline, embeddings, clients, schemas
-    domains/    # health, messages, products, conversations — feature routers + schemas
+    models/     # merchant, conversation, message, product, order, order_item, cart, cart_item, ai_action, labeled_example, channel_connection, webhook_event
+    engine/     # tier0_rules, classification, extraction, routing_policy, pipeline, embeddings, clients, schemas, action_validator, action_resolution, tools/
+    domains/    # health, messages, products, conversations, channels, cart, checkout, store_knowledge — feature routers + schemas (cart/checkout/store_knowledge are service-only, no router — reached via the AI tool layer)
     api/        # assembles domain routers
     clustering/ # offline clustering job
   alembic/      # migrations
