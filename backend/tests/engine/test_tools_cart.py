@@ -15,6 +15,14 @@ async def test_handle_add_to_cart_adds_item(db_session, merchant, conversation):
     assert result["quantity"] == 2
 
 
+async def test_handle_add_to_cart_threads_notes_through(db_session, merchant, conversation):
+    db_session.add(Product(id="p3", merchant_id=merchant.id, name="Shoes", price=250, aliases=[]))
+    await db_session.flush()
+    action = AddToCartAction(action="add_to_cart", product_id="p3", quantity=1, notes="size 42", confidence=0.9)
+    result = await handle_add_to_cart(db_session, action, merchant.id, conversation.id, "msg-1")
+    assert result["notes"] == "size 42"
+
+
 async def test_handle_add_to_cart_rejects_priceless_product(db_session, merchant, conversation):
     db_session.add(Product(id="p2", merchant_id=merchant.id, name="No Price", aliases=[]))
     await db_session.flush()

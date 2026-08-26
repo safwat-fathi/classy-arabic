@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,7 +26,12 @@ async def _get_or_create_active_cart(session: AsyncSession, merchant_id: str, co
 
 
 async def add_item(
-    session: AsyncSession, merchant_id: str, conversation_id: str, product_id: str, quantity: float
+    session: AsyncSession,
+    merchant_id: str,
+    conversation_id: str,
+    product_id: str,
+    quantity: float,
+    notes: str | None = None,
 ) -> dict:
     # product_id ownership is already validator-checked for the add_to_cart
     # action (app/engine/action_validator.py) before this is ever called; a
@@ -43,17 +48,18 @@ async def add_item(
     # stock column and no structured variant model (Global Constraints) -
     # see the sibling tool-layer plan's Global Constraints for the same
     # acknowledged gap. Nothing to check yet.
-    stmt = (
-        pg_insert(CartItem)
-        .values(cart_id=cart.id, product_id=product_id, quantity=quantity)
-        .on_conflict_do_update(
-            index_elements=["cart_id", "product_id"],
-            set_={"quantity": CartItem.quantity + quantity},
-        )
-        .returning(CartItem.id, CartItem.quantity)
-    )
+    insert_stmt = pg_insert(CartItem).values(cart_id=cart.id, product_id=product_id, quantity=quantity, notes=notes)
+    stmt = insert_stmt.on_conflict_do_update(
+        index_elements=["cart_id", "product_id"],
+        set_={
+            "quantity": CartItem.quantity + quantity,
+            # COALESCE, not the bare `notes` param: an omitted notes on a
+            # repeat add must preserve the existing note, not null it out.
+            "notes": func.coalesce(insert_stmt.excluded.notes, CartItem.notes),
+        },
+    ).returning(CartItem.id, CartItem.quantity, CartItem.notes)
     row = (await session.execute(stmt)).one()
-    return {"line_item_id": row.id, "product_id": product_id, "quantity": row.quantity}
+    return {"line_item_id": row.id, "product_id": product_id, "quantity": row.quantity, "notes": row.notes}
 
 
 async def _get_item_for_conversation(session: AsyncSession, conversation_id: str, line_item_id: str) -> CartItem:

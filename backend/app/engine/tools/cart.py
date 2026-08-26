@@ -13,7 +13,9 @@ async def handle_add_to_cart(
 ) -> dict:
     # product existence/ownership already validated by evaluate_action (Task 3)
     try:
-        return await cart_service.add_item(session, merchant_id, conversation_id, action.product_id, action.quantity)
+        return await cart_service.add_item(
+            session, merchant_id, conversation_id, action.product_id, action.quantity, notes=action.notes
+        )
     except ValueError as exc:
         raise ActionArgumentError([str(exc)]) from exc
 
