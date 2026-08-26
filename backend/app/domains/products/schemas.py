@@ -7,3 +7,4 @@ class ProductRead(BaseModel):
     name: str
     aliases: list[str]
     variants: dict
+    price: float | None = None

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from httpx import ASGITransport, AsyncClient
 
 from app.core.database import get_db
@@ -16,6 +18,7 @@ async def test_list_products_returns_only_merchant_scoped_products(db_session, m
         name="My Product",
         aliases=["alias1"],
         variants={"sizes": ["M"]},
+        price=Decimal("249.00"),
     )
     db_session.add_all([other, mine])
     await db_session.flush()
@@ -36,6 +39,7 @@ async def test_list_products_returns_only_merchant_scoped_products(db_session, m
     assert body[0]["name"] == "My Product"
     assert body[0]["aliases"] == ["alias1"]
     assert body[0]["variants"] == {"sizes": ["M"]}
+    assert body[0]["price"] == 249.0
 
 
 async def test_list_products_requires_merchant_id(db_session, merchant):
