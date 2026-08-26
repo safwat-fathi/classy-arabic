@@ -46,7 +46,13 @@ async def test_resolve_action_escalates_on_rejected_action(db_session, merchant,
     assert resolution.escalation_reason == "action_rejected:product_not_found"
 
 
-async def test_resolve_action_escalates_on_unavailable_tool(db_session, merchant, conversation, message, mock_ai):
+async def test_resolve_action_executes_search_store_knowledge_with_no_matches(
+    db_session, merchant, conversation, message, mock_ai
+):
+    # search_store_knowledge now runs for real (store_knowledge.service.search,
+    # a keyword-match MVP) instead of always raising ToolUnavailableError. With
+    # no StoreKnowledge rows seeded for this merchant it returns zero matches
+    # and still executes successfully.
     mock_ai.post("https://openrouter.ai/api/v1/chat/completions").mock(
         return_value=httpx.Response(
             200, json=_chat_response('{"action": "search_store_knowledge", "query": "test", "confidence": 0.9}')
@@ -55,9 +61,9 @@ async def test_resolve_action_escalates_on_unavailable_tool(db_session, merchant
 
     resolution = await resolve_action(db_session, conversation, message)
 
-    assert resolution.outcome.status == "failed"
-    assert resolution.escalation_reason == "tool_unavailable:search_store_knowledge"
-    assert "team" in resolution.response_text.lower() or "help" in resolution.response_text.lower()
+    assert resolution.outcome.status == "executed"
+    assert resolution.escalation_reason is None
+    assert resolution.response_text == "Done."
 
 
 async def test_resolve_action_escalates_on_invalid_json_after_retry(

@@ -273,10 +273,11 @@ async def test_process_message_routes_to_action_resolution_when_enabled(db_sessi
         db_session, conversation, _inbound_message(conversation, "order status", "order status")
     )
 
-    # Assert that the message was routed to action_resolution and ModelTier.DEEPSEEK was set
+    # search_store_knowledge now runs for real (Task 2) — with no StoreKnowledge
+    # rows seeded for this merchant it returns zero matches, executes
+    # successfully, and needs no escalation.
     assert result.message.model_tier == ModelTier.DEEPSEEK
-    # Escalation reason should be set from the tool unavailability (search_store_knowledge is stubbed and fails)
-    assert result.message.escalation_reason == "tool_unavailable:search_store_knowledge"
+    assert result.message.escalation_reason is None
     assert result.order is None
 
 import json
