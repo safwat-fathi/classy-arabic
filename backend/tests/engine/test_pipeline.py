@@ -37,12 +37,17 @@ def _embedding_response() -> dict:
 
 
 async def test_known_intents_includes_defaults_even_when_db_has_narrower_history(db_session, conversation):
+    # Regression test: a DB that only ever recorded "question" (e.g. a
+    # freshly seeded one) must not narrow the model's option list down to
+    # just that value — it should still see the full default set alongside
+    # whatever's been observed, or the classifier gets told "question" is
+    # the only valid answer and keeps reinforcing itself.
     db_session.add(
         Message(
             conversation_id=conversation.id,
             direction=Direction.INBOUND,
             normalized_text="hi",
-            intent="greeting",
+            intent="question",
         )
     )
     await db_session.flush()
@@ -55,13 +60,22 @@ async def test_known_intents_adds_newly_observed_labels(db_session, conversation
         LabeledExample(
             merchant_id=conversation.merchant_id,
             normalized_text="foo",
-            intent="custom_intent",
+            intent="custom_intent_from_label",
             source="test"
+        )
+    )
+    db_session.add(
+        Message(
+            conversation_id=conversation.id,
+            direction=Direction.INBOUND,
+            normalized_text="hi",
+            intent="custom_intent_from_message",
         )
     )
     await db_session.flush()
     intents = await _known_intents(db_session, conversation.merchant_id)
-    assert "custom_intent" in intents
+    assert "custom_intent_from_label" in intents
+    assert "custom_intent_from_message" in intents
 
 
 async def test_known_intents_scoped_to_merchant(db_session, merchant, conversation):

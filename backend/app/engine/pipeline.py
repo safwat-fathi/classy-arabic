@@ -188,7 +188,8 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
         await session.flush()
         return PipelineResult(message=message, order=None)
 
-    session.add(_usage_event(conversation.id, message.id, usage, success=True))
+    if usage is not None:
+        session.add(_usage_event(conversation.id, message.id, usage, success=True))
     message.intent = classification.intent
     message.intent_confidence = classification.confidence
     message.model_tier = ModelTier.DEEPSEEK
@@ -222,7 +223,9 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
             await session.flush()
             return PipelineResult(message=message, order=None)
 
-        session.add(_usage_event(conversation.id, message.id, extraction_usage, success=True))
+        if extraction_usage is not None:
+            session.add(_usage_event(conversation.id, message.id, extraction_usage, success=True))
+        
         extraction.line_items = await match_line_items_to_products(
             session, conversation.merchant_id, extraction.line_items
         )

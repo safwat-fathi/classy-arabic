@@ -13,7 +13,11 @@ async def extract_order(
     merchant_name: str,
     conv_state: ConvState,
     slots: dict,
-) -> tuple[ExtractionResult, str | None, CallUsage]:
+) -> tuple[ExtractionResult, str | None, CallUsage | None]:
+    preflight_reason = evaluate_preflight(text=text, correction_count=correction_count)
+    if preflight_reason:
+        return ExtractionResult(confidence=0.0), preflight_reason, None
+
     system_prompt = build_system_prompt(
         task_block=EXTRACTION_TASK_BLOCK,
         merchant_name=merchant_name,
@@ -29,7 +33,7 @@ async def extract_order(
         schema_name="order_extraction",
     )
 
-    reason = evaluate_preflight(text=text, correction_count=correction_count) or evaluate_postflight(
+    reason = evaluate_postflight(
         confidence=result.confidence, threshold=threshold, ambiguous_fields=result.ambiguous_fields
     )
     return result, reason, usage

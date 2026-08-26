@@ -70,3 +70,18 @@ async def test_classify_message_rejects_off_vocabulary_intent(mock_ai):
     )
     assert result.intent == "other"
     assert reason == "intent_outside_known_vocabulary"
+
+async def test_classify_message_skips_ai_call_on_repeated_correction(mock_ai):
+    result, reason, usage = await classify_message(
+        "customer: x",
+        ["other"],
+        threshold=0.7,
+        correction_count=2,
+        text="x",
+        merchant_name="Test Merchant",
+        conv_state=ConvState.GATHERING,
+        slots={},
+    )
+    assert reason == "repeated_correction"
+    assert usage is None
+    assert not mock_ai.calls

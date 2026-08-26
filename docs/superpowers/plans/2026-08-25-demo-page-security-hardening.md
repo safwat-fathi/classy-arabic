@@ -596,7 +596,12 @@ Both call sites in `pipeline.py` (`classify_message` at line 165, `extract_order
     message.intent = classification.intent
 ```
 
-(replacing the current unconditional `session.add(_usage_event(conversation.id, message.id, usage, success=True))` at `pipeline.py:182` with the `if usage is not None:`-guarded version), and identically for the extraction call's unconditional usage-event add at `pipeline.py:216`.
+(replacing the current unconditional `session.add(_usage_event(conversation.id, message.id, usage, success=True))` at `pipeline.py:182` with the `if usage is not None:`-guarded version). Do the same for the extraction call's usage event around `pipeline.py:216`, taking care to maintain its nested 8-space indentation inside the `if classification.intent == "purchase_intent":` block:
+
+```python
+        if extraction_usage is not None:
+            session.add(_usage_event(conversation.id, message.id, extraction_usage, success=True))
+```
 
 - [ ] **Step 4: Run to verify pass**
 

@@ -55,3 +55,17 @@ async def test_extract_order_flags_ambiguous_fields(mock_ai):
     assert reason == "ambiguous_fields_present"
     assert usage is not None
     assert usage.tier == "deepseek"
+
+async def test_extract_order_skips_ai_call_on_repeated_correction(mock_ai):
+    result, reason, usage = await extract_order(
+        "customer: x",
+        threshold=0.7,
+        correction_count=2,
+        text="x",
+        merchant_name="Test Merchant",
+        conv_state=ConvState.GATHERING,
+        slots={},
+    )
+    assert reason == "repeated_correction"
+    assert usage is None
+    assert not mock_ai.calls

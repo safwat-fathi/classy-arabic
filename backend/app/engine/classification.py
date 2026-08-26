@@ -35,7 +35,11 @@ async def classify_message(
     merchant_name: str,
     conv_state: ConvState,
     slots: dict,
-) -> tuple[IntentClassification, str | None, CallUsage]:
+) -> tuple[IntentClassification, str | None, CallUsage | None]:
+    preflight_reason = evaluate_preflight(text=text, correction_count=correction_count)
+    if preflight_reason:
+        return IntentClassification(intent="other", confidence=0.0), preflight_reason, None
+
     system_prompt = build_system_prompt(
         task_block=CLASSIFICATION_TASK_BLOCK.format(known_intents=", ".join(known_intents)),
         merchant_name=merchant_name,
@@ -58,9 +62,5 @@ async def classify_message(
         vocabulary_reason = "intent_outside_known_vocabulary"
         result = IntentClassification(intent="other", confidence=result.confidence)
 
-    reason = (
-        vocabulary_reason
-        or evaluate_preflight(text=text, correction_count=correction_count)
-        or evaluate_postflight(confidence=result.confidence, threshold=threshold)
-    )
+    reason = vocabulary_reason or evaluate_postflight(confidence=result.confidence, threshold=threshold)
     return result, reason, usage
