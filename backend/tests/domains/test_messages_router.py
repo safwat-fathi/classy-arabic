@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import httpx
 from httpx import ASGITransport, AsyncClient
 
@@ -68,7 +70,12 @@ async def test_ingest_tier0_short_circuit_end_to_end(db_session, conversation, m
 
 
 async def test_ingest_purchase_intent_returns_full_order_detail(db_session, conversation, mock_ai):
-    product = Product(merchant_id=conversation.merchant_id, name="Summer Linen Dress", embedding=[1.0] * 1024)
+    # AUTO_CONFIRMED requires the line item to fully resolve (product found
+    # AND priced) - a priced product must be seeded (Task 4), unlike before
+    # when list-truthiness alone decided status.
+    product = Product(
+        merchant_id=conversation.merchant_id, name="Summer Linen Dress", embedding=[1.0] * 1024, price=Decimal("199.99")
+    )
     db_session.add(product)
     await db_session.flush()
 

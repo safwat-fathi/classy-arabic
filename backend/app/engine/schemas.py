@@ -20,6 +20,9 @@ class ExtractedLineItem(BaseModel):
     quantity: float
     notes: str | None = None
     product_id: str | None = None
+    variant_hint: str | None = None
+    variant_id: str | None = None
+    variant_required: bool = False
 
 
 class ExtractionResult(BaseModel):

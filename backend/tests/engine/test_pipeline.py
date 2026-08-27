@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import httpx
 from sqlalchemy import select
 
@@ -12,11 +14,13 @@ from app.models import (
     Merchant,
     Message,
     ModelTier,
+    OrderItem,
     OrderStatus,
     Product,
     StoreKnowledge,
 )
 from app.models._ids import new_id
+from app.models.product_variant import ProductVariant
 
 
 def _inbound_message(conversation, raw_text: str, normalized_text: str) -> Message:
@@ -123,6 +127,15 @@ async def test_tier0_short_circuit_skips_ai_calls(db_session, conversation, mock
 
 
 async def test_purchase_intent_in_gathering_creates_order(db_session, conversation, mock_ai):
+    # AUTO_CONFIRMED requires the line item to actually resolve to a real,
+    # priced product now (Task 4) - a matching, priced product must be
+    # seeded, unlike before this task when list-truthiness alone decided
+    # status. The seeded embedding matches _embedding_response()'s fixed
+    # vector exactly (distance 0) so the resolution genuinely succeeds.
+    product = Product(merchant_id=conversation.merchant_id, name="رز", price=Decimal("50.00"), embedding=[0.1] * 1024)
+    db_session.add(product)
+    await db_session.flush()
+
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         side_effect=[
             httpx.Response(200, json=_chat_response('{"intent": "purchase_intent", "confidence": 0.9}')),
@@ -176,6 +189,143 @@ async def test_purchase_intent_line_items_match_seeded_product(db_session, conve
 
     assert result.order is not None
     assert result.order.extracted_payload["line_items"][0]["product_id"] == product.id
+
+
+async def test_purchase_intent_creates_order_items_for_resolved_lines(db_session, conversation, mock_ai):
+    # Regression guard: before Task 4, the extraction path only ever
+    # constructed an Order row directly - no OrderItem rows were ever
+    # created on this path, for any input.
+    product = Product(merchant_id=conversation.merchant_id, name="رز", price=Decimal("50.00"), embedding=[0.1] * 1024)
+    db_session.add(product)
+    await db_session.flush()
+
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        side_effect=[
+            httpx.Response(200, json=_chat_response('{"intent": "purchase_intent", "confidence": 0.9}')),
+            httpx.Response(
+                200,
+                json=_chat_response(
+                    '{"line_items": [{"product_name": "رز", "quantity": 2}], "ambiguous_fields": [], "confidence": 0.9}'
+                ),
+            ),
+        ]
+    )
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "عايز اطلب رز", "عايز اطلب رز")
+    )
+
+    assert result.order is not None
+    assert result.order.status == OrderStatus.AUTO_CONFIRMED
+    items = (await db_session.execute(select(OrderItem).where(OrderItem.order_id == result.order.id))).scalars().all()
+    assert len(items) == 1
+    assert items[0].product_id == product.id
+    assert items[0].unit_price == Decimal("50.00")
+
+
+async def test_purchase_intent_with_unresolved_product_forces_pending_review(db_session, conversation, mock_ai):
+    # No product is seeded, so the embedding search finds nothing and
+    # product_id stays None. Before Task 4, status was decided purely on
+    # whether extraction.line_items was non-empty - this would have wrongly
+    # produced AUTO_CONFIRMED here despite high confidence and no
+    # ambiguous_fields. This is the exact latent gap this task closes.
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        side_effect=[
+            httpx.Response(200, json=_chat_response('{"intent": "purchase_intent", "confidence": 0.95}')),
+            httpx.Response(
+                200,
+                json=_chat_response(
+                    '{"line_items": [{"product_name": "حاجة مش موجودة", "quantity": 1}], '
+                    '"ambiguous_fields": [], "confidence": 0.95}'
+                ),
+            ),
+        ]
+    )
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "عايز حاجة مش موجودة", "عايز حاجة مش موجودة")
+    )
+
+    assert result.order is not None
+    assert result.order.status == OrderStatus.PENDING_REVIEW
+
+
+async def test_purchase_intent_product_with_variants_but_no_hint_forces_pending_review(
+    db_session, conversation, mock_ai
+):
+    product = Product(
+        merchant_id=conversation.merchant_id, name="تيشيرت", price=Decimal("100.00"), embedding=[0.1] * 1024
+    )
+    db_session.add(product)
+    await db_session.flush()
+    db_session.add(ProductVariant(product_id=product.id, label="XL", attributes={"size": "XL"}))
+    await db_session.flush()
+
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        side_effect=[
+            httpx.Response(200, json=_chat_response('{"intent": "purchase_intent", "confidence": 0.9}')),
+            httpx.Response(
+                200,
+                json=_chat_response(
+                    '{"line_items": [{"product_name": "تيشيرت", "quantity": 1}], '
+                    '"ambiguous_fields": [], "confidence": 0.9}'
+                ),
+            ),
+        ]
+    )
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "عايز تيشيرت", "عايز تيشيرت")
+    )
+
+    assert result.order is not None
+    assert result.order.status == OrderStatus.PENDING_REVIEW
+
+
+async def test_purchase_intent_with_variant_hint_resolves_variant_and_auto_confirms(db_session, conversation, mock_ai):
+    product = Product(
+        merchant_id=conversation.merchant_id, name="تيشيرت", price=Decimal("100.00"), embedding=[0.1] * 1024
+    )
+    db_session.add(product)
+    await db_session.flush()
+    variant = ProductVariant(product_id=product.id, label="XL", attributes={"size": "XL"})
+    db_session.add(variant)
+    await db_session.flush()
+
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        side_effect=[
+            httpx.Response(200, json=_chat_response('{"intent": "purchase_intent", "confidence": 0.9}')),
+            httpx.Response(
+                200,
+                json=_chat_response(
+                    '{"line_items": [{"product_name": "تيشيرت", "quantity": 1, "variant_hint": "XL"}], '
+                    '"ambiguous_fields": [], "confidence": 0.9}'
+                ),
+            ),
+        ]
+    )
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "عايز تيشيرت XL", "عايز تيشيرت XL")
+    )
+
+    assert result.order is not None
+    assert result.order.status == OrderStatus.AUTO_CONFIRMED
+    items = (await db_session.execute(select(OrderItem).where(OrderItem.order_id == result.order.id))).scalars().all()
+    assert len(items) == 1
+    assert items[0].variant_id == variant.id
 
 
 async def test_classification_failure_persists_message_instead_of_losing_it(db_session, conversation, mock_ai):

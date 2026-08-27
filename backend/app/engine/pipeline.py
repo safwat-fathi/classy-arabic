@@ -6,6 +6,7 @@ from sqlalchemy import String, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.domains.checkout.order_writer import write_order
 from app.domains.store_knowledge import service as knowledge_service
 from app.engine.classification import classify_message
 from app.engine.clients import AICallError
@@ -14,7 +15,11 @@ from app.engine.cost import estimate_cost
 from app.engine.embeddings import embed_text, find_similar_examples
 from app.engine.extraction import extract_order
 from app.engine.gateway import CallUsage
-from app.engine.product_matching import match_line_items_to_products
+from app.engine.product_matching import (
+    build_resolved_order_lines,
+    match_line_items_to_products,
+    resolve_variants_for_line_items,
+)
 from app.engine.tier0_rules import match_tier0
 from app.models import (
     AIUsageEvent,
@@ -25,6 +30,7 @@ from app.models import (
     Message,
     ModelTier,
     Order,
+    OrderSource,
     OrderStatus,
 )
 
@@ -227,28 +233,33 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
 
         if extraction_usage is not None:
             session.add(_usage_event(conversation.id, message.id, extraction_usage, success=True))
-        
+
         extraction.line_items = await match_line_items_to_products(
             session, conversation.merchant_id, extraction.line_items
         )
+        extraction.line_items = await resolve_variants_for_line_items(session, extraction.line_items)
+        resolved_lines, all_resolved = await build_resolved_order_lines(session, extraction.line_items)
         status = (
             OrderStatus.AUTO_CONFIRMED
-            if extraction.line_items
+            if all_resolved
             and not extraction.ambiguous_fields
             and extraction.confidence >= settings.CLASSIFICATION_CONFIDENCE_THRESHOLD
             else OrderStatus.PENDING_REVIEW
         )
-        order = Order(
+        order = await write_order(
+            session,
             merchant_id=conversation.merchant_id,
             conversation_id=conversation.id,
             message_id=message.id,
-            extracted_payload=extraction.model_dump(mode="json"),
             status=status,
+            source=OrderSource.AI_EXTRACTION,
+            lines=resolved_lines,
+            extracted_payload=extraction.model_dump(mode="json"),
             confidence_score=extraction.confidence,
             extracted_by_tier=ModelTier.DEEPSEEK,
             escalation_reason=extraction_reason,
+            assign_order_number=False,
         )
-        session.add(order)
         if extraction_reason and not message.escalation_reason:
             message.escalation_reason = extraction_reason
 
