@@ -54,3 +54,30 @@ async def test_search_filters_by_knowledge_type(db_session, merchant):
 
     results = await search(db_session, merchant.id, "الشحن بيوصل امتى؟", knowledge_type="shipping")
     assert results == []
+
+
+async def test_search_ranks_more_specific_keyword_first(db_session, merchant):
+    db_session.add(
+        StoreKnowledge(
+            merchant_id=merchant.id,
+            knowledge_type="shipping",
+            title="سياسات ومواعيد الشحن",
+            content="يتم شحن الطلبات خلال 24 ساعة من تأكيد الطلب.",
+            keywords=["مواعيد"],
+        )
+    )
+    db_session.add(
+        StoreKnowledge(
+            merchant_id=merchant.id,
+            knowledge_type="general",
+            title="ساعات العمل",
+            content="فريق خدمة العملاء متاح من السبت إلى الخميس، من 10 صباحاً حتى 10 مساءً.",
+            keywords=["مواعيد العمل"],
+        )
+    )
+    await db_session.flush()
+
+    results = await search(db_session, merchant.id, "ايه هي مواعيد العمل؟")
+
+    assert len(results) == 2
+    assert results[0]["content"] == "فريق خدمة العملاء متاح من السبت إلى الخميس، من 10 صباحاً حتى 10 مساءً."

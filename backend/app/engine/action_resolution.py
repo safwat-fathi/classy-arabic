@@ -41,6 +41,11 @@ def _render_response(outcome: ActionOutcome, action) -> str:
         if outcome.result["delivery_validation"]["status"] == "unavailable":
             note = " I'll confirm the delivery fee for your area separately."
         return "Got it, saved your info." + note
+    if action.action == "search_store_knowledge":
+        results = outcome.result.get("results", [])
+        if not results:
+            return "I couldn't find any information about that."
+        return results[0]["content"]
     return "Done."
 
 

@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { BrandMark } from "@/app/logo";
 import * as m from "@/paraglide/messages";
+import { LanguageSwitcher } from "./language-switcher";
 
 export function Nav() {
   return (
     <>
       <div className="bg-emerald-700 text-white px-4 py-2.5 text-center text-[13.5px] font-bold">
         {m.nav_banner_text()}
-        <Link href="/demo" className="underline hover:text-emerald-200 ms-1">
+        <Link href="/signup" className="underline hover:text-emerald-200 ms-1">
           {m.nav_banner_cta()}
         </Link>
       </div>
@@ -40,12 +41,15 @@ export function Nav() {
               {m.nav_link_faq()}
             </a>
           </nav>
-          <Link
-            href="/demo"
-            className="inline-flex min-h-10 items-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-700"
-          >
-            {m.nav_cta()}
-          </Link>
+          <div className="flex items-center gap-4">
+            <LanguageSwitcher />
+            <Link
+              href="/demo"
+              className="inline-flex min-h-10 items-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-700"
+            >
+              {m.nav_cta()}
+            </Link>
+          </div>
         </div>
       </header>
     </>

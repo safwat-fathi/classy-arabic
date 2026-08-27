@@ -171,7 +171,7 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
         message.model_tier = ModelTier.DEEPSEEK
         message.escalation_reason = resolution.escalation_reason
         await session.flush()
-        return PipelineResult(message=message, order=None)
+        return PipelineResult(message=message, order=None, answer_text=resolution.response_text)
     try:
         classification, reason, usage = await classify_message(
             prompt,

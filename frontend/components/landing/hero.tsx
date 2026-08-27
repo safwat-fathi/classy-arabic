@@ -19,7 +19,8 @@ export function Hero() {
           </h1>
           <p className="mb-8 max-w-xl text-lg leading-loose text-gray-400">
             {m.hero_desc_p1()}{" "}
-            <strong className="text-gray-300">{m.hero_desc_bold()}</strong> {m.hero_desc_and()}{" "}
+            <strong className="text-gray-300">{m.hero_desc_bold()}</strong>{" "}
+            {m.hero_desc_and()}{" "}
             <span className="rounded-md border border-emerald-500/30 bg-emerald-500/15 p-2 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.15)] leading-relaxed">
               <span className="text-[13px]">✨</span> {m.hero_desc_ai()}
             </span>{" "}
@@ -41,14 +42,16 @@ export function Hero() {
           </div>
           <div className="flex flex-wrap items-center gap-4 text-[13px] text-gray-400">
             <span className="flex items-center gap-1.5">
-              <CheckIcon className="text-emerald-500 w-4 h-4" /> {m.hero_feat_1()}
+              <CheckIcon className="text-emerald-500 w-4 h-4" />{" "}
+              {m.hero_feat_1()}
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="text-emerald-500 text-base">⚡</span> {m.hero_feat_2()}
+              <span className="text-emerald-500 text-base">⚡</span>{" "}
+              {m.hero_feat_2()}
             </span>
-            <span className="flex items-center gap-1.5">
+            {/* <span className="flex items-center gap-1.5">
               <span className="text-emerald-500 text-base">🔒</span> {m.hero_feat_3()}
-            </span>
+            </span> */}
           </div>
         </div>
 
@@ -88,9 +91,9 @@ export function Hero() {
                   <Image
                     src="/images/black_tshirt.jpg"
                     alt="تيشيرت أساسي"
-                    fill
-                    sizes="48px"
-                    className="object-cover"
+                    width={48}
+                    height={48}
+                    className="object-cover h-full w-full"
                     priority
                   />
                 </div>
@@ -115,15 +118,23 @@ export function Hero() {
                 </div>
                 <div className="flex justify-between text-xs text-gray-600">
                   <span>{m.hero_ui_subtotal()}</span>
-                  <span className="font-bold text-gray-900">750 {m.hero_ui_currency()}</span>
+                  <span className="font-bold text-gray-900">
+                    750 {m.hero_ui_currency()}
+                  </span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-600">
                   <span>{m.hero_ui_shipping()}</span>
-                  <span className="font-bold text-gray-900">45 {m.hero_ui_currency()}</span>
+                  <span className="font-bold text-gray-900">
+                    45 {m.hero_ui_currency()}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm mt-1 pt-1 border-t border-gray-200">
-                  <span className="text-gray-900 font-bold">{m.hero_ui_total()}</span>
-                  <span className="font-bold text-emerald-700">795 {m.hero_ui_currency()}</span>
+                  <span className="text-gray-900 font-bold">
+                    {m.hero_ui_total()}
+                  </span>
+                  <span className="font-bold text-emerald-700">
+                    795 {m.hero_ui_currency()}
+                  </span>
                 </div>
               </div>
             </div>

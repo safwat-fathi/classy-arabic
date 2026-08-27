@@ -2,15 +2,18 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getConversations } from "@/lib/conversations";
 import { getProducts, type Product } from "@/lib/products";
+import { getStoreKnowledge, type StoreKnowledge } from "@/lib/knowledge";
 import { BrandMark } from "../logo";
 import { Workspace } from "./workspace";
 import * as m from "@/paraglide/messages";
 
-export const metadata: Metadata = {
-  title: "Tijaratk Demo",
-  description: "Interactive demo of Tijaratk Bot",
-  robots: { index: false, follow: true }
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: m.demo_meta_title(),
+    description: m.demo_meta_description(),
+    robots: { index: false, follow: true }
+  };
+}
 
 function DemoHeader() {
   return (
@@ -47,6 +50,7 @@ export default async function Home() {
     );
   }
   const conversations = await getConversations(DEMO_STOPGAP_MERCHANT_ID);
+  const knowledge = await getStoreKnowledge(DEMO_STOPGAP_MERCHANT_ID);
   let conversation = conversations[0];
   let products: Product[] = [];
 
@@ -88,7 +92,7 @@ export default async function Home() {
         <p className="text-sm text-gray-500">
           {m.demo_chat_subtitle()}
         </p>
-        <Workspace conversationId={conversation.id} products={products} />
+        <Workspace conversationId={conversation.id} products={products} knowledge={knowledge} />
       </main>
     </>
   );

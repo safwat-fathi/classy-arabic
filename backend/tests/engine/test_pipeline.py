@@ -334,6 +334,43 @@ async def test_question_intent_returns_seeded_knowledge_answer(db_session, conve
     assert result.answer_text == "بنشحن لكل محافظات مصر خلال يومين لأربعة أيام."
 
 
+async def test_question_intent_prefers_more_specific_knowledge_match(db_session, conversation, mock_ai):
+    db_session.add(
+        StoreKnowledge(
+            merchant_id=conversation.merchant_id,
+            knowledge_type="shipping",
+            title="سياسات ومواعيد الشحن",
+            content="يتم شحن الطلبات خلال 24 ساعة من تأكيد الطلب. يستغرق التوصيل من 2 إلى 4 أيام عمل.",
+            keywords=["مواعيد"],
+        )
+    )
+    db_session.add(
+        StoreKnowledge(
+            merchant_id=conversation.merchant_id,
+            knowledge_type="general",
+            title="ساعات العمل وتوافر الدعم",
+            content="فريق خدمة العملاء متاح للرد على استفساراتكم من السبت إلى الخميس، من الساعة 10 صباحاً وحتى 10 مساءً.",
+            keywords=["مواعيد العمل"],
+        )
+    )
+    await db_session.flush()
+
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
+    )
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "ايه هي مواعيد العمل؟", "ايه هي مواعيد العمل؟")
+    )
+
+    assert result.answer_text == (
+        "فريق خدمة العملاء متاح للرد على استفساراتكم من السبت إلى الخميس، من الساعة 10 صباحاً وحتى 10 مساءً."
+    )
+
+
 async def test_no_matching_knowledge_leaves_answer_text_none(db_session, conversation, mock_ai):
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
         return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
