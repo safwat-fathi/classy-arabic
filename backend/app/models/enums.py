@@ -46,3 +46,8 @@ class VariantStatus(enum.StrEnum):
     ACTIVE = "ACTIVE"
     OUT_OF_STOCK = "OUT_OF_STOCK"
     DISCONTINUED = "DISCONTINUED"
+
+
+class MerchantStatus(enum.StrEnum):
+    ACTIVE = "ACTIVE"
+    SUSPENDED = "SUSPENDED"

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import String
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -13,7 +13,7 @@ class LabeledExample(Base):
     __tablename__ = "labeled_examples"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=new_id)
-    merchant_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="SET NULL"), nullable=True)
     normalized_text: Mapped[str] = mapped_column(String, nullable=False)
     intent: Mapped[str] = mapped_column(String, nullable=False)
     extraction: Mapped[dict | None] = mapped_column(JSON, nullable=True)

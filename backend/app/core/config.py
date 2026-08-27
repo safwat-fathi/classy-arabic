@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_WEBHOOK_URL: str = ""
 
+    # Auth Settings
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = 10080  # 7 days
+    AUTH_DEV_BYPASS_MERCHANT_ID: str = ""
+
     @property
     def sqlalchemy_database_uri(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
