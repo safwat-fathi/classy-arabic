@@ -5,6 +5,7 @@ import pytest
 from app.domains.cart.service import add_item
 from app.domains.checkout.service import create_order, get_checkout_state, validate_delivery_area
 from app.models.product import Product
+from app.models.product_variant import ProductVariant
 
 
 async def test_validate_delivery_area_reports_unavailable():
@@ -148,6 +149,36 @@ async def test_create_order_confirm_false_previews_without_creating_order(db_ses
 
     orders = (await db_session.execute(select(Order).where(Order.merchant_id == merchant.id))).scalars().all()
     assert orders == []
+
+
+async def test_create_order_snapshots_variant_id_and_variant_snapshot(db_session, merchant, conversation, message):
+    product = Product(merchant_id=merchant.id, name="Shirt", price=Decimal("199.99"))
+    db_session.add(product)
+    await db_session.flush()
+    variant = ProductVariant(product_id=product.id, label="M / Blue", price=Decimal("219.99"))
+    db_session.add(variant)
+    await db_session.flush()
+    await add_item(db_session, merchant.id, conversation.id, product.id, 1, variant_id=variant.id)
+    conversation.slots = {
+        "customer_name": "Sara",
+        "customer_phone": "01012345678",
+        "customer_address": "Nasr City",
+    }
+    await db_session.flush()
+
+    result = await create_order(db_session, merchant.id, conversation.id, True, message_id=message.id)
+
+    assert result["total"] == "219.99"
+
+    from sqlalchemy import select
+
+    from app.models.order import Order
+
+    order = (await db_session.execute(select(Order).where(Order.id == result["order_id"]))).scalar_one()
+    await db_session.refresh(order, attribute_names=["items"])
+    assert order.items[0].variant_id == variant.id
+    assert order.items[0].variant_snapshot == "M / Blue"
+    assert order.items[0].unit_price == Decimal("219.99")
 
 
 async def test_create_order_confirm_true_after_preview_still_creates_order(db_session, merchant, conversation, message):

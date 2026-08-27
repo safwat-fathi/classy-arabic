@@ -1,8 +1,9 @@
 from decimal import Decimal
 
-from sqlalchemy import select, text, update
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.domains.checkout.order_writer import ResolvedOrderLine, write_order
 from app.engine.tools.errors import ActionArgumentError
 from app.models.cart import Cart
 from app.models.cart_item import CartItem
@@ -10,8 +11,8 @@ from app.models.conversation import Conversation
 from app.models.enums import CartStatus, ModelTier, OrderSource, OrderStatus
 from app.models.merchant import Merchant
 from app.models.order import Order
-from app.models.order_item import OrderItem
 from app.models.product import Product
+from app.models.product_variant import ProductVariant
 
 
 async def validate_delivery_area(merchant_id: str, address: str | None) -> dict:
@@ -50,11 +51,14 @@ async def get_checkout_state(session: AsyncSession, merchant_id: str, conversati
     return {"items": items, "subtotal": str(subtotal), "currency": merchant.currency}
 
 
-async def _get_active_cart_items(session: AsyncSession, conversation_id: str) -> list[tuple[CartItem, Product]]:
+async def _get_active_cart_items(
+    session: AsyncSession, conversation_id: str
+) -> list[tuple[CartItem, Product, ProductVariant | None]]:
     result = await session.execute(
-        select(CartItem, Product)
+        select(CartItem, Product, ProductVariant)
         .join(Cart, Cart.id == CartItem.cart_id)
         .join(Product, Product.id == CartItem.product_id)
+        .outerjoin(ProductVariant, ProductVariant.id == CartItem.variant_id)
         .where(Cart.conversation_id == conversation_id, Cart.status == CartStatus.ACTIVE)
     )
     return result.all()
@@ -115,50 +119,40 @@ async def create_order(
         order = existing.scalar_one()
         return {"order_id": order.id, "order_number": order.order_number, "total": str(order.total)}
 
-    order_number_result = await session.execute(
-        text(
-            "UPDATE merchants SET next_order_number = next_order_number + 1 "
-            "WHERE id = :mid RETURNING next_order_number - 1"
-        ),
-        {"mid": merchant_id},
-    )
-    order_number = order_number_result.scalar_one()
-
-    subtotal = sum((product.price * Decimal(str(item.quantity))).quantize(Decimal("0.01")) for item, product in rows)
+    # Price-fallback rule mirrors app/domains/cart/service.py::add_item: a
+    # variant's own price wins when set; otherwise fall back to the parent
+    # product's price.
+    lines = [
+        ResolvedOrderLine(
+            product_id=product.id,
+            variant_id=item.variant_id,
+            name_snapshot=product.name,
+            variant_snapshot=variant.label if variant is not None else None,
+            unit_price=variant.price if (variant is not None and variant.price is not None) else product.price,
+            quantity=item.quantity,
+        )
+        for item, product, variant in rows
+    ]
 
     # message_id is the message that triggered this tool call (the confirming
     # message), threaded through dispatch_action - the closest analogue to
     # pipeline.py's extraction-triggered message_id.
-    order = Order(
+    order = await write_order(
+        session,
         merchant_id=merchant_id,
         conversation_id=conversation_id,
         message_id=message_id,
-        extracted_payload={},
         status=OrderStatus.CONFIRMED,
+        source=OrderSource.CART_CHECKOUT,
+        lines=lines,
+        extracted_payload={},
         confidence_score=1.0,
         extracted_by_tier=ModelTier.DEEPSEEK,
-        source=OrderSource.CART_CHECKOUT,
         cart_id=cart.id,
-        order_number=order_number,
         customer_name=slots["customer_name"],
         customer_phone=slots["customer_phone"],
         delivery_address=slots["customer_address"],
-        subtotal=subtotal,
-        total=subtotal,
+        assign_order_number=True,
     )
-    session.add(order)
-    await session.flush()
 
-    for item, product in rows:
-        session.add(
-            OrderItem(
-                order_id=order.id,
-                product_id=product.id,
-                name_snapshot=product.name,
-                unit_price=product.price,
-                quantity=item.quantity,
-            )
-        )
-    await session.flush()
-
-    return {"order_id": order.id, "order_number": order_number, "total": str(subtotal)}
+    return {"order_id": order.id, "order_number": order.order_number, "total": str(order.total)}
