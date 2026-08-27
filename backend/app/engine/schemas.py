@@ -97,6 +97,7 @@ class GetProductAction(_ActionBase):
 class AddToCartAction(_ActionBase):
     action: Literal["add_to_cart"]
     product_id: str
+    variant_id: str | None = None
     quantity: float = Field(gt=0)
     notes: str | None = None
 

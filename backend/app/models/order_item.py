@@ -15,6 +15,12 @@ class OrderItem(Base):
     product_id: Mapped[str | None] = mapped_column(
         String, ForeignKey("products.id", ondelete="SET NULL"), nullable=True, index=True
     )
+    # SET NULL, same reasoning as product_id above: historical orders must
+    # survive catalog deletion (of the variant, not just the product). No
+    # uniqueness constraint needed on this table.
+    variant_id: Mapped[str | None] = mapped_column(
+        String, ForeignKey("product_variants.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     name_snapshot: Mapped[str] = mapped_column(String, nullable=False)
     variant_snapshot: Mapped[str | None] = mapped_column(String, nullable=True)
     unit_price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)

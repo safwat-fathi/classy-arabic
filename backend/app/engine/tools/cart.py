@@ -11,10 +11,16 @@ from app.engine.tools.registry import register_tool
 async def handle_add_to_cart(
     session: AsyncSession, action: AddToCartAction, merchant_id: str, conversation_id: str, message_id: str
 ) -> dict:
-    # product existence/ownership already validated by evaluate_action (Task 3)
+    # product/variant existence/ownership already validated by evaluate_action (Task 3)
     try:
         return await cart_service.add_item(
-            session, merchant_id, conversation_id, action.product_id, action.quantity, notes=action.notes
+            session,
+            merchant_id,
+            conversation_id,
+            action.product_id,
+            action.quantity,
+            notes=action.notes,
+            variant_id=action.variant_id,
         )
     except ValueError as exc:
         raise ActionArgumentError([str(exc)]) from exc

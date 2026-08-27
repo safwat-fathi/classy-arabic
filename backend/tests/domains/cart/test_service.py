@@ -1,7 +1,10 @@
+from decimal import Decimal
+
 import pytest
 
 from app.domains.cart.service import CartItemNotFoundError, add_item, remove_item, update_item
 from app.models.product import Product
+from app.models.product_variant import ProductVariant
 
 
 async def test_add_item_creates_cart_and_item(db_session, merchant, conversation):
@@ -101,6 +104,80 @@ async def test_update_item_rejects_line_item_from_another_merchant(db_session, m
 
     with pytest.raises(CartItemNotFoundError):
         await update_item(db_session, other_merchant.id, conversation.id, added["line_item_id"], 5)
+
+
+async def test_add_item_with_variant_creates_separate_line_from_variant_less_item(db_session, merchant, conversation):
+    product = Product(merchant_id=merchant.id, name="Shirt", price=250)
+    db_session.add(product)
+    await db_session.flush()
+    variant = ProductVariant(product_id=product.id, label="M / Blue")
+    db_session.add(variant)
+    await db_session.flush()
+
+    plain = await add_item(db_session, merchant.id, conversation.id, product.id, 1)
+    with_variant = await add_item(db_session, merchant.id, conversation.id, product.id, 1, variant_id=variant.id)
+
+    assert plain["line_item_id"] != with_variant["line_item_id"]
+    assert plain["variant_id"] is None
+    assert with_variant["variant_id"] == variant.id
+
+
+async def test_add_item_twice_with_same_variant_increments_quantity(db_session, merchant, conversation):
+    product = Product(merchant_id=merchant.id, name="Shirt", price=250)
+    db_session.add(product)
+    await db_session.flush()
+    variant = ProductVariant(product_id=product.id, label="M / Blue")
+    db_session.add(variant)
+    await db_session.flush()
+
+    await add_item(db_session, merchant.id, conversation.id, product.id, 1, variant_id=variant.id)
+    result = await add_item(db_session, merchant.id, conversation.id, product.id, 2, variant_id=variant.id)
+
+    assert result["quantity"] == 3
+    assert result["variant_id"] == variant.id
+
+
+async def test_add_item_uses_variant_price_over_product_price(db_session, merchant, conversation):
+    # CartItem has no price column, so the resolved price is never persisted
+    # or returned - the only observable proxy for "which price won" is
+    # whether the priceless side of the pair would have raised on its own.
+    # Here the product has NO price; if variant.price were not checked first,
+    # this would raise the "no price set" ValueError. It doesn't, proving
+    # the variant's own price was used instead of (i.e. "over") the
+    # product's.
+    product = Product(merchant_id=merchant.id, name="Shirt")
+    db_session.add(product)
+    await db_session.flush()
+    variant = ProductVariant(product_id=product.id, label="M / Blue", price=Decimal("150.00"))
+    db_session.add(variant)
+    await db_session.flush()
+
+    result = await add_item(db_session, merchant.id, conversation.id, product.id, 1, variant_id=variant.id)
+    assert result["variant_id"] == variant.id
+
+
+async def test_add_item_falls_back_to_product_price_when_variant_has_no_price(db_session, merchant, conversation):
+    product = Product(merchant_id=merchant.id, name="Shirt", price=Decimal("100.00"))
+    db_session.add(product)
+    await db_session.flush()
+    variant = ProductVariant(product_id=product.id, label="M / Blue")
+    db_session.add(variant)
+    await db_session.flush()
+
+    result = await add_item(db_session, merchant.id, conversation.id, product.id, 1, variant_id=variant.id)
+    assert result["variant_id"] == variant.id
+
+
+async def test_add_item_rejects_priceless_variant(db_session, merchant, conversation):
+    product = Product(merchant_id=merchant.id, name="No Price Yet")
+    db_session.add(product)
+    await db_session.flush()
+    variant = ProductVariant(product_id=product.id, label="M / Blue")
+    db_session.add(variant)
+    await db_session.flush()
+
+    with pytest.raises(ValueError, match="no price set"):
+        await add_item(db_session, merchant.id, conversation.id, product.id, 1, variant_id=variant.id)
 
 
 async def test_update_item_rejects_line_item_from_checked_out_cart(db_session, merchant, conversation):

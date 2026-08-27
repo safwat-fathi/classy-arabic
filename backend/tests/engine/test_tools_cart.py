@@ -4,6 +4,7 @@ from app.engine.schemas import AddToCartAction, RemoveFromCartAction, UpdateCart
 from app.engine.tools.cart import handle_add_to_cart, handle_remove_from_cart, handle_update_cart
 from app.engine.tools.errors import ActionArgumentError
 from app.models.product import Product
+from app.models.product_variant import ProductVariant
 
 
 async def test_handle_add_to_cart_adds_item(db_session, merchant, conversation):
@@ -29,6 +30,19 @@ async def test_handle_add_to_cart_rejects_priceless_product(db_session, merchant
     action = AddToCartAction(action="add_to_cart", product_id="p2", quantity=1, confidence=0.9)
     with pytest.raises(ActionArgumentError):
         await handle_add_to_cart(db_session, action, merchant.id, conversation.id, "msg-1")
+
+
+async def test_handle_add_to_cart_with_variant_id(db_session, merchant, conversation):
+    db_session.add(Product(id="p4", merchant_id=merchant.id, name="Shirt", price=250, aliases=[]))
+    await db_session.flush()
+    variant = ProductVariant(product_id="p4", label="M / Blue")
+    db_session.add(variant)
+    await db_session.flush()
+
+    action = AddToCartAction(action="add_to_cart", product_id="p4", variant_id=variant.id, quantity=1, confidence=0.9)
+    result = await handle_add_to_cart(db_session, action, merchant.id, conversation.id, "msg-1")
+    assert result["variant_id"] == variant.id
+    assert result["product_id"] == "p4"
 
 
 async def test_handle_update_cart_requires_existing_line_item(db_session, merchant, conversation):
