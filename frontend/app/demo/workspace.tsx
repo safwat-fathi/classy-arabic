@@ -38,7 +38,7 @@ export function Workspace({
         />
       </div>
       <div className="flex flex-col gap-8 border-s-0 md:border-s border-gray-200 md:ps-8">
-        <AIInsights state={ingestState} products={products} />
+        <AIInsights state={ingestState} products={products} activeTab={activeTab} />
         
         <div className="flex flex-col gap-4">
           <div className="flex gap-4 border-b border-gray-200">

@@ -13,9 +13,11 @@ function findProduct(
 export function AIInsights({
   state,
   products,
+  activeTab,
 }: {
   state: IngestState;
   products: Product[];
+  activeTab?: "products" | "knowledge";
 }) {
   const intentLabels: Record<string, string> = {
     purchase_intent: m.intent_purchase(),
@@ -142,7 +144,7 @@ export function AIInsights({
   return (
     <section className="flex flex-col gap-4">
       <h2 className="font-display text-xl font-semibold tracking-tight">
-        {state.status === "success" && state.data.answer_text && !state.data.order
+        {activeTab === "knowledge" || (state.status === "success" && !state.data.order)
           ? m.demo_ai_answer_title()
           : m.demo_ai_title()}
       </h2>
