@@ -40,3 +40,9 @@ class CartStatus(enum.StrEnum):
 class OrderSource(enum.StrEnum):
     AI_EXTRACTION = "AI_EXTRACTION"
     CART_CHECKOUT = "CART_CHECKOUT"
+
+
+class VariantStatus(enum.StrEnum):
+    ACTIVE = "ACTIVE"
+    OUT_OF_STOCK = "OUT_OF_STOCK"
+    DISCONTINUED = "DISCONTINUED"

@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.core.database import get_db
 from app.main import app
-from app.models import Merchant, Product
+from app.models import Merchant, Product, ProductVariant
 
 
 async def test_list_products_returns_only_merchant_scoped_products(db_session, merchant):
@@ -17,10 +17,11 @@ async def test_list_products_returns_only_merchant_scoped_products(db_session, m
         merchant_id=merchant.id,
         name="My Product",
         aliases=["alias1"],
-        variants={"sizes": ["M"]},
         price=Decimal("249.00"),
     )
     db_session.add_all([other, mine])
+    await db_session.flush()
+    db_session.add(ProductVariant(product_id=mine.id, label="M", sku="MY-M", stock=5, attributes={"size": "M"}))
     await db_session.flush()
 
     async def _override_get_db():
@@ -38,7 +39,9 @@ async def test_list_products_returns_only_merchant_scoped_products(db_session, m
     assert len(body) == 1
     assert body[0]["name"] == "My Product"
     assert body[0]["aliases"] == ["alias1"]
-    assert body[0]["variants"] == {"sizes": ["M"]}
+    assert len(body[0]["variants"]) == 1
+    assert body[0]["variants"][0]["label"] == "M"
+    assert body[0]["variants"][0]["attributes"] == {"size": "M"}
     assert body[0]["price"] == 249.0
 
 

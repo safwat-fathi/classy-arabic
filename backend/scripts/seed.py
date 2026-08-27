@@ -13,6 +13,7 @@ from app.models import (
     Merchant,
     Message,
     Product,
+    ProductVariant,
     StoreKnowledge,
 )
 from app.models._ids import new_id
@@ -24,20 +25,46 @@ PRODUCTS = [
     {
         "name": "Classic Denim Jacket",
         "aliases": ["جاكيت جينز", "جاكيت ازرق", "denim jacket", "jacket"],
-        "variants": {"sizes": ["S", "M", "L", "XL"], "colors": ["Blue", "Black"]},
         "price": Decimal("899.00"),
+        "variants": [
+            {"label": "M / Blue", "sku": "JCK-DEN-M-BLU", "stock": 15, "attributes": {"size": "M", "color": "Blue"}},
+            {"label": "L / Blue", "sku": "JCK-DEN-L-BLU", "stock": 12, "attributes": {"size": "L", "color": "Blue"}},
+            {
+                "label": "L / Black",
+                "sku": "JCK-DEN-L-BLK",
+                "stock": 10,
+                "attributes": {"size": "L", "color": "Black"},
+                "price": Decimal("949.00"),
+            },
+            {
+                "label": "XL / Black",
+                "sku": "JCK-DEN-XL-BLK",
+                "stock": 6,
+                "attributes": {"size": "XL", "color": "Black"},
+            },
+        ],
     },
     {
         "name": "Summer Linen Dress",
         "aliases": ["فستان صيفي", "فستان كتان", "linen dress"],
-        "variants": {"sizes": ["S", "M", "L"], "colors": ["White", "Beige"]},
         "price": Decimal("1299.00"),
+        "variants": [
+            {"label": "S / White", "sku": "DRS-LIN-S-WHT", "stock": 8, "attributes": {"size": "S", "color": "White"}},
+            {"label": "M / White", "sku": "DRS-LIN-M-WHT", "stock": 9, "attributes": {"size": "M", "color": "White"}},
+            {"label": "M / Beige", "sku": "DRS-LIN-M-BEI", "stock": 11, "attributes": {"size": "M", "color": "Beige"}},
+            {"label": "L / Beige", "sku": "DRS-LIN-L-BEI", "stock": 7, "attributes": {"size": "L", "color": "Beige"}},
+        ],
     },
     {
         "name": "Essential Black T-Shirt",
         "aliases": ["تيشيرت اسود", "تيشيرت أساسي", "black tshirt", "tshirt"],
-        "variants": {"sizes": ["S", "M", "L", "XL"]},
         "price": Decimal("249.00"),
+        "variants": [
+            {"label": "S", "sku": "TSH-BLK-S", "stock": 30, "attributes": {"size": "S"}},
+            {"label": "M", "sku": "TSH-BLK-M", "stock": 25, "attributes": {"size": "M"}},
+            {"label": "L", "sku": "TSH-BLK-L", "stock": 20, "attributes": {"size": "L"}},
+            {"label": "XL", "sku": "TSH-BLK-XL", "stock": 10, "attributes": {"size": "XL"}},
+        ],
     },
 ]
 
@@ -111,11 +138,13 @@ async def seed_data():
                 merchant_id=merchant.id,
                 name=spec["name"],
                 aliases=spec["aliases"],
-                variants=spec["variants"],
                 price=spec["price"],
             )
             product.embedding = await embed_text(f"{product.name} " + " ".join(product.aliases))
             session.add(product)
+            await session.flush()
+            for variant_spec in spec["variants"]:
+                session.add(ProductVariant(product_id=product.id, **variant_spec))
 
         # 3. Replace this merchant's FAQ/policy content every run.
         await session.execute(delete(StoreKnowledge).where(StoreKnowledge.merchant_id == merchant.id))
