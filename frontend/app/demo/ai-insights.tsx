@@ -128,7 +128,6 @@ export function AIInsights({
           </div>
         ) : state.data.answer_text ? (
           <div className="flex flex-col gap-2 border-t border-emerald-100 pt-4">
-            <h3 className="font-semibold text-gray-900">{m.demo_ai_answer_title()}</h3>
             <p className="text-sm text-gray-700">{state.data.answer_text}</p>
           </div>
         ) : (
@@ -143,7 +142,9 @@ export function AIInsights({
   return (
     <section className="flex flex-col gap-4">
       <h2 className="font-display text-xl font-semibold tracking-tight">
-        {m.demo_ai_title()}
+        {state.status === "success" && state.data.answer_text && !state.data.order
+          ? m.demo_ai_answer_title()
+          : m.demo_ai_title()}
       </h2>
       {content}
     </section>

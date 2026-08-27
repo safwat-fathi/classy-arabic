@@ -30,8 +30,8 @@ export function Workspace({
   }
 
   return (
-    <div className="grid gap-8 md:grid-cols-2">
-      <div className="flex flex-col gap-8">
+    <div className="grid gap-8 md:grid-cols-2 items-start">
+      <div className="flex flex-col gap-8 h-[calc(100vh-8rem)] sticky top-8">
         <MessageComposer
           conversationId={conversationId}
           onStateChange={setIngestState}
