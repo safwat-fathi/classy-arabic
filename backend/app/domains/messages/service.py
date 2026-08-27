@@ -15,9 +15,9 @@ class ConversationNotFoundError(Exception):
     pass
 
 
-async def ingest_message(db: AsyncSession, payload: MessageIngestRequest) -> MessageIngestResponse:
+async def ingest_message(db: AsyncSession, payload: MessageIngestRequest, merchant_id: str) -> MessageIngestResponse:
     conversation = await db.get(Conversation, payload.conversation_id)
-    if conversation is None:
+    if conversation is None or conversation.merchant_id != merchant_id:
         raise ConversationNotFoundError(payload.conversation_id)
 
     message = Message(

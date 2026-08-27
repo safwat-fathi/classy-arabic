@@ -28,7 +28,11 @@ async def get_checkout_state(session: AsyncSession, merchant_id: str, conversati
         select(CartItem, Product)
         .join(Cart, Cart.id == CartItem.cart_id)
         .join(Product, Product.id == CartItem.product_id)
-        .where(Cart.conversation_id == conversation_id, Cart.status == CartStatus.ACTIVE)
+        .where(
+            Cart.conversation_id == conversation_id,
+            Cart.status == CartStatus.ACTIVE,
+            Cart.merchant_id == merchant_id,
+        )
     )
     rows = result.all()
 
@@ -52,14 +56,18 @@ async def get_checkout_state(session: AsyncSession, merchant_id: str, conversati
 
 
 async def _get_active_cart_items(
-    session: AsyncSession, conversation_id: str
+    session: AsyncSession, merchant_id: str, conversation_id: str
 ) -> list[tuple[CartItem, Product, ProductVariant | None]]:
     result = await session.execute(
         select(CartItem, Product, ProductVariant)
         .join(Cart, Cart.id == CartItem.cart_id)
         .join(Product, Product.id == CartItem.product_id)
         .outerjoin(ProductVariant, ProductVariant.id == CartItem.variant_id)
-        .where(Cart.conversation_id == conversation_id, Cart.status == CartStatus.ACTIVE)
+        .where(
+            Cart.conversation_id == conversation_id,
+            Cart.status == CartStatus.ACTIVE,
+            Cart.merchant_id == merchant_id,
+        )
     )
     return result.all()
 
@@ -68,7 +76,11 @@ async def create_order(
     session: AsyncSession, merchant_id: str, conversation_id: str, confirm: bool, message_id: str
 ) -> dict:
     cart_result = await session.execute(
-        select(Cart).where(Cart.conversation_id == conversation_id, Cart.status == CartStatus.ACTIVE)
+        select(Cart).where(
+            Cart.conversation_id == conversation_id,
+            Cart.status == CartStatus.ACTIVE,
+            Cart.merchant_id == merchant_id,
+        )
     )
     cart = cart_result.scalar_one_or_none()
     if cart is None:
@@ -77,19 +89,25 @@ async def create_order(
         # (SRD S37) - the latter must return the existing order, not "empty".
         checked_out = await session.execute(
             select(Cart)
-            .where(Cart.conversation_id == conversation_id, Cart.status == CartStatus.CHECKED_OUT)
+            .where(
+                Cart.conversation_id == conversation_id,
+                Cart.status == CartStatus.CHECKED_OUT,
+                Cart.merchant_id == merchant_id,
+            )
             .order_by(Cart.created_at.desc())
             .limit(1)
         )
         done_cart = checked_out.scalar_one_or_none()
         if done_cart is not None:
-            existing = await session.execute(select(Order).where(Order.cart_id == done_cart.id))
+            existing = await session.execute(
+                select(Order).where(Order.cart_id == done_cart.id, Order.merchant_id == merchant_id)
+            )
             order = existing.scalar_one_or_none()
             if order is not None:
                 return {"order_id": order.id, "order_number": order.order_number, "total": str(order.total)}
         raise ActionArgumentError(["cart is empty - nothing to check out"])
 
-    rows = await _get_active_cart_items(session, conversation_id)
+    rows = await _get_active_cart_items(session, merchant_id, conversation_id)
     if not rows:
         raise ActionArgumentError(["cart is empty - nothing to check out"])
 
@@ -115,7 +133,9 @@ async def create_order(
         .returning(Cart.id)
     )
     if converted.scalar_one_or_none() is None:
-        existing = await session.execute(select(Order).where(Order.cart_id == cart.id))
+        existing = await session.execute(
+            select(Order).where(Order.cart_id == cart.id, Order.merchant_id == merchant_id)
+        )
         order = existing.scalar_one()
         return {"order_id": order.id, "order_number": order.order_number, "total": str(order.total)}
 

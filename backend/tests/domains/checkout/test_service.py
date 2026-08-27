@@ -4,6 +4,7 @@ import pytest
 
 from app.domains.cart.service import add_item
 from app.domains.checkout.service import create_order, get_checkout_state, validate_delivery_area
+from app.models.merchant import Merchant
 from app.models.product import Product
 from app.models.product_variant import ProductVariant
 
@@ -179,6 +180,63 @@ async def test_create_order_snapshots_variant_id_and_variant_snapshot(db_session
     assert order.items[0].variant_id == variant.id
     assert order.items[0].variant_snapshot == "M / Blue"
     assert order.items[0].unit_price == Decimal("219.99")
+
+
+async def test_get_checkout_state_excludes_other_merchants_cart(db_session, merchant, conversation):
+    other_merchant = Merchant(name="Other Merchant")
+    db_session.add(other_merchant)
+    await db_session.flush()
+
+    product = Product(merchant_id=merchant.id, name="Shoes", price=250)
+    db_session.add(product)
+    await db_session.flush()
+    await add_item(db_session, merchant.id, conversation.id, product.id, 2)
+
+    # Cart belongs to `merchant`, not `other_merchant` - a lookup scoped to
+    # other_merchant's id must not see it, even though conversation_id matches.
+    state = await get_checkout_state(db_session, other_merchant.id, conversation.id)
+    assert state == {"items": [], "subtotal": "0.00", "currency": other_merchant.currency}
+
+
+async def test_create_order_rejects_conversation_owned_by_different_merchant(db_session, merchant, conversation):
+    from app.engine.tools.errors import ActionArgumentError
+
+    other_merchant = Merchant(name="Other Merchant")
+    db_session.add(other_merchant)
+    await db_session.flush()
+
+    product = Product(merchant_id=merchant.id, name="Shoes", price=250)
+    db_session.add(product)
+    await db_session.flush()
+    await add_item(db_session, merchant.id, conversation.id, product.id, 1)
+    conversation.slots = {
+        "customer_name": "Sara",
+        "customer_phone": "01012345678",
+        "customer_address": "Nasr City",
+    }
+    await db_session.flush()
+
+    # The cart/conversation belong to `merchant`. Calling create_order with a
+    # different merchant_id must not see - let alone check out - that cart.
+    with pytest.raises(ActionArgumentError, match="cart is empty"):
+        await create_order(db_session, other_merchant.id, conversation.id, True, message_id="msg-1")
+
+    from sqlalchemy import select
+
+    from app.models.order import Order
+
+    # Scoped to both ids involved, not just merchant.id: the leak this test
+    # guards against would create an Order under other_merchant.id, not
+    # merchant.id - filtering to only the real owner would make this
+    # assertion pass even if the leak fired. Fully unfiltered isn't safe
+    # either since db_session runs against the real dev Postgres DB
+    # (conftest.py) and could see unrelated pre-existing Order rows.
+    orders = (
+        (await db_session.execute(select(Order).where(Order.merchant_id.in_([merchant.id, other_merchant.id]))))
+        .scalars()
+        .all()
+    )
+    assert orders == []
 
 
 async def test_create_order_confirm_true_after_preview_still_creates_order(db_session, merchant, conversation, message):

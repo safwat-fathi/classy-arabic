@@ -2,7 +2,9 @@ from decimal import Decimal
 
 from httpx import ASGITransport, AsyncClient
 
+from app.core.config import settings
 from app.core.database import get_db
+from app.domains.auth.dependencies import get_current_merchant
 from app.main import app
 from app.models import Merchant, Product, ProductVariant
 
@@ -27,12 +29,17 @@ async def test_list_products_returns_only_merchant_scoped_products(db_session, m
     async def _override_get_db():
         yield db_session
 
+    async def _override_get_current_merchant():
+        return merchant
+
     app.dependency_overrides[get_db] = _override_get_db
+    app.dependency_overrides[get_current_merchant] = _override_get_current_merchant
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.get("/products/", params={"merchant_id": merchant.id})
+            response = await client.get("/products/")
     finally:
         app.dependency_overrides.pop(get_db, None)
+        app.dependency_overrides.pop(get_current_merchant, None)
 
     assert response.status_code == 200
     body = response.json()
@@ -45,7 +52,11 @@ async def test_list_products_returns_only_merchant_scoped_products(db_session, m
     assert body[0]["price"] == 249.0
 
 
-async def test_list_products_requires_merchant_id(db_session, merchant):
+async def test_get_products_requires_authentication(db_session, merchant, monkeypatch):
+    # Explicitly disable the dev bypass so this test isn't accidentally
+    # green because of a locally-configured AUTH_DEV_BYPASS_MERCHANT_ID.
+    monkeypatch.setattr(settings, "AUTH_DEV_BYPASS_MERCHANT_ID", "")
+
     async def _override_get_db():
         yield db_session
 
@@ -56,4 +67,4 @@ async def test_list_products_requires_merchant_id(db_session, merchant):
     finally:
         app.dependency_overrides.pop(get_db, None)
 
-    assert response.status_code == 422
+    assert response.status_code == 401

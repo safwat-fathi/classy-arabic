@@ -5,8 +5,9 @@ from httpx import ASGITransport, AsyncClient
 
 from app.core.config import settings
 from app.core.database import get_db
+from app.domains.auth.dependencies import get_current_merchant
 from app.main import app
-from app.models import Product, StoreKnowledge
+from app.models import Merchant, Product, StoreKnowledge
 
 
 def _chat_response(content: str) -> dict:
@@ -28,11 +29,15 @@ def _embedding_response() -> dict:
     }
 
 
-async def test_ingest_returns_404_for_unknown_conversation(db_session, mock_ai):
+async def test_ingest_returns_404_for_unknown_conversation(db_session, merchant, mock_ai):
     async def _override_get_db():
         yield db_session
 
+    async def _override_get_current_merchant():
+        return merchant
+
     app.dependency_overrides[get_db] = _override_get_db
+    app.dependency_overrides[get_current_merchant] = _override_get_current_merchant
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
@@ -41,14 +46,43 @@ async def test_ingest_returns_404_for_unknown_conversation(db_session, mock_ai):
             )
     finally:
         app.dependency_overrides.pop(get_db, None)
+        app.dependency_overrides.pop(get_current_merchant, None)
     assert response.status_code == 404
 
 
-async def test_ingest_tier0_short_circuit_end_to_end(db_session, conversation, mock_ai):
-    # Override get_db to hand the app the SAME session/transaction the
-    # `conversation` fixture used, so the request sees that uncommitted row
-    # (a separate pooled connection would not) and the whole test still
-    # rolls back cleanly via the db_session fixture's teardown.
+async def test_ingest_message_rejects_conversation_owned_by_different_merchant(db_session, conversation, mock_ai):
+    # `conversation` belongs to the `merchant` fixture (merchant A). Simulate
+    # a request authenticated as a different merchant (B) trying to post to
+    # it - must 404, not 403 (no-existence-leak idiom), same as an unknown id.
+    other_merchant = Merchant(name="Other Merchant")
+    db_session.add(other_merchant)
+    await db_session.flush()
+
+    async def _override_get_db():
+        yield db_session
+
+    async def _override_get_current_merchant():
+        return other_merchant
+
+    app.dependency_overrides[get_db] = _override_get_db
+    app.dependency_overrides[get_current_merchant] = _override_get_current_merchant
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post(
+                "/messages",
+                json={"conversation_id": conversation.id, "raw_text": "hi", "normalized_text": "hi"},
+            )
+    finally:
+        app.dependency_overrides.pop(get_db, None)
+        app.dependency_overrides.pop(get_current_merchant, None)
+    assert response.status_code == 404
+
+
+async def test_ingest_message_requires_authentication(db_session, conversation, monkeypatch):
+    # Explicitly disable the dev bypass so this test isn't accidentally
+    # green because of a locally-configured AUTH_DEV_BYPASS_MERCHANT_ID.
+    monkeypatch.setattr(settings, "AUTH_DEV_BYPASS_MERCHANT_ID", "")
+
     async def _override_get_db():
         yield db_session
 
@@ -57,10 +91,36 @@ async def test_ingest_tier0_short_circuit_end_to_end(db_session, conversation, m
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/messages",
+                json={"conversation_id": conversation.id, "raw_text": "hi", "normalized_text": "hi"},
+            )
+    finally:
+        app.dependency_overrides.pop(get_db, None)
+
+    assert response.status_code == 401
+
+
+async def test_ingest_tier0_short_circuit_end_to_end(db_session, merchant, conversation, mock_ai):
+    # Override get_db to hand the app the SAME session/transaction the
+    # `conversation` fixture used, so the request sees that uncommitted row
+    # (a separate pooled connection would not) and the whole test still
+    # rolls back cleanly via the db_session fixture's teardown.
+    async def _override_get_db():
+        yield db_session
+
+    async def _override_get_current_merchant():
+        return merchant
+
+    app.dependency_overrides[get_db] = _override_get_db
+    app.dependency_overrides[get_current_merchant] = _override_get_current_merchant
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post(
+                "/messages",
                 json={"conversation_id": conversation.id, "raw_text": "👍", "normalized_text": "👍"},
             )
     finally:
         app.dependency_overrides.pop(get_db, None)
+        app.dependency_overrides.pop(get_current_merchant, None)
 
     assert response.status_code == 200
     body = response.json()
@@ -69,7 +129,7 @@ async def test_ingest_tier0_short_circuit_end_to_end(db_session, conversation, m
     assert body["order_id"] is None
 
 
-async def test_ingest_purchase_intent_returns_full_order_detail(db_session, conversation, mock_ai):
+async def test_ingest_purchase_intent_returns_full_order_detail(db_session, merchant, conversation, mock_ai):
     # AUTO_CONFIRMED requires the line item to fully resolve (product found
     # AND priced) - a priced product must be seeded (Task 4), unlike before
     # when list-truthiness alone decided status.
@@ -99,7 +159,11 @@ async def test_ingest_purchase_intent_returns_full_order_detail(db_session, conv
     async def _override_get_db():
         yield db_session
 
+    async def _override_get_current_merchant():
+        return merchant
+
     app.dependency_overrides[get_db] = _override_get_db
+    app.dependency_overrides[get_current_merchant] = _override_get_current_merchant
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
@@ -112,6 +176,7 @@ async def test_ingest_purchase_intent_returns_full_order_detail(db_session, conv
             )
     finally:
         app.dependency_overrides.pop(get_db, None)
+        app.dependency_overrides.pop(get_current_merchant, None)
 
     assert response.status_code == 200
     body = response.json()
@@ -122,7 +187,7 @@ async def test_ingest_purchase_intent_returns_full_order_detail(db_session, conv
     assert body["order"]["line_items"][0]["product_id"] == product.id
 
 
-async def test_ingest_question_returns_answer_text(db_session, conversation, mock_ai):
+async def test_ingest_question_returns_answer_text(db_session, merchant, conversation, mock_ai):
     db_session.add(
         StoreKnowledge(
             merchant_id=conversation.merchant_id, knowledge_type="shipping", title="سياسة الشحن",
@@ -141,7 +206,11 @@ async def test_ingest_question_returns_answer_text(db_session, conversation, moc
     async def _override_get_db():
         yield db_session
 
+    async def _override_get_current_merchant():
+        return merchant
+
     app.dependency_overrides[get_db] = _override_get_db
+    app.dependency_overrides[get_current_merchant] = _override_get_current_merchant
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
@@ -154,6 +223,7 @@ async def test_ingest_question_returns_answer_text(db_session, conversation, moc
             )
     finally:
         app.dependency_overrides.pop(get_db, None)
+        app.dependency_overrides.pop(get_current_merchant, None)
 
     assert response.status_code == 200
     assert response.json()["answer_text"] == "بنشحن لكل محافظات مصر خلال يومين لأربعة أيام."
