@@ -1,10 +1,12 @@
 import Image from "next/image";
+import * as m from "@/paraglide/messages";
 
-const STEPS = [
+export function HowItWorks() {
+  const STEPS = [
   {
-    label: "الخطوة 1",
-    title: "اربط صفحاتك",
-    body: "وصّل صفحة فيسبوك، إنستجرام، أو واتساب بدون أي أوراق أو سجلات تجارية معقدة.",
+    label: m.how_step1_label(),
+    title: m.how_step1_title(),
+    body: m.how_step1_desc(),
     icon: (
       <svg
         width="22"
@@ -22,9 +24,9 @@ const STEPS = [
     ),
   },
   {
-    label: "الخطوة 2",
-    title: "ارفع منتجاتك",
-    body: "أضف كتالوج منتجاتك، الأسعار، المقاسات المتاحة، ومناطق الشحن بضغطة زر.",
+    label: m.how_step2_label(),
+    title: m.how_step2_title(),
+    body: m.how_step2_desc(),
     icon: (
       <svg
         width="22"
@@ -42,9 +44,9 @@ const STEPS = [
     ),
   },
   {
-    label: "الخطوة 3",
-    title: "استقبل الأوردرات والأرباح",
-    body: "النظام يتولى الرد، إتمام السلة، وتجهيز شيت الأوردرات لشركة الشحن فوراً!",
+    label: m.how_step3_label(),
+    title: m.how_step3_title(),
+    body: m.how_step3_desc(),
     icon: (
       <svg
         width="22"
@@ -63,16 +65,15 @@ const STEPS = [
   },
 ];
 
-export function HowItWorks() {
   return (
     <section id="how" className="bg-white px-5 py-16 sm:px-8 sm:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="mb-12 max-w-xl">
           <span className="text-sm font-extrabold tracking-wide text-emerald-700">
-            كيف تبدأ؟
+            {m.how_badge()}
           </span>
           <h2 className="font-display mt-2 mb-3 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            ابدأ استقبال أوردراتك الآلية في دقائق معدودة
+            {m.how_title()}
           </h2>
         </div>
         <div className="grid gap-7 sm:grid-cols-3">

@@ -1,0 +1,31 @@
+diff --git a/dist/paraglide-next/src/app/getLanguage.server.js b/dist/paraglide-next/src/app/getLanguage.server.js
+index 0c0d4f1f617798cdb0de6fd8889293d147948f49..882ba56070d57c36bb947250b1683464ea0297bf 100644
+--- a/dist/paraglide-next/src/app/getLanguage.server.js
++++ b/dist/paraglide-next/src/app/getLanguage.server.js
+@@ -9,9 +9,9 @@ import { PARAGLIDE_LANGUAGE_HEADER_NAME } from './constants.js';
+  * THIS WILL BECOME OBSOLETE ONCE WE FIGURE OUT HOW TO SET THE LANGUAGE BEFORE ANY NEXT CODE RUNS
+  * Once that's the case we will be able to just use `languageTag()` instead
+  */
+-function getLanguage() {
++async function getLanguage() {
+     try {
+-        const langHeader = (headers()).get(PARAGLIDE_LANGUAGE_HEADER_NAME);
++        const langHeader = (await headers()).get(PARAGLIDE_LANGUAGE_HEADER_NAME);
+         const lang = isAvailableLanguageTag(langHeader) ? langHeader : sourceLanguageTag;
+         return lang;
+     }
+diff --git a/dist/paraglide-next/src/app/providers/LanguageProvider.js b/dist/paraglide-next/src/app/providers/LanguageProvider.js
+index b302c7d64d3ecea5df2f39d8ca4052b93b371962..a33ee3e5862ada9595cf3ff1b30dc71409567cb6 100644
+--- a/dist/paraglide-next/src/app/providers/LanguageProvider.js
++++ b/dist/paraglide-next/src/app/providers/LanguageProvider.js
+@@ -11,8 +11,8 @@ import { getLanguage } from '../getLanguage.server.js';
+ // 	setLanguageTag(await getLanguage())
+ // })()
+ //If we can reliably call setLanguageTag() from middleware.tsx, we can probably get rid of this component
+-function LanguageProvider(props) {
+-    setLanguageTag(getLanguage());
++async function LanguageProvider(props) {
++    setLanguageTag(await getLanguage());
+     //we make the client side language provider a sibling of the children
+     //That way the entire app isn't turned into a client component
+     return (React.createElement(React.Fragment, null,

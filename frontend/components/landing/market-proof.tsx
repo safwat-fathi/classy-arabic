@@ -1,3 +1,4 @@
+import * as m from "@/paraglide/messages";
 
 export function MarketProof() {
   return (
@@ -6,14 +7,13 @@ export function MarketProof() {
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
           <div>
             <span className="text-sm font-extrabold tracking-wide text-emerald-700">
-              السوق المصري
+              {m.proof_badge()}
             </span>
             <h2 className="font-display mt-2 mb-4 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              ليه الاعتماد على الموقع لوحده بيضيع عليك 90% من الزبائن؟
+              {m.proof_title()}
             </h2>
             <p className="text-[15px] leading-loose text-gray-500">
-              زبونك المصري مش هيستنى يفتح رابط موقع أو يسجل حساب.. زبونك متعود
-              يشتري من الشات، وإحنا بنخلي الشات يبيع له كأنه متجر كامل!
+              {m.proof_desc()}
             </p>
           </div>
 
@@ -21,7 +21,7 @@ export function MarketProof() {
             <div className="mb-6 flex flex-col gap-5">
               <div>
                 <div className="mb-2 flex items-center justify-between text-sm font-bold text-gray-900">
-                  <span>صفحات فيسبوك</span>
+                  <span>{m.proof_fb()}</span>
                   <span>61.7%</span>
                 </div>
                 <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
@@ -34,7 +34,7 @@ export function MarketProof() {
 
               <div>
                 <div className="mb-2 flex items-center justify-between text-sm font-bold text-gray-900">
-                  <span>جروبات ومحادثات واتساب</span>
+                  <span>{m.proof_wa()}</span>
                   <span>31.8%</span>
                 </div>
                 <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
@@ -47,7 +47,7 @@ export function MarketProof() {
 
               <div>
                 <div className="mb-2 flex items-center justify-between text-sm font-bold text-gray-900">
-                  <span>مواقع المتاجر المستقلة</span>
+                  <span>{m.proof_web()}</span>
                   <span>3.7%</span>
                 </div>
                 <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
@@ -61,8 +61,7 @@ export function MarketProof() {
 
             <div className="border-t border-gray-200 pt-4">
               <p className="text-xs text-gray-400">
-                المصدر: تقرير مسح استخدام التجارة الإلكترونية، وزارة الاتصالات و{" "}
-                <span dir="ltr">CAPMAS</span>
+                {m.proof_source()} <span dir="ltr">CAPMAS</span>
               </p>
             </div>
           </div>

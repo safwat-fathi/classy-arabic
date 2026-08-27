@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import * as m from "@/paraglide/messages";
 
 function CheckIcon({ className = "" }: { className?: string }) {
   return (
@@ -42,13 +43,13 @@ export function PricingSection() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-11 flex flex-col items-center text-center">
           <span className="text-sm font-extrabold tracking-wide text-emerald-700">
-            الأسعار
+            {m.pricing_title()}
           </span>
           <h2 className="font-display mt-2 mb-3 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            استثمار بسيط يغطي تكلفته من أول يوم
+            {m.pricing_headline()}
           </h2>
           <p className="mb-6 text-[15px] leading-loose text-gray-500">
-            اختر الباقة المناسبة لحجم أعمالك، وأضف الذكاء الاصطناعي لو حابب أتمتة المحادثات بالكامل.
+            {m.pricing_desc()}
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4">
@@ -62,7 +63,7 @@ export function PricingSection() {
                     : "text-gray-500 hover:text-gray-900"
                 }`}
               >
-                اشتراك شهري
+                {m.pricing_monthly()}
               </button>
               <button
                 onClick={() => setIsYearly(true)}
@@ -72,7 +73,7 @@ export function PricingSection() {
                     : "text-gray-500 hover:text-emerald-700"
                 }`}
               >
-                اشتراك سنوي (خصم 20%)
+                {m.pricing_yearly()}
               </button>
             </div>
 
@@ -86,7 +87,7 @@ export function PricingSection() {
                     : "text-gray-500 hover:text-gray-900"
                 }`}
               >
-                الوضع الأساسي
+                {m.pricing_basic_mode()}
               </button>
               <button
                 onClick={() => setAiEnabled(true)}
@@ -97,7 +98,7 @@ export function PricingSection() {
                 }`}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l1.8 5.6L19 9l-5.2 1.4L12 16l-1.8-5.6L5 9l5.2-1.4L12 2z"/></svg>
-                بإضافة الذكاء الاصطناعي
+                {m.pricing_ai_addon()}
               </button>
             </div>
           </div>
@@ -107,29 +108,29 @@ export function PricingSection() {
           {/* Starter Plan */}
           <div className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6.5">
             <h3 className="mb-1.5 text-base font-extrabold text-gray-900">
-              الأساسية (Starter)
+              {m.pricing_starter_name()}
             </h3>
             <div className="mb-5.5 flex items-baseline gap-1.5">
               <span className="font-display text-3xl font-black text-gray-900 transition-all">
                 {getPrice(499, 250)}
               </span>
               <span className="text-[13px] font-bold text-gray-500">
-                ج.م / شهريًا
+                {m.pricing_currency_month()}
               </span>
             </div>
             <Link
               href="/demo"
               className="mb-6 flex min-h-11 items-center justify-center rounded-lg border border-gray-300 px-5 text-sm font-bold text-gray-900 transition-colors hover:bg-gray-50"
             >
-              ابدأ التجربة المجانية
+              {m.pricing_starter_cta()}
             </Link>
             <ul className="flex flex-col gap-3 border-t border-gray-100 pt-5">
               {[
-                "حتى 150 أوردر شهريًا",
-                "ربط فيسبوك وإنستجرام",
-                "وضع الكتالوج التفاعلي بالكامل (سلة + تصفح)",
-                "تصدير فوري للأوردرات إلى إكسيل / شيتس",
-                "لوحة تحكم لإدارة المنتجات والطلبات",
+                m.pricing_starter_f1(),
+                m.pricing_starter_f2(),
+                m.pricing_starter_f3(),
+                m.pricing_starter_f4(),
+                m.pricing_starter_f5(),
               ].map((item) => (
                 <li key={item} className="flex items-center gap-2.5">
                   <CheckIcon className="text-emerald-700" />
@@ -142,33 +143,33 @@ export function PricingSection() {
           {/* Growth Plan */}
           <div className="relative flex flex-col rounded-2xl border border-emerald-700 bg-[#0a0f0d] p-6.5 shadow-2xl">
             <span className="absolute -top-3.5 start-6.5 rounded-full bg-emerald-500 px-3 py-1 text-xs font-extrabold text-white">
-              الأكثر طلبًا
+              {m.pricing_growth_badge()}
             </span>
             <h3 className="mt-2 mb-1.5 text-base font-extrabold text-white">
-              النمو (Growth)
+              {m.pricing_growth_name()}
             </h3>
             <div className="mb-5.5 flex items-baseline gap-1.5">
               <span className="font-display text-3xl font-black text-white transition-all">
                 {getPrice(749, 350)}
               </span>
               <span className="text-[13px] font-bold text-gray-400">
-                ج.م / شهريًا
+                {m.pricing_currency_month()}
               </span>
             </div>
             <Link
               href="/demo"
               className="mb-6 flex min-h-11 items-center justify-center rounded-lg bg-emerald-600 px-5 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
             >
-              ابدأ تجربتك الآن
+              {m.pricing_growth_cta()}
             </Link>
             <ul className="flex flex-col gap-3 border-t border-white/10 pt-5">
               {[
-                "حتى 600 أوردر شهريًا",
-                "ربط فيسبوك + إنستجرام + واتساب",
-                "وضع الكتالوج التفاعلي + بحث متقدم",
-                "دعم كامل لفهم العامية والفرانكو (مع باقة الـ AI)",
-                "الرد التلقائي على الأسئلة الشائعة وسياسات الاستبدال",
-                "تعدد المستخدمين مع ميزة التحويل البشري الفوري",
+                m.pricing_growth_f1(),
+                m.pricing_growth_f2(),
+                m.pricing_growth_f3(),
+                m.pricing_growth_f4(),
+                m.pricing_growth_f5(),
+                m.pricing_growth_f6(),
               ].map((item) => (
                 <li key={item} className="flex items-center gap-2.5">
                   <CheckIcon className="text-emerald-400" />
@@ -181,29 +182,29 @@ export function PricingSection() {
           {/* Pro Plan */}
           <div className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6.5">
             <h3 className="mb-1.5 text-base font-extrabold text-gray-900">
-              المحترفين (Pro)
+              {m.pricing_pro_name()}
             </h3>
             <div className="mb-5.5 flex items-baseline gap-1.5">
               <span className="font-display text-3xl font-black text-gray-900 transition-all">
                 {getPrice(1199, 450)}
               </span>
               <span className="text-[13px] font-bold text-gray-500">
-                ج.م / شهريًا
+                {m.pricing_currency_month()}
               </span>
             </div>
             <Link
               href="/demo"
               className="mb-6 flex min-h-11 items-center justify-center rounded-lg border border-gray-300 px-5 text-sm font-bold text-gray-900 transition-colors hover:bg-gray-50"
             >
-              اشترك في باقة المحترفين
+              {m.pricing_pro_cta()}
             </Link>
             <ul className="flex flex-col gap-3 border-t border-gray-100 pt-5">
               {[
-                "أوردرات غير محدودة شهريًا",
-                "ربط غير محدود للقنوات والمتاجر",
-                "أعلى أولوية في سرعة معالجة المحادثات بالذكاء الاصطناعي",
-                "تخصيص متقدم لردود الـ AI وقواعد العمل المعقدة",
-                "مدير حساب مخصص ودعم فني مباشر عبر واتساب",
+                m.pricing_pro_f1(),
+                m.pricing_pro_f2(),
+                m.pricing_pro_f3(),
+                m.pricing_pro_f4(),
+                m.pricing_pro_f5(),
               ].map((item) => (
                 <li key={item} className="flex items-center gap-2.5">
                   <CheckIcon className="text-emerald-700" />
@@ -217,11 +218,11 @@ export function PricingSection() {
         <div className="mt-8 flex flex-col gap-3 rounded-xl bg-white p-5 border border-gray-200 text-[13px] text-gray-600">
           <div className="flex items-start gap-2">
             <span className="mt-0.5">💳</span>
-            <p><strong>طرق دفع محلية مريحة:</strong> InstaPay، محافظ الموبايل (فودافون كاش، أورنج، اتصالات، وي)، والبطاقات البنكية.</p>
+            <p><strong>{m.pricing_footer_payment_title()}</strong> {m.pricing_footer_payment_desc()}</p>
           </div>
           <div className="flex items-start gap-2">
             <span className="mt-0.5">🌐</span>
-            <p><strong>شفافية رسائل ميتا:</strong> رسائل محادثات Meta/WhatsApp تُحسب بشفافية تامة وبدون أي هوامش ربحية مضافة.</p>
+            <p><strong>{m.pricing_footer_meta_title()}</strong> {m.pricing_footer_meta_desc()}</p>
           </div>
         </div>
       </div>

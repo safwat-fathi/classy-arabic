@@ -8,15 +8,9 @@ import {
   startTransition,
 } from "react";
 import { sendMessage, type IngestState } from "./actions";
+import * as m from "@/paraglide/messages";
 
 const initialState: IngestState = { status: "idle" };
-
-const placeholders = [
-  "عايزة فستان صيفي مقاس M...",
-  "بكام الجاكيت الجينز؟",
-  "عندكم الوان تانية من الفستان؟",
-  "لو سمحت أنا عايزة أطلب جاكت جينز مقاس لارج على المعادي ورقمي 01012345678 هدفع انستا",
-];
 
 export function MessageComposer({
   conversationId,
@@ -25,6 +19,13 @@ export function MessageComposer({
   conversationId: string;
   onStateChange: (state: IngestState) => void;
 }) {
+  const placeholders = [
+    m.demo_msg_ph_1(),
+    m.demo_msg_ph_2(),
+    m.demo_msg_ph_3(),
+    m.demo_msg_ph_4(),
+  ];
+
   const action = sendMessage.bind(null, conversationId);
   const [state, formAction, isPending] = useActionState(action, initialState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -50,7 +51,7 @@ export function MessageComposer({
 
   useEffect(() => {
     if (isFocused) {
-      setPlaceholderText("ابعت رسالة كأنك الزبون...");
+      setPlaceholderText(m.demo_msg_placeholder());
       return;
     }
 
@@ -102,11 +103,11 @@ export function MessageComposer({
     <section className="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-[#efeae2] shadow-sm">
       <div className="flex items-center gap-3 bg-[#075e54] px-4 py-3 text-white">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-lg font-bold">
-          ز
+          {m.demo_msg_avatar()}
         </div>
         <div>
-          <h2 className="font-semibold">الزبون</h2>
-          <p className="text-xs text-white/80">متصل الآن</p>
+          <h2 className="font-semibold">{m.demo_msg_customer()}</h2>
+          <p className="text-xs text-white/80">{m.demo_msg_online()}</p>
         </div>
       </div>
 
@@ -116,7 +117,7 @@ export function MessageComposer({
         style={{ minHeight: "300px" }}
       >
         <div className="mx-auto mb-4 w-fit rounded-lg bg-[#e1f5fe] px-3 py-1 text-xs text-gray-600 shadow-sm">
-          اليوم
+          {m.demo_msg_today()}
         </div>
         {messages.map((msg) => (
           <div
@@ -138,7 +139,7 @@ export function MessageComposer({
           required
           rows={1}
           placeholder={
-            isFocused ? "ابعت رسالة كأنك الزبون..." : placeholderText || " "
+            isFocused ? m.demo_msg_placeholder() : placeholderText || " "
           }
           onFocus={() => setIsFocused(true)}
           onBlur={(e) => {

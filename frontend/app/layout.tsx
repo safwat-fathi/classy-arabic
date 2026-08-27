@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
+import { languageTag } from "@/paraglide/runtime";
+import * as m from "@/paraglide/messages";
 import { Cairo, Tajawal } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from "@inlang/paraglide-next";
+import { SITE_URL } from "@/lib/site";
+
+import { Analytics } from "@/components/analytics";
 
 const cairo = Cairo({
   variable: "--font-cairo",
@@ -14,25 +20,41 @@ const tajawal = Tajawal({
   weight: ["400", "500", "700"],
 });
 
-export const metadata: Metadata = {
-  title:
-    "تِجارتك بوت | منصة البيع الذكي وأتمتة أوردرات فيسبوك، إنستجرام وواتساب",
-  description:
-    "حوّل شات السوشيال ميديا لمتجر إلكتروني متكامل يبيع 24/7. تصفح الكتالوج داخل الشات، رد فوري بالذكاء الاصطناعي يفهم العامية والفرانكو، وتفريغ تلقائي لبيانات الشحن بدون أخطاء. جرب أول 30 أوردر مجاناً!",
-  openGraph: {
-    title:
-      "تِجارتك بوت | متجرك شغال ويقفل الأوردرات في شات السوشيال ميديا 24/7",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: m.meta_title(),
+    description: m.meta_description(),
+    openGraph: {
+      title: m.meta_og_title(),
+      siteName: m.schema_website_name(),
+      locale: languageTag(),
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: m.meta_og_title(),
+      description: m.meta_description(),
+    },
+  };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const lang = languageTag();
+  const dir = lang === "ar" ? "rtl" : "ltr";
+
   return (
-    <html
-      lang="ar"
-      dir="rtl"
-      className={`${cairo.variable} ${tajawal.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
-    </html>
+    <LanguageProvider>
+      <html
+        lang={lang}
+        dir={dir}
+        className={`${cairo.variable} ${tajawal.variable} h-full antialiased`}
+      >
+        <body className="min-h-full flex flex-col">
+          {children}
+          <Analytics />
+        </body>
+      </html>
+    </LanguageProvider>
   );
 }

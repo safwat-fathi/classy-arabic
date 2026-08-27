@@ -1,4 +1,5 @@
 import { CheckIcon } from "@/components/ui/check-icon";
+import * as m from "@/paraglide/messages";
 
 export function ProductModes() {
   return (
@@ -6,10 +7,10 @@ export function ProductModes() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-11 max-w-2xl text-center mx-auto">
           <span className="text-sm font-extrabold tracking-wide text-emerald-700">
-            أوضاع التشغيل
+            {m.modes_badge()}
           </span>
           <h2 className="font-display mt-2 mb-4 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            أنت المتحكم: تجربتان ذكيتان للبيع عبر الشات
+            {m.modes_title()}
           </h2>
           <p className="text-[15px] leading-loose text-gray-500">
             تطبيقنا بيقدملك طريقتين للبيع، تقدر تختار الأنسب لحجم وأسلوب بيزنسك،
@@ -35,7 +36,7 @@ export function ProductModes() {
               </svg>
             </div>
             <h3 className="text-xl font-extrabold text-gray-900">
-              الكتالوج التفاعلي (Structured Commerce)
+              {m.modes_cat_title()}
             </h3>
             <p className="text-[15px] leading-relaxed text-gray-600">
               بيع هيكلي سريع يتيح للعميل استعراض المنتجات، اختيار المقاسات،
@@ -44,15 +45,13 @@ export function ProductModes() {
             </p>
             <ul className="mt-2 flex flex-col gap-2.5">
               <li className="flex items-center gap-2 text-sm text-gray-600">
-                <CheckIcon className="text-emerald-600" /> بيع أوتوماتيكي ومباشر
+                <CheckIcon className="text-emerald-600" /> {m.modes_cat_f1()}
               </li>
               <li className="flex items-center gap-2 text-sm text-gray-600">
-                <CheckIcon className="text-emerald-600" /> لا توجد تكلفة ذكاء
-                اصطناعي
+                <CheckIcon className="text-emerald-600" /> {m.modes_cat_f2()}
               </li>
               <li className="flex items-center gap-2 text-sm text-gray-600">
-                <CheckIcon className="text-emerald-600" /> سريع ومناسب للطلبات
-                المباشرة
+                <CheckIcon className="text-emerald-600" /> {m.modes_cat_f3()}
               </li>
             </ul>
           </div>
@@ -60,7 +59,7 @@ export function ProductModes() {
           {/* AI Commerce Mode */}
           <div className="relative flex flex-col gap-4 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6 sm:p-8">
             <div className="absolute top-6 left-6 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
-              إضافة مدفوعة
+              {m.modes_ai_badge()}
             </div>
             <div className="flex size-12 items-center justify-center rounded-xl bg-emerald-600 text-white">
               <svg
@@ -77,25 +76,20 @@ export function ProductModes() {
               </svg>
             </div>
             <h3 className="text-xl font-extrabold text-gray-900">
-              البيع بالذكاء الاصطناعي (AI Commerce Assistant)
+              {m.modes_ai_title()}
             </h3>
             <p className="text-[15px] leading-relaxed text-gray-600">
-              محرك ذكي يفهم الرسائل (العامية والفرانكو)، يستخرج الطلبات من الجمل
-              المعقدة، يرد على الاستفسارات من سياسات متجرك، ويصعد المحادثة لك
-              عند الضرورة.
+              {m.modes_ai_desc()}
             </p>
             <ul className="mt-2 flex flex-col gap-2.5">
               <li className="flex items-center gap-2 text-sm text-gray-600">
-                <CheckIcon className="text-emerald-600" /> محادثة طبيعية كأنها
-                إنسان
+                <CheckIcon className="text-emerald-600" /> {m.modes_ai_f1()}
               </li>
               <li className="flex items-center gap-2 text-sm text-gray-600">
-                <CheckIcon className="text-emerald-600" /> الإجابة من سياسات
-                المتجر
+                <CheckIcon className="text-emerald-600" /> {m.modes_ai_f2()}
               </li>
               <li className="flex items-center gap-2 text-sm text-gray-600">
-                <CheckIcon className="text-emerald-600" /> تصعيد ذكي للمواقف
-                الصعبة
+                <CheckIcon className="text-emerald-600" /> {m.modes_ai_f3()}
               </li>
             </ul>
           </div>

@@ -1,8 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getConversations } from "@/lib/conversations";
 import { getProducts, type Product } from "@/lib/products";
 import { BrandMark } from "../logo";
 import { Workspace } from "./workspace";
+import * as m from "@/paraglide/messages";
+
+export const metadata: Metadata = {
+  title: "Tijaratk Demo",
+  description: "Interactive demo of Tijaratk Bot",
+  robots: { index: false, follow: true }
+};
 
 function DemoHeader() {
   return (
@@ -15,7 +23,7 @@ function DemoHeader() {
           href="/"
           className="text-sm font-medium text-gray-500 hover:text-emerald-700"
         >
-          الرئيسية
+          {m.demo_home()}
         </Link>
       </div>
     </header>
@@ -30,9 +38,9 @@ export default async function Home() {
       <>
         <DemoHeader />
         <main className="mx-auto flex max-w-2xl flex-col gap-4 p-8">
-          <h1 className="text-2xl font-semibold">TijaratkBot — ديمو المحرك</h1>
+          <h1 className="text-2xl font-semibold">{m.demo_engine_title()}</h1>
           <p className="text-sm text-red-600">
-            DEMO_STOPGAP_MERCHANT_ID مش متظبط. حطه في .env وبعدين حدّث الصفحة.
+            {m.demo_env_error()}
           </p>
         </main>
       </>
@@ -47,10 +55,9 @@ export default async function Home() {
       <>
         <DemoHeader />
         <main className="mx-auto flex max-w-2xl flex-col gap-4 p-8">
-          <h1 className="text-2xl font-semibold">TijaratkBot — ديمو المحرك</h1>
+          <h1 className="text-2xl font-semibold">{m.demo_engine_title()}</h1>
           <p className="text-sm text-red-600">
-            مفيش محادثة موجودة. شغّل <code>make seed</code> في{" "}
-            <code>backend/</code> الأول، وبعد كده حدّث الصفحة.
+            {m.demo_no_convo()} <code>make seed</code> {m.demo_seed_suffix()}
           </p>
         </main>
       </>
@@ -76,10 +83,10 @@ export default async function Home() {
       <DemoHeader />
       <main className="mx-auto flex max-w-6xl flex-col gap-8 p-8">
         <h1 className="text-2xl font-semibold">
-          TijaratkBot — تجربة محادثة مع عميل
+          {m.demo_chat_title()}
         </h1>
         <p className="text-sm text-gray-500">
-          محاكاة لتعرف الذكاء الاصطناعي على منتجاتك من خلال رسائل عملائك
+          {m.demo_chat_subtitle()}
         </p>
         <Workspace conversationId={conversation.id} products={products} />
       </main>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BrandMark } from "@/app/logo";
+import * as m from "@/paraglide/messages";
 
 export function FinalCTA() {
   return (
@@ -7,7 +8,7 @@ export function FinalCTA() {
       <section className="border-b border-white/10 px-5 py-16 text-center sm:px-8 sm:py-24">
         <div className="mx-auto max-w-2xl">
           <h2 className="font-display mb-4 text-3xl font-black text-white sm:text-4xl lg:text-5xl leading-tight">
-            وفر وقتك، ضاعف مبيعاتك، وارتاح من ضغط الرسايل
+            {m.cta_title()}
           </h2>
           <p className="mb-8 text-[16px] leading-loose text-gray-400">
             أول 30 أوردر علينا مجاناً بالكامل لتجربة النظام على أرض الواقع. بدون
@@ -18,13 +19,13 @@ export function FinalCTA() {
               href="/demo"
               className="inline-flex min-h-12 w-full sm:w-auto items-center justify-center rounded-xl bg-emerald-600 px-8 py-3.5 text-[15.5px] font-bold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-700 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
             >
-              ابدأ تجربتك المجانية الآن 🚀
+              {m.cta_btn_main()}
             </Link>
             <a
               href="#example"
               className="inline-flex min-h-12 w-full sm:w-auto items-center justify-center rounded-xl border border-white/20 px-8 py-3.5 text-[15.5px] font-bold text-white transition-colors hover:bg-white/10"
             >
-              جرّب الشات الحي
+              {m.cta_btn_sec()}
             </a>
           </div>
         </div>
@@ -36,7 +37,7 @@ export function FinalCTA() {
           href="/demo"
           className="flex h-14 w-full items-center justify-center rounded-2xl bg-emerald-600 text-[15px] font-bold text-white shadow-2xl transition-transform active:scale-95"
         >
-          جرب 30 أوردر مجاناً 🚀
+          {m.cta_btn_mob()}
         </Link>
       </div>
 
@@ -54,52 +55,52 @@ export function FinalCTA() {
             </div>
             <div>
               <div className="mb-3.5 text-xs font-extrabold text-gray-400">
-                المنتج
+                {m.footer_product()}
               </div>
               <div className="flex flex-col gap-2.5">
                 <a
                   href="#how"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
-                  كيف يعمل
+                  {m.nav_link_how()}
                 </a>
                 <a
                   href="#features"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
-                  المميزات
+                  {m.nav_link_features()}
                 </a>
                 <a
                   href="#pricing"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
-                  الأسعار
+                  {m.nav_link_pricing()}
                 </a>
               </div>
             </div>
             <div>
               <div className="mb-3.5 text-xs font-extrabold text-gray-400">
-                الشركة
+                {m.footer_company()}
               </div>
               <div className="flex flex-col gap-2.5">
                 <a
                   href="#"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
-                  تواصل معنا
+                  {m.footer_contact()}
                 </a>
                 <a
                   href="#faq"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
-                  الأسئلة الشائعة
+                  {m.nav_link_faq()}
                 </a>
               </div>
             </div>
           </div>
           <div className="border-t border-white/10 pt-5 text-center">
             <span className="text-[12.5px] text-gray-500">
-              © 2026 Tijaratk. جميع الحقوق محفوظة.
+              {m.footer_copyright()}
             </span>
           </div>
         </div>

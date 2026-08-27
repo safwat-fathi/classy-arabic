@@ -1,4 +1,7 @@
 import Script from "next/script";
+import * as m from "@/paraglide/messages";
+import { languageTag } from "@/paraglide/runtime";
+import { SITE_URL } from "@/lib/site";
 import { Nav } from "@/components/landing/nav";
 import { Hero } from "@/components/landing/hero";
 import { MarketProof } from "@/components/landing/market-proof";
@@ -6,61 +9,44 @@ import { ROIAndProfitLogic } from "@/components/landing/roi-profit";
 import { Features } from "@/components/landing/features";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { ProductModes } from "@/components/landing/product-modes";
-import { FAQSection, FAQS } from "@/components/landing/faq-section";
+import { FAQSection, getFaqs } from "@/components/landing/faq-section";
 import { FinalCTA } from "@/components/landing/final-cta";
 import { PricingSection } from "./pricing";
 
-export const metadata = {
-  title:
-    "تِجارتك بوت | منصة البيع الذكي وأتمتة أوردرات فيسبوك، إنستجرام وواتساب",
-  description:
-    "حوّل شات السوشيال ميديا لمتجر إلكتروني متكامل يبيع 24/7. تصفح الكتالوج داخل الشات، رد فوري بالذكاء الاصطناعي يفهم العامية والفرانكو، وتفريغ تلقائي لبيانات الشحن بدون أخطاء. جرب أول 30 أوردر مجاناً!",
-  keywords: [
-    "منصة تجارة إلكترونية ذكية",
-    "بوت فيسبوك ماسنجر للتجارة",
-    "الرد الآلي على العملاء",
-    "نظام إدارة طلبات فيسبوك",
-    "شات بوت ذكاء اصطناعي",
-    "التجارة عبر المحادثات مصر",
-    "أتمتة طلبات واتساب",
-    "تفريغ بيانات الشحن آلياً",
-    "بيع أونلاين بدون موقع",
-    "مساعد مبيعات ذكي",
-    "الرد على رسائل إنستجرام",
-    "استخراج بيانات شات العملاء",
-    "بيع عبر السوشيال ميديا",
-    "Social Commerce CRM Egypt",
-    "Order Bot",
-    "AI Order Bot",
-    "Order Management System",
-    "AI Order Management System",
-    "AI Order Management System Egypt",
-  ],
-};
+export async function generateMetadata() {
+  const lang = languageTag();
+  const canonicalUrl = lang === "ar" ? SITE_URL : `${SITE_URL}/${lang}`;
+  return {
+    title: m.meta_title(),
+    description: m.meta_description(),
+    keywords: m.page_meta_keywords().split(", "),
+    alternates: {
+      canonical: canonicalUrl,
+      languages: {
+        "x-default": SITE_URL,
+        "ar": SITE_URL,
+        "en": `${SITE_URL}/en`,
+      },
+    },
+  };
+}
 
 export default function Page() {
   const jsonLd = [
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
-      name: "تِجارتك بوت (Tijaratk)",
+      name: m.schema_app_name(),
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "EGP",
-        description: "تجربة مجانية لأول 30 أوردر",
-      },
-      description:
-        "منصة التجارة عبر المحادثات الأولى في مصر. أتمتة الردود، الكتالوج، وتأكيد طلبات فيسبوك وإنستجرام وواتساب بذكاء اصطناعي يفهم العامية.",
+      description: m.schema_app_desc(),
     },
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      name: "تِجارتك",
-      url: "https://tijaratk.com",
-      logo: "https://tijaratk.com/logo.png",
+      name: m.schema_org_name(),
+      url: SITE_URL,
+      logo: `${SITE_URL}/logo.png`,
       sameAs: [
         "https://www.facebook.com/tijaratk",
         "https://www.instagram.com/tijaratk",
@@ -69,14 +55,14 @@ export default function Page() {
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "تِجارتك بوت",
-      url: "https://tijaratk.com",
-      description: "منصة التجارة الذكية الأولى في مصر عبر السوشيال ميديا.",
+      name: m.schema_website_name(),
+      url: SITE_URL,
+      description: m.schema_website_desc(),
     },
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: FAQS.map((faq) => ({
+      mainEntity: getFaqs().map((faq) => ({
         "@type": "Question",
         name: faq.q,
         acceptedAnswer: {

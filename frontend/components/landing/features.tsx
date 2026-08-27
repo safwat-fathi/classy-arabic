@@ -1,9 +1,11 @@
 import { CheckIcon } from "@/components/ui/check-icon";
+import * as m from "@/paraglide/messages";
 
-const FEATURES = [
+export function Features() {
+  const FEATURES = [
   {
-    title: "سلة تسوق وإتمام طلبات داخل المحادثة",
-    body: "عميلك لا يحتاج للخروج من الماسنجر أو إنستجرام؛ يضيف المنتجات للسلة، يعدل الكميات، ويحدد عنوانه ليصله إشعار التأكيد فوراً.",
+    title: m.feat_1_title(),
+    body: m.feat_1_desc(),
     icon: (
       <svg
         width="24"
@@ -22,8 +24,8 @@ const FEATURES = [
     ),
   },
   {
-    title: 'ذكاء اصطناعي يفهم "كلام المصريين"',
-    body: 'سواء كتب العميل "عايز التيشيرت الكحلي مقاس لارج" أو "3ayz 2 mno"، النظام يفهم المطلوب بدقة ويطابقه مع المنتجات.',
+    title: m.feat_2_title(),
+    body: m.feat_2_desc(),
     icon: (
       <svg
         width="24"
@@ -40,8 +42,8 @@ const FEATURES = [
     ),
   },
   {
-    title: "أمان تجاري كامل — لا مجال للهلوسة",
-    body: "نظامنا يفصل تماماً بين فهم الذكاء الاصطناعي وقاعدة بيانات الأسعار والمخزون، ويعتمد على حساباتك الحتمية 100%.",
+    title: m.feat_3_title(),
+    body: m.feat_3_desc(),
     icon: (
       <svg
         width="24"
@@ -58,8 +60,8 @@ const FEATURES = [
     ),
   },
   {
-    title: "التحويل البشري الفوري",
-    body: "هل طلب العميل التحدث مع شخص حقيقي؟ النظام يحوّل المحادثة لك فوراً ويوقف ردود الـ AI لتتولى الرد بنفسك.",
+    title: m.feat_4_title(),
+    body: m.feat_4_desc(),
     icon: (
       <svg
         width="24"
@@ -79,8 +81,8 @@ const FEATURES = [
     ),
   },
   {
-    title: "تصدير فوري لشركات الشحن",
-    body: "تصدير فوري لكافة بيانات العملاء إلى ملفات إكسيل وشيتس مهيأة مباشرة للطباعة والتسليم لمندوب الشحن.",
+    title: m.feat_5_title(),
+    body: m.feat_5_desc(),
     icon: (
       <svg
         width="24"
@@ -99,8 +101,8 @@ const FEATURES = [
     ),
   },
   {
-    title: "مساعد ذكي لسياسات المتجر",
-    body: "درّب المساعد في دقيقة واحدة على مواعيد عملك، شروط الاستبدال، وتفاصيل مصاريف الشحن ليرد بأسلوب متجرك.",
+    title: m.feat_6_title(),
+    body: m.feat_6_desc(),
     icon: (
       <svg
         width="24"
@@ -118,7 +120,6 @@ const FEATURES = [
   },
 ];
 
-export function Features() {
   return (
     <section
       id="features"
@@ -127,10 +128,10 @@ export function Features() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-11 max-w-xl">
           <span className="text-sm font-extrabold tracking-wide text-emerald-700">
-            المميزات الأساسية
+            {m.feat_badge()}
           </span>
           <h2 className="font-display mt-2 mb-3 text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            كل ما تحتاجه للتحكم في مبيعات السوشيال ميديا من مكان واحد
+            {m.feat_title()}
           </h2>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
