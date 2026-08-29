@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, UniqueConstraint
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from app.models.merchant import Merchant
     from app.models.message import Message
     from app.models.order import Order
+    from app.models.human_handoff import HumanHandoff
 
 
 class Conversation(Base):
@@ -34,6 +35,8 @@ class Conversation(Base):
     )
     customer_ref: Mapped[str] = mapped_column(String, nullable=False)
     state: Mapped[ConvState] = mapped_column(SAEnum(ConvState, name="convstate"), nullable=False)
+    ai_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
+    human_takeover: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     slots: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     last_message_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
@@ -41,3 +44,4 @@ class Conversation(Base):
     channel_connection: Mapped[ChannelConnection | None] = relationship(back_populates="conversations")
     messages: Mapped[list[Message]] = relationship(back_populates="conversation")
     orders: Mapped[list[Order]] = relationship(back_populates="conversation")
+    handoffs: Mapped[list[HumanHandoff]] = relationship(back_populates="conversation")

@@ -21,6 +21,7 @@ class Merchant(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=new_id)
     name: Mapped[str] = mapped_column(String, nullable=False)
+    ai_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     ai_tool_ordering_enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     currency: Mapped[str] = mapped_column(String, default="EGP", server_default="EGP")
     next_order_number: Mapped[int] = mapped_column(Integer, default=1, server_default="1")

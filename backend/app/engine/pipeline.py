@@ -33,6 +33,8 @@ from app.models import (
     OrderSource,
     OrderStatus,
 )
+from app.domains.handoff.service import takeover_conversation
+from app.models.enums import HandoffReason
 
 DEFAULT_INTENTS = ["greeting", "spam", "reaction", "purchase_intent", "question", "other"]
 
@@ -76,6 +78,14 @@ def _usage_event(
     )
 
 
+async def _trigger_escalation(
+    session: AsyncSession, conversation: Conversation, message: Message, reason: str
+) -> None:
+    if not message.escalation_reason:
+        message.escalation_reason = reason
+    await takeover_conversation(session, conversation.merchant_id, conversation.id, HandoffReason.AI_ESCALATION, notes=reason)
+
+
 async def _known_intents(session: AsyncSession, merchant_id: str) -> list[str]:
     messages = await session.execute(
         select(Message.intent)
@@ -108,9 +118,9 @@ async def _correction_count(session: AsyncSession, conversation_id: str) -> int:
     return result.scalar_one()
 
 
-async def _merchant_info(session: AsyncSession, merchant_id: str) -> tuple[str, bool]:
+async def _merchant_info(session: AsyncSession, merchant_id: str) -> tuple[str, bool, bool]:
     result = await session.execute(
-        select(Merchant.name, Merchant.ai_tool_ordering_enabled).where(Merchant.id == merchant_id)
+        select(Merchant.name, Merchant.ai_tool_ordering_enabled, Merchant.ai_enabled).where(Merchant.id == merchant_id)
     )
     return result.one()
 
@@ -144,6 +154,12 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
 
     conversation.last_message_at = datetime.now(UTC)
 
+    merchant_name, ai_tool_ordering_enabled, merchant_ai_enabled = await _merchant_info(session, conversation.merchant_id)
+
+    if not merchant_ai_enabled or not conversation.ai_enabled or conversation.human_takeover:
+        await session.flush()
+        return PipelineResult(message=message, order=None)
+
     if tier0_intent:
         message.intent = tier0_intent
         message.intent_confidence = 1.0
@@ -168,14 +184,16 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
 
     known_intents = await _known_intents(session, conversation.merchant_id)
     correction_count = await _correction_count(session, conversation.id)
-    merchant_name, ai_tool_ordering_enabled = await _merchant_info(session, conversation.merchant_id)
 
     if ai_tool_ordering_enabled:
         from app.engine.action_resolution import resolve_action
 
         resolution = await resolve_action(session, conversation, message)
         message.model_tier = ModelTier.DEEPSEEK
-        message.escalation_reason = resolution.escalation_reason
+        
+        if resolution.escalation_reason:
+            await _trigger_escalation(session, conversation, message, resolution.escalation_reason)
+
         await session.flush()
         return PipelineResult(message=message, order=None, answer_text=resolution.response_text)
     try:
@@ -191,7 +209,7 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
         )
     except AICallError as exc:
         logger.warning("classification_failed message_id=%s error=%s", message.id, exc)
-        message.escalation_reason = "ai_call_failed"
+        await _trigger_escalation(session, conversation, message, "ai_call_failed")
         session.add(_usage_event(conversation.id, message.id, None, success=False, failed_tier="deepseek"))
         await session.flush()
         return PipelineResult(message=message, order=None)
@@ -201,7 +219,9 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
     message.intent = classification.intent
     message.intent_confidence = classification.confidence
     message.model_tier = ModelTier.DEEPSEEK
-    message.escalation_reason = reason
+    
+    if reason:
+        await _trigger_escalation(session, conversation, message, reason)
 
     order = None
     if classification.intent == "purchase_intent" and conversation.state in (ConvState.GATHERING, ConvState.CONFIRMING):
@@ -225,8 +245,7 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
             )
         except AICallError as exc:
             logger.warning("extraction_failed message_id=%s error=%s", message.id, exc)
-            if not message.escalation_reason:
-                message.escalation_reason = "ai_call_failed"
+            await _trigger_escalation(session, conversation, message, "ai_call_failed")
             session.add(_usage_event(conversation.id, message.id, None, success=False, failed_tier="deepseek"))
             await session.flush()
             return PipelineResult(message=message, order=None)

@@ -56,3 +56,9 @@ class MerchantStatus(enum.StrEnum):
 class DeliveryAreaStatus(enum.StrEnum):
     ACTIVE = "ACTIVE"
     INACTIVE = "INACTIVE"
+
+
+class HandoffReason(enum.StrEnum):
+    USER_REQUEST = "USER_REQUEST"
+    AI_ESCALATION = "AI_ESCALATION"
+    MERCHANT_TAKEOVER = "MERCHANT_TAKEOVER"

@@ -11,12 +11,14 @@ from app.models.enums import (
     ConvState,
     DeliveryAreaStatus,
     Direction,
+    HandoffReason,
     MerchantStatus,
     ModelTier,
     OrderSource,
     OrderStatus,
     VariantStatus,
 )
+from app.models.human_handoff import HumanHandoff
 from app.models.labeled_example import LabeledExample
 from app.models.merchant import Merchant
 from app.models.message import Message
@@ -40,6 +42,8 @@ __all__ = [
     "DeliveryArea",
     "DeliveryAreaStatus",
     "Direction",
+    "HandoffReason",
+    "HumanHandoff",
     "LabeledExample",
     "Merchant",
     "MerchantStatus",
