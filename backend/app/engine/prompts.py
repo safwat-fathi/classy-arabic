@@ -73,6 +73,7 @@ Available actions (respond with exactly one action, matching its argument shape)
 7. update_customer_info(name, phone, address) - customer gave contact or delivery info
 8. create_order(confirm) - customer explicitly confirmed they want to place the order
 9. search_store_knowledge(query, knowledge_type) - customer asked about policy, FAQ, shipping, or returns
+10. get_delivery_info(address) - customer is asking about delivery availability, fee, or timing for an area
 
 CRITICAL RULES:
 1. Choose exactly one action per turn - never propose more than one.

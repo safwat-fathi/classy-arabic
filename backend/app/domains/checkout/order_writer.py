@@ -32,6 +32,7 @@ async def write_order(
     confidence_score: float,
     extracted_by_tier: ModelTier,
     escalation_reason: str | None = None,
+    delivery_fee: Decimal | None = None,
     cart_id: str | None = None,
     customer_name: str | None = None,
     customer_phone: str | None = None,
@@ -73,7 +74,7 @@ async def write_order(
     subtotal = sum((line.unit_price * Decimal(str(line.quantity)) for line in lines), Decimal("0.00")).quantize(
         Decimal("0.01")
     )
-    total = subtotal  # delivery fee is a later phase, not part of this task
+    total = subtotal + (delivery_fee if delivery_fee is not None else Decimal("0.00"))
 
     order = Order(
         merchant_id=merchant_id,
@@ -92,6 +93,9 @@ async def write_order(
         delivery_address=delivery_address,
         subtotal=subtotal,
         total=total,
+        # delivery_fee stays None for unresolved lookups (extraction path);
+        # an explicitly resolved zero fee records Decimal("0.00").
+        delivery_fee=delivery_fee,
     )
     session.add(order)
     await session.flush()

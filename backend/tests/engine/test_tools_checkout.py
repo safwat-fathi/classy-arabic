@@ -17,7 +17,9 @@ async def test_handle_update_customer_info_captures_fields(db_session, merchant,
     result = await handle_update_customer_info(db_session, action, merchant.id, conversation.id, "msg-1")
 
     assert result["captured"] == {"name": "Sara", "phone": "01012345678", "address": "Nasr City"}
-    assert result["delivery_validation"]["status"] == "unavailable"
+    # No configured delivery areas -> the real validator reports available now
+    # (the old stub always reported unavailable).
+    assert result["delivery_validation"]["status"] == "available"
 
     await db_session.flush()
     await db_session.refresh(conversation)

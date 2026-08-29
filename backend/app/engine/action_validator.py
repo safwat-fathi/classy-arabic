@@ -81,8 +81,8 @@ async def evaluate_action(session: AsyncSession, action: ProposedAction, *, merc
     merchant_id; product ownership against the merchant is checked first, so
     the variant check only runs once that has already passed).
     search_products/update_cart/remove_from_cart/get_checkout_state/
-    update_customer_info/create_order/search_store_knowledge have no
-    DB-checkable rules beyond the schema layer today.
+    update_customer_info/create_order/search_store_knowledge/get_delivery_info
+    have no DB-checkable rules beyond the schema layer today.
     """
     errors: list[ValidationError] = []
     if isinstance(action, (GetProductAction, AddToCartAction)):

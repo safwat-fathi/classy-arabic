@@ -34,7 +34,7 @@ def test_classification_task_block_lists_known_intents():
     assert "greeting, purchase_intent" in block
 
 
-def test_action_task_block_lists_all_nine_actions():
+def test_action_task_block_lists_all_ten_actions():
     for name in (
         "search_products",
         "get_product",
@@ -45,6 +45,7 @@ def test_action_task_block_lists_all_nine_actions():
         "update_customer_info",
         "create_order",
         "search_store_knowledge",
+        "get_delivery_info",
     ):
         assert name in ACTION_TASK_BLOCK
 

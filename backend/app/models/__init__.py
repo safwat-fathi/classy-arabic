@@ -4,10 +4,12 @@ from app.models.cart import Cart
 from app.models.cart_item import CartItem
 from app.models.channel_connection import ChannelConnection
 from app.models.conversation import Conversation
+from app.models.delivery_area import DeliveryArea
 from app.models.enums import (
     CartStatus,
     Channel,
     ConvState,
+    DeliveryAreaStatus,
     Direction,
     MerchantStatus,
     ModelTier,
@@ -35,6 +37,8 @@ __all__ = [
     "ChannelConnection",
     "ConvState",
     "Conversation",
+    "DeliveryArea",
+    "DeliveryAreaStatus",
     "Direction",
     "LabeledExample",
     "Merchant",

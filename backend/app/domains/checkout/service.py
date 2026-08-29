@@ -8,18 +8,45 @@ from app.engine.tools.errors import ActionArgumentError
 from app.models.cart import Cart
 from app.models.cart_item import CartItem
 from app.models.conversation import Conversation
-from app.models.enums import CartStatus, ModelTier, OrderSource, OrderStatus
+from app.models.delivery_area import DeliveryArea
+from app.models.enums import CartStatus, DeliveryAreaStatus, ModelTier, OrderSource, OrderStatus
 from app.models.merchant import Merchant
 from app.models.order import Order
 from app.models.product import Product
 from app.models.product_variant import ProductVariant
 
 
-async def validate_delivery_area(merchant_id: str, address: str | None) -> dict:
-    """Stub. Delivery Service (SRD S29) does not exist yet - see ROADMAP.md
-    'Delivery service'. Always reports unavailable rather than guessing a
-    fee/area match, per SRD S44 (never claim a value the backend can't verify)."""
-    return {"status": "unavailable", "reason": "delivery_service_not_built"}
+async def validate_delivery_area(session: AsyncSession, merchant_id: str, address: str | None) -> dict:
+    """Real delivery-area lookup (SRD §29). A merchant with no configured
+    active areas always gets an available default, preserving the pre-delivery
+    total == subtotal behavior. Once a merchant opts in, unmatched addresses
+    escalate instead of silently shipping a zero fee."""
+    result = await session.execute(
+        select(DeliveryArea).where(
+            DeliveryArea.merchant_id == merchant_id,
+            DeliveryArea.status == DeliveryAreaStatus.ACTIVE,
+        )
+    )
+    areas = result.scalars().all()
+
+    if not areas:
+        return {"status": "available", "delivery_fee": "0.00", "estimated_delivery": None}
+    if address is None:
+        return {"status": "unavailable", "reason": "no_address_provided"}
+
+    address_lower = address.lower()
+    matches = [area for area in areas if area.area.lower() in address_lower]
+    if not matches:
+        return {"status": "unavailable", "reason": "no_matching_area"}
+
+    # Longest (most specific) area string wins, ranked like
+    # store_knowledge.service.search's keyword-length scoring.
+    best = max(matches, key=lambda area: len(area.area))
+    return {
+        "status": "available",
+        "delivery_fee": str(Decimal(str(best.delivery_fee)).quantize(Decimal("0.01"))),
+        "estimated_delivery": best.estimated_delivery,
+    }
 
 
 async def get_checkout_state(session: AsyncSession, merchant_id: str, conversation_id: str) -> dict:
@@ -139,6 +166,13 @@ async def create_order(
         order = existing.scalar_one()
         return {"order_id": order.id, "order_number": order.order_number, "total": str(order.total)}
 
+    # Re-check deliverability on the actual write path: no merchant-configured
+    # areas -> always available; configured areas + unmatched address -> reject.
+    delivery = await validate_delivery_area(session, merchant_id, slots["customer_address"])
+    if delivery["status"] != "available":
+        raise ActionArgumentError([f"delivery not available: {delivery.get('reason', 'unknown')}"])
+    delivery_fee = Decimal(delivery["delivery_fee"])
+
     # Price-fallback rule mirrors app/domains/cart/service.py::add_item: a
     # variant's own price wins when set; otherwise fall back to the parent
     # product's price.
@@ -172,6 +206,7 @@ async def create_order(
         customer_name=slots["customer_name"],
         customer_phone=slots["customer_phone"],
         delivery_address=slots["customer_address"],
+        delivery_fee=delivery_fee,
         assign_order_number=True,
     )
 

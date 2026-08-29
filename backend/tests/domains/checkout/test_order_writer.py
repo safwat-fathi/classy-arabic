@@ -157,6 +157,75 @@ async def test_write_order_computes_subtotal_from_lines(db_session, merchant, co
     assert order.total == Decimal("590.00")
 
 
+async def test_write_order_adds_delivery_fee_to_total(db_session, merchant, conversation, message):
+    product = Product(merchant_id=merchant.id, name="Shoes", price=Decimal("250.00"))
+    db_session.add(product)
+    await db_session.flush()
+
+    line = ResolvedOrderLine(
+        product_id=product.id,
+        variant_id=None,
+        name_snapshot=product.name,
+        variant_snapshot=None,
+        unit_price=product.price,
+        quantity=2,
+    )
+
+    order = await write_order(
+        db_session,
+        merchant_id=merchant.id,
+        conversation_id=conversation.id,
+        message_id=message.id,
+        status=OrderStatus.CONFIRMED,
+        source=OrderSource.CART_CHECKOUT,
+        lines=[line],
+        extracted_payload={},
+        confidence_score=1.0,
+        extracted_by_tier=ModelTier.DEEPSEEK,
+        delivery_fee=Decimal("30.00"),
+        assign_order_number=True,
+    )
+
+    # subtotal 500.00 + delivery 30.00
+    assert order.subtotal == Decimal("500.00")
+    assert order.total == Decimal("530.00")
+    assert order.delivery_fee == Decimal("30.00")
+
+
+async def test_write_order_defaults_delivery_fee_to_none_when_not_passed(db_session, merchant, conversation, message):
+    product = Product(merchant_id=merchant.id, name="Shoes", price=Decimal("250.00"))
+    db_session.add(product)
+    await db_session.flush()
+
+    line = ResolvedOrderLine(
+        product_id=product.id,
+        variant_id=None,
+        name_snapshot=product.name,
+        variant_snapshot=None,
+        unit_price=product.price,
+        quantity=2,
+    )
+
+    order = await write_order(
+        db_session,
+        merchant_id=merchant.id,
+        conversation_id=conversation.id,
+        message_id=message.id,
+        status=OrderStatus.PENDING_REVIEW,
+        source=OrderSource.AI_EXTRACTION,
+        lines=[line],
+        extracted_payload={},
+        confidence_score=0.9,
+        extracted_by_tier=ModelTier.DEEPSEEK,
+        assign_order_number=False,
+    )
+
+    # Extraction path behavior unchanged: total == subtotal, fee stays NULL.
+    assert order.subtotal == Decimal("500.00")
+    assert order.total == Decimal("500.00")
+    assert order.delivery_fee is None
+
+
 async def test_write_order_allows_empty_lines_list(db_session, merchant, conversation, message):
     order = await write_order(
         db_session,

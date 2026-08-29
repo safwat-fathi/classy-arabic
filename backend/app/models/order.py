@@ -45,6 +45,7 @@ class Order(Base):
     delivery_address: Mapped[str | None] = mapped_column(String, nullable=True)
     subtotal: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     total: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+    delivery_fee: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
 
     conversation: Mapped[Conversation] = relationship(back_populates="orders")
     message: Mapped[Message] = relationship(back_populates="order")

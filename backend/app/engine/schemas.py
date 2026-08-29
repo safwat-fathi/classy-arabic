@@ -138,6 +138,11 @@ class SearchStoreKnowledgeAction(_ActionBase):
     knowledge_type: Literal["faq", "shipping", "returns", "exchange", "payment", "general"] | None = None
 
 
+class GetDeliveryInfoAction(_ActionBase):
+    action: Literal["get_delivery_info"]
+    address: str | None = None
+
+
 ProposedAction = Annotated[
     SearchProductsAction
     | GetProductAction
@@ -147,7 +152,8 @@ ProposedAction = Annotated[
     | GetCheckoutStateAction
     | UpdateCustomerInfoAction
     | CreateOrderAction
-    | SearchStoreKnowledgeAction,
+    | SearchStoreKnowledgeAction
+    | GetDeliveryInfoAction,
     Field(discriminator="action"),
 ]
 

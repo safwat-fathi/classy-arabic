@@ -30,7 +30,7 @@ async def handle_update_customer_info(
             captured[field] = value
     conversation.slots = slots
 
-    delivery = await checkout_service.validate_delivery_area(merchant_id, action.address)
+    delivery = await checkout_service.validate_delivery_area(session, merchant_id, action.address)
     return {"captured": captured, "delivery_validation": delivery}
 
 

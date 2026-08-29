@@ -51,3 +51,8 @@ class VariantStatus(enum.StrEnum):
 class MerchantStatus(enum.StrEnum):
     ACTIVE = "ACTIVE"
     SUSPENDED = "SUSPENDED"
+
+
+class DeliveryAreaStatus(enum.StrEnum):
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"

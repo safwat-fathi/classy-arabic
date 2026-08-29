@@ -9,9 +9,106 @@ from app.models.product import Product
 from app.models.product_variant import ProductVariant
 
 
-async def test_validate_delivery_area_reports_unavailable():
-    result = await validate_delivery_area("merchant-1", "Nasr City")
-    assert result == {"status": "unavailable", "reason": "delivery_service_not_built"}
+async def test_validate_delivery_area_defaults_available_with_zero_configured_areas(db_session, merchant):
+    result = await validate_delivery_area(db_session, merchant.id, "Nasr City")
+    assert result == {"status": "available", "delivery_fee": "0.00", "estimated_delivery": None}
+
+
+async def test_validate_delivery_area_matches_configured_area(db_session, merchant):
+    from app.models.delivery_area import DeliveryArea
+
+    area = DeliveryArea(merchant_id=merchant.id, area="Nasr City", delivery_fee=25, estimated_delivery="same day")
+    db_session.add(area)
+    await db_session.flush()
+
+    result = await validate_delivery_area(db_session, merchant.id, "I live in nasr city, cairo")
+    assert result["status"] == "available"
+    assert result["delivery_fee"] == "25.00"
+    assert result["estimated_delivery"] == "same day"
+
+
+async def test_validate_delivery_area_picks_most_specific_match_when_multiple_match(db_session, merchant):
+    from app.models.delivery_area import DeliveryArea
+
+    cheap = DeliveryArea(merchant_id=merchant.id, area="Cairo", delivery_fee=10)
+    specific = DeliveryArea(merchant_id=merchant.id, area="Nasr City", delivery_fee=25)
+    db_session.add_all([cheap, specific])
+    await db_session.flush()
+
+    result = await validate_delivery_area(db_session, merchant.id, "Nasr City, Cairo")
+    # Both "Cairo" and "Nasr City" match; longest string wins.
+    assert result["delivery_fee"] == "25.00"
+
+
+async def test_validate_delivery_area_unavailable_when_configured_but_no_match(db_session, merchant):
+    from app.models.delivery_area import DeliveryArea
+
+    db_session.add(DeliveryArea(merchant_id=merchant.id, area="Nasr City", delivery_fee=25))
+    await db_session.flush()
+
+    result = await validate_delivery_area(db_session, merchant.id, "Heliopolis")
+    assert result == {"status": "unavailable", "reason": "no_matching_area"}
+
+
+async def test_validate_delivery_area_unavailable_when_no_address(db_session, merchant):
+    from app.models.delivery_area import DeliveryArea
+
+    db_session.add(DeliveryArea(merchant_id=merchant.id, area="Nasr City", delivery_fee=25))
+    await db_session.flush()
+
+    result = await validate_delivery_area(db_session, merchant.id, None)
+    assert result == {"status": "unavailable", "reason": "no_address_provided"}
+
+
+async def test_create_order_includes_delivery_fee_in_total_when_area_matches(db_session, merchant, conversation, message):
+    product = Product(merchant_id=merchant.id, name="Shoes", price=250)
+    db_session.add(product)
+    await db_session.flush()
+    await add_item(db_session, merchant.id, conversation.id, product.id, 2)
+    conversation.slots = {
+        "customer_name": "Sara",
+        "customer_phone": "01012345678",
+        "customer_address": "Nasr City",
+    }
+    await db_session.flush()
+
+    from app.models.delivery_area import DeliveryArea
+
+    db_session.add(DeliveryArea(merchant_id=merchant.id, area="Nasr City", delivery_fee=30))
+    await db_session.flush()
+
+    result = await create_order(db_session, merchant.id, conversation.id, True, message_id=message.id)
+    assert result["total"] == "530.00"
+
+    from sqlalchemy import select
+
+    from app.models.order import Order
+
+    order = (await db_session.execute(select(Order).where(Order.id == result["order_id"]))).scalar_one()
+    assert order.delivery_fee == Decimal("30.00")
+
+
+async def test_create_order_rejects_confirm_when_delivery_unavailable(db_session, merchant, conversation, message):
+    product = Product(merchant_id=merchant.id, name="Shoes", price=250)
+    db_session.add(product)
+    await db_session.flush()
+    await add_item(db_session, merchant.id, conversation.id, product.id, 1)
+    conversation.slots = {
+        "customer_name": "Sara",
+        "customer_phone": "01012345678",
+        "customer_address": "Heliopolis",
+    }
+    await db_session.flush()
+
+    from app.models.delivery_area import DeliveryArea
+
+    db_session.add(DeliveryArea(merchant_id=merchant.id, area="Nasr City", delivery_fee=25))
+    await db_session.flush()
+
+    from app.engine.tools.errors import ActionArgumentError
+
+    with pytest.raises(ActionArgumentError, match="delivery not available"):
+        await create_order(db_session, merchant.id, conversation.id, True, message_id=message.id)
 
 
 async def test_get_checkout_state_empty_cart(db_session, merchant, conversation):
