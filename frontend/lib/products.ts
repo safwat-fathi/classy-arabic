@@ -3,7 +3,7 @@ export interface Product {
   merchant_id: string;
   name: string;
   aliases: string[];
-  variants: Record<string, unknown>;
+  variants: any[] | Record<string, unknown>;
   price: number | null;
 }
 

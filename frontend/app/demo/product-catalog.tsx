@@ -2,7 +2,22 @@ import Image from "next/image";
 import type { Product } from "@/lib/products";
 import * as m from "@/paraglide/messages";
 
-function formatVariants(variants: Record<string, unknown>) {
+function formatVariants(variants: any[] | Record<string, unknown> | null) {
+  if (!variants) return [];
+  
+  if (Array.isArray(variants)) {
+    return variants.map((v) => {
+      // If the backend returns ProductVariant objects
+      const key = v.label || v.sku || "Variant";
+      let values = "";
+      if (v.price) values += `${v.price} ${m.demo_catalog_egp()}`;
+      if (v.stock) values += values ? ` (${v.stock})` : String(v.stock);
+      if (!values) values = "متوفر";
+      
+      return { key, values };
+    });
+  }
+
   return Object.entries(variants).map(([key, value]) => {
     const values = Array.isArray(value) ? value.join(", ") : String(value);
     return { key, values };
