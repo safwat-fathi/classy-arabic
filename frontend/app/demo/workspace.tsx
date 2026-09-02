@@ -19,8 +19,12 @@ export function Workspace({
   products: Product[];
   knowledge: StoreKnowledge[];
 }) {
-  const [ingestState, setIngestState] = useState<IngestState>({ status: "idle" });
-  const [activeTab, setActiveTab] = useState<"products" | "knowledge">("products");
+  const [ingestState, setIngestState] = useState<IngestState>({
+    status: "idle",
+  });
+  const [activeTab, setActiveTab] = useState<"products" | "knowledge">(
+    "products",
+  );
 
   let highlightedProductIds: string[] = [];
   if (ingestState.status === "success" && ingestState.data.order) {
@@ -31,15 +35,19 @@ export function Workspace({
 
   return (
     <div className="grid gap-8 md:grid-cols-2 items-start">
-      <div className="flex flex-col gap-8 h-[calc(100vh-8rem)] sticky top-8">
+      <div className="flex flex-col gap-8 h-[calc(80vh-8rem)] sticky top-8">
         <MessageComposer
           conversationId={conversationId}
           onStateChange={setIngestState}
         />
       </div>
       <div className="flex flex-col gap-8 border-s-0 md:border-s border-gray-200 md:ps-8">
-        <AIInsights state={ingestState} products={products} activeTab={activeTab} />
-        
+        <AIInsights
+          state={ingestState}
+          products={products}
+          activeTab={activeTab}
+        />
+
         <div className="flex flex-col gap-4">
           <div className="flex gap-4 border-b border-gray-200">
             <button
@@ -63,9 +71,12 @@ export function Workspace({
               {m.demo_tab_knowledge()}
             </button>
           </div>
-          
+
           {activeTab === "products" ? (
-            <ProductCatalog products={products} highlightedProductIds={highlightedProductIds} />
+            <ProductCatalog
+              products={products}
+              highlightedProductIds={highlightedProductIds}
+            />
           ) : (
             <StoreKnowledgeView knowledge={knowledge} />
           )}

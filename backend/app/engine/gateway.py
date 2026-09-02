@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass
+from types import SimpleNamespace
 
 from openai import APIError, AsyncOpenAI
+from openai import AsyncStream
 from pydantic import BaseModel, ValidationError
 
 from app.core.config import settings
@@ -15,6 +18,35 @@ from app.engine.clients import (
     record_ai_call,
 )
 from app.engine.schemas import json_schema_response_format
+
+logger = logging.getLogger(__name__)
+
+
+async def _resolve_response(response):
+    """Consume an AsyncStream into a ChatCompletion-like object.
+
+    OpenRouter may return a stream even when stream=False for certain
+    model routes (e.g. ~deepseek/ prefixed models).  This helper
+    transparently handles both cases so callers always get a regular
+    response with .choices and .usage.
+    """
+    if not isinstance(response, AsyncStream):
+        return response
+
+    logger.debug("Provider returned AsyncStream despite stream=False; consuming chunks")
+    content_parts: list[str] = []
+    usage = None
+    async for chunk in response:
+        if chunk.choices:
+            delta = chunk.choices[0].delta
+            if delta and delta.content:
+                content_parts.append(delta.content)
+        if getattr(chunk, "usage", None) is not None:
+            usage = chunk.usage
+
+    message = SimpleNamespace(content="".join(content_parts), role="assistant")
+    choice = SimpleNamespace(message=message, finish_reason="stop")
+    return SimpleNamespace(choices=[choice], usage=usage)
 
 
 @dataclass(frozen=True)
@@ -63,7 +95,8 @@ async def complete[T: BaseModel](
 
     start = time.monotonic()
     try:
-        response = await provider.client.chat.completions.create(**kwargs)
+        raw = await provider.client.chat.completions.create(**kwargs, stream=False)
+        response = await _resolve_response(raw)
     except APIError as exc:
         raise AICallError(str(exc)) from exc
 
@@ -113,7 +146,8 @@ async def complete_json(provider: Provider, *, system_prompt: str, user_prompt: 
 
     start = time.monotonic()
     try:
-        response = await provider.client.chat.completions.create(**kwargs)
+        raw = await provider.client.chat.completions.create(**kwargs, stream=False)
+        response = await _resolve_response(raw)
     except APIError as exc:
         raise AICallError(str(exc)) from exc
     record_ai_call(provider.name, provider.model, start, response.usage)
