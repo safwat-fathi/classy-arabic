@@ -224,6 +224,12 @@ export function PricingSection() {
             <span className="mt-0.5">🌐</span>
             <p><strong>{m.pricing_footer_meta_title()}</strong> {m.pricing_footer_meta_desc()}</p>
           </div>
+          <div className="mt-2 pt-3 border-t border-gray-100 flex items-center justify-between">
+            <span className="text-xs text-gray-500">تفاصيل كاملة لكل باقة وشروط الذكاء الاصطناعي</span>
+            <Link href="/pricing" className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline">
+              عرض جدول مقارنة المميزات وشروط الاستخدام العادل ←
+            </Link>
+          </div>
         </div>
       </div>
     </section>

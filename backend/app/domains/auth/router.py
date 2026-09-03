@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.domains.auth.dependencies import get_current_merchant
 from app.domains.auth.meta_client import fetch_user_pages, verify_facebook_access_token
 from app.domains.auth.schemas import AuthTokenResponse, FacebookCallbackRequest
 from app.domains.auth.service import find_or_create_merchant_by_facebook_id, provision_channel_connections
 from app.domains.auth.tokens import create_access_token
-from app.domains.auth.dependencies import get_current_merchant
 from app.models import MerchantStatus
-from pydantic import BaseModel
 
 router = APIRouter()
 

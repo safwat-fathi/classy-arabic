@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.domains.auth.dependencies import get_current_merchant
 from app.domains.checkout.manual_order import ConversationNotFoundError, ProductNotFoundError, create_manual_order
 from app.domains.checkout.schemas import ManualOrderCreate, ManualOrderRead, OrderRead
-from app.models import Merchant, Order, Message
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from app.models import Merchant, Message, Order
 
 router = APIRouter()
 

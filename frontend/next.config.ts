@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/blog/:slug.md",
+        destination: "/api/markdown/blog/:slug",
+      },
+    ];
+  },
   turbopack: {
     resolveAlias: {
       "$paraglide/runtime.js": "./paraglide/runtime.js",

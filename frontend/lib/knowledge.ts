@@ -13,9 +13,18 @@ export async function getStoreKnowledge(merchantId: string): Promise<StoreKnowle
   if (!baseUrl) {
     throw new Error("BASE_API_URL not configured");
   }
+  const demoKey = process.env.DEMO_API_KEY;
+  const headers: HeadersInit = {};
+  if (demoKey) {
+    headers["Authorization"] = `Bearer ${demoKey}`;
+  }
+
   const response = await fetch(
     `${baseUrl}/store-knowledge/?merchant_id=${encodeURIComponent(merchantId)}`,
-    { cache: "no-store" },
+    { 
+      headers,
+      cache: "no-store" 
+    },
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch store knowledge: ${response.status}`);

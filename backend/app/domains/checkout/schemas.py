@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -43,6 +44,6 @@ class OrderRead(BaseModel):
     total: float | None
     created_at: datetime
     items: list[OrderItemRead] = []
-    
+
     class Config:
         from_attributes = True

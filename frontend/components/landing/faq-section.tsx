@@ -52,6 +52,15 @@ export function FAQSection() {
             </div>
           ))}
         </div>
+        <div className="mt-10 text-center">
+          <a
+            href="/faq"
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-6 py-3 text-sm font-bold text-gray-800 shadow-sm transition-all hover:border-emerald-500 hover:text-emerald-700 hover:shadow-md"
+          >
+            <span>عرض جميع الأسئلة الشائعة وتفاصيل النظام كاملة</span>
+            <span>←</span>
+          </a>
+        </div>
       </div>
     </section>
   );

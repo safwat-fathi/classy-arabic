@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     JWT_EXPIRE_MINUTES: int = 10080  # 7 days
     ENCRYPTION_KEY: str = ""
 
+    DEMO_API_KEY: str = ""
+    DEMO_STOPGAP_MERCHANT_ID: str = ""
+
     @property
     def sqlalchemy_database_uri(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"

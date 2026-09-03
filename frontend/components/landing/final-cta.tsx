@@ -58,24 +58,30 @@ export function FinalCTA() {
                 {m.footer_product()}
               </div>
               <div className="flex flex-col gap-2.5">
-                <a
-                  href="#how"
+                <Link
+                  href="/how-it-works"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
                   {m.nav_link_how()}
-                </a>
-                <a
-                  href="#features"
+                </Link>
+                <Link
+                  href="/features"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
                   {m.nav_link_features()}
-                </a>
-                <a
-                  href="#pricing"
+                </Link>
+                <Link
+                  href="/pricing"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
                   {m.nav_link_pricing()}
-                </a>
+                </Link>
+                <Link
+                  href="/blog"
+                  className="text-[13.5px] text-gray-300 hover:text-white"
+                >
+                  {m.nav_link_blog()}
+                </Link>
               </div>
             </div>
             <div>
@@ -83,18 +89,24 @@ export function FinalCTA() {
                 {m.footer_company()}
               </div>
               <div className="flex flex-col gap-2.5">
-                <a
-                  href="#"
+                <Link
+                  href="/demo"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
                   {m.footer_contact()}
-                </a>
-                <a
-                  href="#faq"
+                </Link>
+                <Link
+                  href="/faq"
                   className="text-[13.5px] text-gray-300 hover:text-white"
                 >
                   {m.nav_link_faq()}
-                </a>
+                </Link>
+                <Link
+                  href="/sitemap"
+                  className="text-[13.5px] text-gray-300 hover:text-white"
+                >
+                  خريطة الموقع (Sitemap)
+                </Link>
               </div>
             </div>
           </div>

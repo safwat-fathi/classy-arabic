@@ -16,6 +16,7 @@ export default async function PoliciesPage() {
 
   return (
     <PoliciesClient 
+      merchantId=""
       initialKnowledge={knowledge} 
     />
   );

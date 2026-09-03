@@ -1,9 +1,12 @@
 import asyncio
+
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+
 from app.core.database import async_session_maker
-from app.models import Order
 from app.domains.checkout.schemas import OrderRead
+from app.models import Order
+
 
 async def debug():
     async with async_session_maker() as session:
