@@ -24,7 +24,7 @@ Everything below is in the PRD's MVP scope (§4) or Success Criteria (§35). Str
 - **Human handoff** — `HumanHandoff` entity, AI-disable-on-takeover behavior (SRD §31, PRD §13)
 - **Merchant dashboard** — conversation inbox, product CRUD UI, order management, AI settings, human takeover controls (PRD §32) — currently only the `/demo` page exists
 - **Billing** — base plans, AI add-on, fair-use tracking/enforcement (SRD §50–§41, PRD §7, §34)
-- **Security baseline** — RBAC for the dashboard, webhook signature validation, secrets management, audit logging (SRD §42)
+- **Security baseline** — ~~Authentication root security & token encryption~~ **Built** (Auth fixed via JWTs, tokens encrypted at rest, page ownership conflicts prevented). Not built: full RBAC for the dashboard, audit logging (SRD §42)
 
 ## Phase 2 (per PRD §37)
 

@@ -1,6 +1,7 @@
 import asyncio
-from datetime import UTC, datetime
+
 from sqlalchemy import delete
+
 from app.core.database import async_session_maker
 from app.models import StoreKnowledge
 from app.models._ids import new_id
@@ -21,8 +22,7 @@ STORE_KNOWLEDGE = [
         "knowledge_type": "shipping",
         "title": "سياسات ومواعيد الشحن",
         "content": (
-            "يتم شحن الطلبات خلال 24 ساعة من تأكيد الطلب. يستغرق التوصيل من 2 إلى 4 أيام عمل "
-            "حسب المحافظة وشركة الشحن."
+            "يتم شحن الطلبات خلال 24 ساعة من تأكيد الطلب. يستغرق التوصيل من 2 إلى 4 أيام عمل حسب المحافظة وشركة الشحن."
         ),
         "keywords": ["وقت التوصيل", "متى يوصل", "أيام", "مدة الشحن"],
     },
@@ -74,12 +74,13 @@ STORE_KNOWLEDGE = [
     },
 ]
 
+
 async def seed_knowledge():
     async with async_session_maker() as session:
         # We will not delete the merchant itself, just replacing the knowledge
         # Delete existing knowledge for this merchant to avoid duplicates
         await session.execute(delete(StoreKnowledge).where(StoreKnowledge.merchant_id == TARGET_MERCHANT_ID))
-        
+
         for spec in STORE_KNOWLEDGE:
             session.add(
                 StoreKnowledge(
@@ -91,15 +92,16 @@ async def seed_knowledge():
                     keywords=spec["keywords"],
                 )
             )
-        
+
         await session.commit()
-        
+
         print("\n" + "=" * 50)
         print("✅ Store Knowledge Added Successfully!")
         print("=" * 50)
         print(f"Merchant ID : {TARGET_MERCHANT_ID}")
         print(f"Added {len(STORE_KNOWLEDGE)} store knowledge entries.")
         print("=" * 50 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(seed_knowledge())

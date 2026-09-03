@@ -1,9 +1,17 @@
+export interface ProductVariant {
+  label?: string;
+  sku?: string;
+  price?: number;
+  stock?: number;
+  [key: string]: unknown;
+}
+
 export interface Product {
   id: string;
   merchant_id: string;
   name: string;
   aliases: string[];
-  variants: any[] | Record<string, unknown>;
+  variants: ProductVariant[] | Record<string, unknown>;
   price: number | null;
 }
 

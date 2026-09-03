@@ -6,7 +6,9 @@ from app.domains.auth.meta_client import fetch_user_pages, verify_facebook_acces
 from app.domains.auth.schemas import AuthTokenResponse, FacebookCallbackRequest
 from app.domains.auth.service import find_or_create_merchant_by_facebook_id, provision_channel_connections
 from app.domains.auth.tokens import create_access_token
+from app.domains.auth.dependencies import get_current_merchant
 from app.models import MerchantStatus
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -23,7 +25,7 @@ async def facebook_callback(body: FacebookCallbackRequest, db: AsyncSession = De
 
     # Fetch the user's FB pages and provision channel connections
     pages = await fetch_user_pages(body.access_token)
-    pages_connected = await provision_channel_connections(db, merchant.id, pages)
+    pages_connected, conflicts = await provision_channel_connections(db, merchant.id, pages)
 
     await db.commit()
 
@@ -33,4 +35,21 @@ async def facebook_callback(body: FacebookCallbackRequest, db: AsyncSession = De
         merchant_id=merchant.id,
         merchant_name=merchant.name,
         pages_connected=pages_connected,
+        conflicted_pages=conflicts,
     )
+
+
+class MeResponse(BaseModel):
+    merchant_id: str
+    merchant_name: str
+    is_active: bool
+
+@router.get("/me", response_model=MeResponse)
+async def get_me(merchant=Depends(get_current_merchant)) -> MeResponse:
+    """Return the currently authenticated merchant based on JWT token."""
+    return MeResponse(
+        merchant_id=merchant.id,
+        merchant_name=merchant.name,
+        is_active=(merchant.status == MerchantStatus.ACTIVE),
+    )
+

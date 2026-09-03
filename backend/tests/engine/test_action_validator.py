@@ -138,9 +138,7 @@ async def test_evaluate_action_add_to_cart_allows_valid_variant(db_session, merc
     db_session.add(variant)
     await db_session.flush()
 
-    action = AddToCartAction(
-        action="add_to_cart", product_id="p-mine", variant_id="v-mine", quantity=1, confidence=0.9
-    )
+    action = AddToCartAction(action="add_to_cart", product_id="p-mine", variant_id="v-mine", quantity=1, confidence=0.9)
     result = await evaluate_action(db_session, action, merchant_id=merchant.id)
     assert result.approved is True
     assert result.errors == []

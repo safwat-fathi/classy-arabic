@@ -2,11 +2,7 @@ import asyncio
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from sqlalchemy import delete, select
-
-from app.core.database import async_session_maker
-from app.engine.embeddings import embed_text
-from app.models import (
+from app.models.models import (
     Conversation,
     ConvState,
     Direction,
@@ -16,7 +12,13 @@ from app.models import (
     ProductVariant,
     StoreKnowledge,
 )
-from app.models._ids import new_id
+from app.utils.id_gen import new_id
+from sqlalchemy import delete, select
+
+from app.core.config import settings
+from app.core.database import async_session_maker
+from app.domains.auth.tokens import create_access_token
+from app.engine.embeddings import embed_text
 
 MERCHANT_NAME = "Classy Boutique"
 DEMO_CUSTOMER_REF = "demo-visitor"
@@ -105,10 +107,7 @@ STORE_KNOWLEDGE = [
     {
         "knowledge_type": "faq",
         "title": "دليل المقاسات",
-        "content": (
-            "المقاسات عندنا من S لحد XL. لو مش متأكد من مقاسك، ابعتلنا طولك ووزنك "
-            "وهنرشحلك المقاس المناسب."
-        ),
+        "content": ("المقاسات عندنا من S لحد XL. لو مش متأكد من مقاسك، ابعتلنا طولك ووزنك وهنرشحلك المقاس المناسب."),
         "keywords": ["مقاس", "مقاسات", "سايز", "size", "sizing"],
     },
 ]
@@ -120,9 +119,7 @@ async def seed_data():
         # script doesn't create duplicate "Classy Boutique" merchants (Merchant
         # has no unique constraint on name; the operator-facing DEMO_STOPGAP_MERCHANT_ID
         # env var must keep pointing at the same id across re-seeds).
-        merchant = (
-            await session.execute(select(Merchant).where(Merchant.name == MERCHANT_NAME))
-        ).scalar_one_or_none()
+        merchant = (await session.execute(select(Merchant).where(Merchant.name == MERCHANT_NAME))).scalar_one_or_none()
         if merchant is None:
             merchant = Merchant(id=new_id(), name=MERCHANT_NAME, ai_tool_ordering_enabled=False)
             session.add(merchant)
@@ -199,6 +196,8 @@ async def seed_data():
 
         await session.commit()
 
+        jwt_token = create_access_token(merchant.id)
+
         print("\n" + "=" * 50)
         print("✅ Database Seeded Successfully!")
         print("=" * 50)
@@ -206,7 +205,8 @@ async def seed_data():
         print(f"Conversation ID : {conversation.id}")
         print(f"Seeded {len(PRODUCTS)} products and {len(STORE_KNOWLEDGE)} store knowledge entries.")
         print("=" * 50)
-        print("\n👉 Copy the Merchant ID into DEMO_STOPGAP_MERCHANT_ID in frontend/.env.local\n")
+        print(f"\n🔑 JWT Token for Demo Merchant (valid for {settings.JWT_EXPIRE_MINUTES} mins):\n{jwt_token}\n")
+        print("👉 Manually set this as 'tijaratk_token' cookie to authenticate locally, or use a tool like Postman.\n")
 
 
 if __name__ == "__main__":

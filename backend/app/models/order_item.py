@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Float, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.models._ids import new_id
+
+if TYPE_CHECKING:
+    from app.models.order import Order
 
 
 class OrderItem(Base):
@@ -26,4 +32,4 @@ class OrderItem(Base):
     unit_price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     quantity: Mapped[float] = mapped_column(Float, nullable=False)
 
-    order: Mapped["Order"] = relationship(back_populates="items")
+    order: Mapped[Order] = relationship(back_populates="items")

@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.domains.checkout.order_writer import write_order
+from app.domains.handoff.service import takeover_conversation
 from app.domains.store_knowledge import service as knowledge_service
 from app.engine.classification import classify_message
 from app.engine.clients import AICallError
@@ -33,7 +34,6 @@ from app.models import (
     OrderSource,
     OrderStatus,
 )
-from app.domains.handoff.service import takeover_conversation
 from app.models.enums import HandoffReason
 
 DEFAULT_INTENTS = ["greeting", "spam", "reaction", "purchase_intent", "question", "other"]
@@ -78,12 +78,12 @@ def _usage_event(
     )
 
 
-async def _trigger_escalation(
-    session: AsyncSession, conversation: Conversation, message: Message, reason: str
-) -> None:
+async def _trigger_escalation(session: AsyncSession, conversation: Conversation, message: Message, reason: str) -> None:
     if not message.escalation_reason:
         message.escalation_reason = reason
-    await takeover_conversation(session, conversation.merchant_id, conversation.id, HandoffReason.AI_ESCALATION, notes=reason)
+    await takeover_conversation(
+        session, conversation.merchant_id, conversation.id, HandoffReason.AI_ESCALATION, notes=reason
+    )
 
 
 async def _known_intents(session: AsyncSession, merchant_id: str) -> list[str]:
@@ -154,7 +154,9 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
 
     conversation.last_message_at = datetime.now(UTC)
 
-    merchant_name, ai_tool_ordering_enabled, merchant_ai_enabled = await _merchant_info(session, conversation.merchant_id)
+    merchant_name, ai_tool_ordering_enabled, merchant_ai_enabled = await _merchant_info(
+        session, conversation.merchant_id
+    )
 
     if not merchant_ai_enabled or not conversation.ai_enabled or conversation.human_takeover:
         await session.flush()
@@ -190,7 +192,7 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
 
         resolution = await resolve_action(session, conversation, message)
         message.model_tier = ModelTier.DEEPSEEK
-        
+
         if resolution.escalation_reason:
             await _trigger_escalation(session, conversation, message, resolution.escalation_reason)
 
@@ -219,7 +221,7 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
     message.intent = classification.intent
     message.intent_confidence = classification.confidence
     message.model_tier = ModelTier.DEEPSEEK
-    
+
     if reason:
         await _trigger_escalation(session, conversation, message, reason)
 

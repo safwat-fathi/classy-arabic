@@ -54,9 +54,12 @@ async def test_classify_message_flags_low_confidence(mock_ai):
     assert usage is not None
     assert usage.tier == "deepseek"
 
+
 async def test_classify_message_rejects_off_vocabulary_intent(mock_ai):
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
-        return_value=httpx.Response(200, json=_chat_response('{"intent": "totally_made_up_intent", "confidence": 0.95}'))
+        return_value=httpx.Response(
+            200, json=_chat_response('{"intent": "totally_made_up_intent", "confidence": 0.95}')
+        )
     )
     result, reason, usage = await classify_message(
         "customer: hi",
@@ -70,6 +73,7 @@ async def test_classify_message_rejects_off_vocabulary_intent(mock_ai):
     )
     assert result.intent == "other"
     assert reason == "intent_outside_known_vocabulary"
+
 
 async def test_classify_message_skips_ai_call_on_repeated_correction(mock_ai):
     result, reason, usage = await classify_message(

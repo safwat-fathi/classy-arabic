@@ -31,7 +31,10 @@ class ExtractionResult(BaseModel):
     phone: str | None = Field(default=None, description="The phone number explicitly mentioned in the message.")
     payment_method: str | None = Field(
         default=None,
-        description="The payment method explicitly mentioned in the message (e.g. 'InstaPay', 'Vodafone Cash', 'Cash on Delivery'). Watch out for slang like 'Insta', 'انستا', 'كاش', 'vf cash'.",
+        description=(
+            "The payment method explicitly mentioned in the message (e.g. 'InstaPay', 'Vodafone Cash', "
+            "'Cash on Delivery'). Watch out for slang like 'Insta', 'انستا', 'كاش', 'vf cash'."
+        ),
     )
     ambiguous_fields: list[str] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)

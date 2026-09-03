@@ -14,8 +14,11 @@ async def test_handle_search_store_knowledge_returns_empty_results_when_nothing_
 async def test_handle_search_store_knowledge_returns_seeded_match(db_session, merchant, conversation):
     db_session.add(
         StoreKnowledge(
-            merchant_id=merchant.id, knowledge_type="returns", title="استبدال",
-            content="تقدر تستبدل خلال 14 يوم.", keywords=["return policy"],
+            merchant_id=merchant.id,
+            knowledge_type="returns",
+            title="استبدال",
+            content="تقدر تستبدل خلال 14 يوم.",
+            keywords=["return policy"],
         )
     )
     await db_session.flush()

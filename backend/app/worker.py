@@ -4,7 +4,6 @@ from contextlib import AbstractAsyncContextManager
 from functools import partial
 
 from arq.connections import RedisSettings
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings

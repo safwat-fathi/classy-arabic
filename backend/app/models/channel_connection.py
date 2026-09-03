@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 from app.models._ids import new_id
 from app.models.enums import Channel
+from app.models.types import EncryptedString
 
 if TYPE_CHECKING:
     from app.models.conversation import Conversation
@@ -27,7 +28,7 @@ class ChannelConnection(Base):
     channel: Mapped[Channel] = mapped_column(SAEnum(Channel, name="channel"), nullable=False)
     external_account_id: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    page_access_token: Mapped[str | None] = mapped_column(String, nullable=True)
+    page_access_token: Mapped[str | None] = mapped_column(EncryptedString, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     merchant: Mapped[Merchant] = relationship()

@@ -33,8 +33,11 @@ async def test_search_is_scoped_to_merchant(db_session, merchant):
     await db_session.flush()
     db_session.add(
         StoreKnowledge(
-            merchant_id=other_merchant.id, knowledge_type="shipping", title="x",
-            content="not this merchant's answer", keywords=["شحن"],
+            merchant_id=other_merchant.id,
+            knowledge_type="shipping",
+            title="x",
+            content="not this merchant's answer",
+            keywords=["شحن"],
         )
     )
     await db_session.flush()
@@ -46,8 +49,11 @@ async def test_search_is_scoped_to_merchant(db_session, merchant):
 async def test_search_filters_by_knowledge_type(db_session, merchant):
     db_session.add(
         StoreKnowledge(
-            merchant_id=merchant.id, knowledge_type="returns", title="استبدال",
-            content="تقدر تستبدل خلال 14 يوم.", keywords=["شحن"],
+            merchant_id=merchant.id,
+            knowledge_type="returns",
+            title="استبدال",
+            content="تقدر تستبدل خلال 14 يوم.",
+            keywords=["شحن"],
         )
     )
     await db_session.flush()

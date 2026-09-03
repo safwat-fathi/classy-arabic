@@ -60,7 +60,9 @@ async def test_validate_delivery_area_unavailable_when_no_address(db_session, me
     assert result == {"status": "unavailable", "reason": "no_address_provided"}
 
 
-async def test_create_order_includes_delivery_fee_in_total_when_area_matches(db_session, merchant, conversation, message):
+async def test_create_order_includes_delivery_fee_in_total_when_area_matches(
+    db_session, merchant, conversation, message
+):
     product = Product(merchant_id=merchant.id, name="Shoes", price=250)
     db_session.add(product)
     await db_session.flush()

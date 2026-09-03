@@ -1,0 +1,32 @@
+"use client";
+
+import { useMerchantData } from "@/lib/use-merchant-data";
+import { ProductCatalog } from "@/app/demo/product-catalog";
+import { fetchProductsAction } from "@/app/demo/actions";
+import type { Product } from "@/lib/products";
+
+export function ProductsClient({
+  merchantId,
+  initialProducts,
+}: {
+  merchantId: string;
+  initialProducts: Product[];
+}) {
+  const { data: products, refresh } = useMerchantData<Product[]>(fetchProductsAction, merchantId, initialProducts);
+
+  return (
+    <div className="font-sans">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">Products</h1>
+        <p className="text-slate-500 mt-1">Manage your product catalog.</p>
+      </div>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <ProductCatalog
+          products={products}
+          merchantId={merchantId}
+          onRefresh={refresh}
+        />
+      </div>
+    </div>
+  );
+}

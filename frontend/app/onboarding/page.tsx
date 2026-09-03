@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
+import { loginWithFacebookAction } from "@/app/login/actions";
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -31,32 +33,14 @@ export default function OnboardingPage() {
           }
 
           try {
-            const res = await fetch(`${API_BASE}/auth/facebook/callback`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                access_token: response.authResponse.accessToken,
-              }),
-            });
-
-            if (!res.ok) {
-              const detail = await res.text();
-              throw new Error(`${res.status}: ${detail}`);
-            }
-
-            const data = await res.json();
-            // Store JWT for subsequent API calls
-            localStorage.setItem("tijaratk_token", data.access_token);
-            localStorage.setItem("tijaratk_merchant_id", data.merchant_id);
-            localStorage.setItem("tijaratk_merchant_name", data.merchant_name);
+            const data = await loginWithFacebookAction(response.authResponse.accessToken);
 
             alert(
               `Connected! ${data.pages_connected} page(s) linked. Merchant: ${data.merchant_name}`
             );
-            router.push("/demo");
+            router.push("/merchant");
           } catch (err) {
             setError(err instanceof Error ? err.message : "Connection failed");
-          } finally {
             setLoading(false);
           }
         },

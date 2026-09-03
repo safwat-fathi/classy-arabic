@@ -6,7 +6,11 @@ from app.models import Conversation, Message
 
 
 async def list_conversations(db: AsyncSession, merchant_id: str) -> list[ConversationRead]:
-    stmt = select(Conversation).where(Conversation.merchant_id == merchant_id).order_by(Conversation.last_message_at.desc())
+    stmt = (
+        select(Conversation)
+        .where(Conversation.merchant_id == merchant_id)
+        .order_by(Conversation.last_message_at.desc())
+    )
     result = await db.execute(stmt)
     conversations = result.scalars().all()
     return [
@@ -24,7 +28,9 @@ async def list_conversations(db: AsyncSession, merchant_id: str) -> list[Convers
     ]
 
 
-async def get_conversation_messages(db: AsyncSession, merchant_id: str, conversation_id: str) -> list[MessageRead] | None:
+async def get_conversation_messages(
+    db: AsyncSession, merchant_id: str, conversation_id: str
+) -> list[MessageRead] | None:
     conversation = await db.get(Conversation, conversation_id)
     if conversation is None or conversation.merchant_id != merchant_id:
         return None

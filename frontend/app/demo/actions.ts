@@ -1,11 +1,49 @@
 "use server";
 
+import { cookies } from "next/headers";
 import type { MessageIngestResponse } from "@/lib/messages";
+import type { Product } from "@/lib/products";
+import type { StoreKnowledge } from "@/lib/knowledge";
+import type { Order } from "@/lib/orders";
 
 export type IngestState =
   | { status: "idle" }
   | { status: "success"; data: MessageIngestResponse }
   | { status: "error"; message: string };
+
+function getBaseUrl() {
+  const baseUrl = process.env.BASE_API_URL;
+  if (!baseUrl) {
+    throw new Error("BASE_API_URL not configured");
+  }
+  return baseUrl;
+}
+
+export async function checkResponse(res: Response, errorPrefix: string = "Request failed") {
+  if (res.status === 401 || res.status === 403) {
+    const cookieStore = await cookies();
+    cookieStore.delete("tijaratk_token");
+    cookieStore.delete("tijaratk_merchant_name");
+    // Next.js redirect throws a special error to halt execution and trigger the client redirect
+    const { redirect } = await import("next/navigation");
+    redirect("/login");
+  }
+  if (!res.ok) {
+    const err = await res.text().catch(() => res.statusText);
+    throw new Error(`${errorPrefix}: ${res.status} ${err}`);
+  }
+}
+
+async function getAuthHeaders(merchantId?: string, token?: string): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const cookieStore = await cookies();
+  const actualToken = token || cookieStore.get("tijaratk_token")?.value;
+
+  if (actualToken) {
+    headers["Authorization"] = `Bearer ${actualToken}`;
+  }
+  return headers;
+}
 
 export async function sendMessage(
   conversationId: string,
@@ -13,11 +51,7 @@ export async function sendMessage(
   formData: FormData,
 ): Promise<IngestState> {
   const text = String(formData.get("text") ?? "");
-
-  const baseUrl = process.env.BASE_API_URL;
-  if (!baseUrl) {
-    return { status: "error", message: "BASE_API_URL not configured" };
-  }
+  const baseUrl = getBaseUrl();
 
   let response: Response;
   try {
@@ -39,10 +73,281 @@ export async function sendMessage(
   }
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      const cookieStore = await cookies();
+      cookieStore.delete("tijaratk_token");
+      cookieStore.delete("tijaratk_merchant_name");
+      const { redirect } = await import("next/navigation");
+      redirect("/login");
+    }
     const detail = await response.text();
     return { status: "error", message: `${response.status}: ${detail}` };
   }
 
   const data = (await response.json()) as MessageIngestResponse;
   return { status: "success", data };
+}
+
+// ---------------- PRODUCTS ACTIONS ----------------
+
+export async function fetchProductsAction(merchantId?: string, token?: string): Promise<Product[]> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/products/`, {
+    headers: await getAuthHeaders(merchantId, token),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to fetch products");
+  return res.json();
+}
+
+export async function createProductAction(
+  data: {
+    name: string;
+    aliases: string[];
+    price?: number | null;
+    variants?: Array<{ label: string; sku?: string; price?: number; stock?: number }>;
+  },
+  merchantId?: string,
+  token?: string,
+): Promise<Product> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/products/`, {
+    method: "POST",
+    headers: await getAuthHeaders(merchantId, token),
+    body: JSON.stringify(data),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to create product");
+  return res.json();
+}
+
+export async function updateProductAction(
+  productId: string,
+  data: { name?: string; aliases?: string[]; price?: number | null },
+  merchantId?: string,
+  token?: string,
+): Promise<Product> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/products/${productId}`, {
+    method: "PUT",
+    headers: await getAuthHeaders(merchantId, token),
+    body: JSON.stringify(data),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to update product");
+  return res.json();
+}
+
+export async function deleteProductAction(productId: string, merchantId?: string, token?: string): Promise<void> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/products/${productId}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(merchantId, token),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to delete product");
+}
+
+// ---------------- STORE KNOWLEDGE ACTIONS ----------------
+
+export async function fetchKnowledgeAction(merchantId?: string, token?: string): Promise<StoreKnowledge[]> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/store-knowledge/`, {
+    headers: await getAuthHeaders(merchantId, token),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to fetch knowledge");
+  return res.json();
+}
+
+export async function createKnowledgeAction(
+  data: {
+    knowledge_type: string;
+    title: string;
+    content: string;
+    keywords: string[];
+  },
+  merchantId?: string,
+  token?: string,
+): Promise<StoreKnowledge> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/store-knowledge/`, {
+    method: "POST",
+    headers: await getAuthHeaders(merchantId, token),
+    body: JSON.stringify(data),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to create knowledge");
+  return res.json();
+}
+
+export async function updateKnowledgeAction(
+  knowledgeId: string,
+  data: {
+    knowledge_type?: string;
+    title?: string;
+    content?: string;
+    keywords?: string[];
+  },
+  merchantId?: string,
+  token?: string,
+): Promise<StoreKnowledge> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/store-knowledge/${knowledgeId}`, {
+    method: "PUT",
+    headers: await getAuthHeaders(merchantId, token),
+    body: JSON.stringify(data),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to update knowledge");
+  return res.json();
+}
+
+export async function deleteKnowledgeAction(knowledgeId: string, merchantId?: string, token?: string): Promise<void> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/store-knowledge/${knowledgeId}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(merchantId, token),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to delete knowledge");
+}
+
+// ---------------- MANUAL ORDERS ACTIONS ----------------
+
+export interface ManualOrderResult {
+  id: string;
+  order_number: number | null;
+  status: string;
+  subtotal: number | null;
+  total: number | null;
+}
+
+export async function createManualOrderAction(
+  data: {
+    conversation_id: string;
+    line_items: Array<{ product_id: string; variant_id?: string; quantity: number }>;
+    customer_name?: string;
+    customer_phone?: string;
+    delivery_address?: string;
+  },
+  merchantId?: string,
+  token?: string,
+): Promise<ManualOrderResult> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/orders/manual`, {
+    method: "POST",
+    headers: await getAuthHeaders(merchantId, token),
+    body: JSON.stringify(data),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to create manual order");
+  return res.json();
+}
+
+// ---------------- HUMAN TAKEOVER & REPLIES ACTIONS ----------------
+
+export async function takeoverConversationAction(
+  conversationId: string,
+  reason: string = "MERCHANT_TAKEOVER",
+  notes?: string,
+  merchantId?: string,
+  token?: string,
+): Promise<void> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/conversations/${conversationId}/takeover`, {
+    method: "POST",
+    headers: await getAuthHeaders(merchantId, token),
+    body: JSON.stringify({ reason, notes }),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to take over conversation");
+}
+
+export async function returnToAiAction(
+  conversationId: string,
+  notes?: string,
+  merchantId?: string,
+  token?: string,
+): Promise<void> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/conversations/${conversationId}/return-to-ai`, {
+    method: "POST",
+    headers: await getAuthHeaders(merchantId, token),
+    body: JSON.stringify({ notes }),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to return to AI");
+}
+
+export async function sendManualReplyAction(
+  conversationId: string,
+  text: string,
+  merchantId?: string,
+  token?: string,
+): Promise<{ message_id: string; sent: boolean }> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/conversations/${conversationId}/reply`, {
+    method: "POST",
+    headers: await getAuthHeaders(merchantId, token),
+    body: JSON.stringify({ text }),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to send reply");
+  return res.json();
+}
+
+export interface MessageRecord {
+  id: string;
+  conversation_id: string;
+  direction: string;
+  raw_text: string | null;
+  intent: string | null;
+  intent_confidence: number | null;
+  created_at: string;
+}
+
+export interface ConversationRecord {
+  id: string;
+  merchant_id: string;
+  customer_ref: string;
+  channel: string;
+  status: string;
+  is_human_takeover: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function fetchConversationsAction(merchantId?: string, token?: string): Promise<ConversationRecord[]> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/conversations/`, {
+    headers: await getAuthHeaders(merchantId, token),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to fetch conversations");
+  return res.json();
+}
+
+export async function fetchOrdersAction(merchantId?: string, token?: string): Promise<Order[]> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/orders/`, {
+    headers: await getAuthHeaders(merchantId, token),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to fetch orders");
+  return res.json();
+}
+
+export async function fetchMessagesAction(
+  conversationId: string,
+  merchantId?: string,
+  token?: string,
+): Promise<MessageRecord[]> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, {
+    headers: await getAuthHeaders(merchantId, token),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to fetch messages");
+  return res.json();
 }

@@ -50,3 +50,9 @@ class Order(Base):
     conversation: Mapped[Conversation] = relationship(back_populates="orders")
     message: Mapped[Message] = relationship(back_populates="order")
     items: Mapped[list[OrderItem]] = relationship(back_populates="order", cascade="all, delete-orphan")
+
+    @property
+    def created_at(self):
+        if hasattr(self, "message") and self.message is not None:
+            return self.message.created_at
+        return None

@@ -190,8 +190,11 @@ async def test_ingest_purchase_intent_returns_full_order_detail(db_session, merc
 async def test_ingest_question_returns_answer_text(db_session, merchant, conversation, mock_ai):
     db_session.add(
         StoreKnowledge(
-            merchant_id=conversation.merchant_id, knowledge_type="shipping", title="سياسة الشحن",
-            content="بنشحن لكل محافظات مصر خلال يومين لأربعة أيام.", keywords=["شحن"],
+            merchant_id=conversation.merchant_id,
+            knowledge_type="shipping",
+            title="سياسة الشحن",
+            content="بنشحن لكل محافظات مصر خلال يومين لأربعة أيام.",
+            keywords=["شحن"],
         )
     )
     await db_session.flush()

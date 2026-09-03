@@ -1,8 +1,12 @@
+import logging
 from dataclasses import dataclass
 
 import httpx
+from fastapi import HTTPException
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 _DEBUG_TOKEN_URL = "https://graph.facebook.com/debug_token"
 _ME_URL = "https://graph.facebook.com/me"
@@ -36,10 +40,20 @@ async def verify_facebook_access_token(access_token: str) -> FacebookIdentity | 
                 _DEBUG_TOKEN_URL,
                 params={"input_token": access_token, "access_token": app_access_token},
             )
+
+        if debug_response.status_code >= 500:
+            raise HTTPException(status_code=502, detail="Facebook Graph API unavailable")
+
         debug_response.raise_for_status()
         debug_data = debug_response.json()["data"]
 
-        if debug_data["is_valid"] is not True or debug_data["app_id"] != settings.META_APP_ID:
+        if debug_data.get("is_valid") is not True or debug_data.get("app_id") != settings.META_APP_ID:
+            return None
+
+        scopes = debug_data.get("scopes", [])
+        required_scopes = {"pages_manage_metadata", "pages_messaging", "pages_show_list"}
+        if not required_scopes.issubset(set(scopes)):
+            logger.warning("missing_scopes required=%s granted=%s", required_scopes, scopes)
             return None
 
         async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS) as client:
@@ -47,11 +61,24 @@ async def verify_facebook_access_token(access_token: str) -> FacebookIdentity | 
                 _ME_URL,
                 params={"access_token": access_token, "fields": "id,name"},
             )
+
+        if me_response.status_code >= 500:
+            raise HTTPException(status_code=502, detail="Facebook Graph API unavailable")
+
         me_response.raise_for_status()
         me_data = me_response.json()
 
         return FacebookIdentity(facebook_user_id=me_data["id"], name=me_data["name"])
-    except (httpx.HTTPError, KeyError, TypeError, AttributeError, ValueError):
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 401 or e.response.status_code == 403:
+            return None
+        logger.error("facebook_api_error status=%s body=%s", e.response.status_code, e.response.text)
+        raise HTTPException(status_code=502, detail="Facebook API error")
+    except httpx.RequestError as e:
+        logger.error("facebook_api_request_error error=%s", str(e))
+        raise HTTPException(status_code=502, detail="Facebook API connection error")
+    except (KeyError, TypeError, AttributeError, ValueError) as e:
+        logger.error("facebook_api_parse_error error=%s", str(e))
         return None
 
 
@@ -59,17 +86,40 @@ async def fetch_user_pages(access_token: str) -> list[FacebookPage]:
     """Fetch the Facebook Pages managed by this user. Each page comes with a
     page-scoped access token that we store to send outbound replies."""
     try:
+        pages = []
+        next_url = _ME_ACCOUNTS_URL
+        params = {"access_token": access_token, "fields": "id,name,access_token"}
+
         async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS) as client:
-            response = await client.get(
-                _ME_ACCOUNTS_URL,
-                params={"access_token": access_token, "fields": "id,name,access_token"},
-            )
-        response.raise_for_status()
-        data = response.json().get("data", [])
-        return [
-            FacebookPage(page_id=page["id"], name=page["name"], access_token=page["access_token"])
-            for page in data
-            if page.get("id") and page.get("access_token")
-        ]
-    except (httpx.HTTPError, KeyError, TypeError, ValueError):
-        return []
+            while next_url:
+                response = await client.get(next_url, params=params)
+                if response.status_code >= 500:
+                    raise HTTPException(status_code=502, detail="Facebook Graph API unavailable")
+
+                response.raise_for_status()
+                data = response.json()
+
+                for page in data.get("data", []):
+                    if page.get("id") and page.get("access_token"):
+                        pages.append(
+                            FacebookPage(
+                                page_id=page["id"],
+                                name=page["name"],
+                                access_token=page["access_token"]
+                            )
+                        )
+
+                paging = data.get("paging", {})
+                next_url = paging.get("next")
+                params = None # URL already contains params for next page
+
+        return pages
+    except httpx.HTTPStatusError as e:
+        logger.error("facebook_pages_api_error status=%s body=%s", e.response.status_code, e.response.text)
+        raise HTTPException(status_code=502, detail="Facebook API error fetching pages")
+    except httpx.RequestError as e:
+        logger.error("facebook_pages_request_error error=%s", str(e))
+        raise HTTPException(status_code=502, detail="Facebook API connection error fetching pages")
+    except (KeyError, TypeError, ValueError) as e:
+        logger.error("facebook_pages_parse_error error=%s", str(e))
+        raise HTTPException(status_code=500, detail="Invalid response from Facebook API")

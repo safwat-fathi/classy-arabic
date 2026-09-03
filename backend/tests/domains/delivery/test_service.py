@@ -51,7 +51,9 @@ async def test_update_delivery_area_rejects_other_merchants_area(db_session, mer
 async def test_delete_delivery_area(db_session, merchant):
     area = await create_delivery_area(db_session, merchant.id, DeliveryAreaCreate(area="Nasr City", delivery_fee=25.0))
     assert await delete_delivery_area(db_session, merchant.id, area.id) is True
-    assert (await db_session.execute(select(DeliveryArea).where(DeliveryArea.id == area.id))).scalar_one_or_none() is None
+    assert (
+        await db_session.execute(select(DeliveryArea).where(DeliveryArea.id == area.id))
+    ).scalar_one_or_none() is None
 
 
 async def test_delete_delivery_area_rejects_other_merchants_area(db_session, merchant):

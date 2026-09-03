@@ -5,8 +5,7 @@ import time
 from dataclasses import dataclass
 from types import SimpleNamespace
 
-from openai import APIError, AsyncOpenAI
-from openai import AsyncStream
+from openai import APIError, AsyncOpenAI, AsyncStream
 from pydantic import BaseModel, ValidationError
 
 from app.core.config import settings

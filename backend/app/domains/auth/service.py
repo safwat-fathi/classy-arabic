@@ -1,10 +1,11 @@
 import logging
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domains.auth.meta_client import FacebookIdentity, FacebookPage
-from app.models import ChannelConnection, Channel, Merchant
+from app.models import Channel, ChannelConnection, Merchant
 
 logger = logging.getLogger(__name__)
 
@@ -23,14 +24,30 @@ async def find_or_create_merchant_by_facebook_id(db: AsyncSession, identity: Fac
 
     merchant = Merchant(name=identity.name, facebook_user_id=identity.facebook_user_id)
     db.add(merchant)
-    await db.flush()
-    return merchant
+
+    try:
+        # A savepoint or nested transaction could be required here depending on the setup,
+        # but in most postgres async configs, flushing a duplicate triggers an IntegrityError.
+        # We need to explicitly catch it. Since we are in an open transaction, an error will
+        # invalidate the transaction, so we must rollback first before querying again.
+        await db.flush()
+        return merchant
+    except IntegrityError:
+        await db.rollback()
+        result = await db.execute(select(Merchant).where(Merchant.facebook_user_id == identity.facebook_user_id))
+        merchant = result.scalar_one_or_none()
+        if merchant is not None:
+            return merchant
+        raise
 
 
-async def provision_channel_connections(db: AsyncSession, merchant_id: str, pages: list[FacebookPage]) -> int:
+async def provision_channel_connections(
+    db: AsyncSession, merchant_id: str, pages: list[FacebookPage]
+) -> tuple[int, list[str]]:
     """For each FB page, upsert a ChannelConnection with its page access token.
-    Returns the count of pages connected."""
+    Returns the count of pages connected and a list of conflicted page IDs."""
     connected = 0
+    conflicts = []
     for page in pages:
         result = await db.execute(
             select(ChannelConnection).where(
@@ -40,7 +57,14 @@ async def provision_channel_connections(db: AsyncSession, merchant_id: str, page
         )
         existing = result.scalar_one_or_none()
         if existing is not None:
-            existing.merchant_id = merchant_id
+            if existing.merchant_id != merchant_id:
+                logger.warning(
+                    "page_conflict page_id=%s owned_by=%s requested_by=%s",
+                    page.page_id, existing.merchant_id, merchant_id
+                )
+                conflicts.append(page.page_id)
+                continue
+
             existing.page_access_token = page.access_token
             existing.is_active = True
         else:
@@ -53,6 +77,11 @@ async def provision_channel_connections(db: AsyncSession, merchant_id: str, page
                 )
             )
         connected += 1
-        logger.info("channel_connection_provisioned merchant_id=%s page_id=%s page_name=%s", merchant_id, page.page_id, page.name)
+        logger.info(
+            "channel_connection_provisioned merchant_id=%s page_id=%s page_name=%s",
+            merchant_id,
+            page.page_id,
+            page.name,
+        )
     await db.flush()
-    return connected
+    return connected, conflicts

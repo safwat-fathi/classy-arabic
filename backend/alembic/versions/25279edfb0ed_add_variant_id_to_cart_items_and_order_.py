@@ -5,17 +5,18 @@ Revises: 4f209de00b23
 Create Date: 2026-08-27 21:39:03.103960
 
 """
-from typing import Sequence, Union
 
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '25279edfb0ed'
-down_revision: Union[str, Sequence[str], None] = '4f209de00b23'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision: str = "25279edfb0ed"
+down_revision: str | Sequence[str] | None = "4f209de00b23"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -69,7 +70,9 @@ def downgrade() -> None:
     op.drop_column("order_items", "variant_id")
 
     op.drop_index(
-        "uq_cart_items_cart_product_variant", table_name="cart_items", postgresql_where=sa.text("variant_id IS NOT NULL")
+        "uq_cart_items_cart_product_variant",
+        table_name="cart_items",
+        postgresql_where=sa.text("variant_id IS NOT NULL"),
     )
     op.drop_index(
         "uq_cart_items_cart_product_no_variant", table_name="cart_items", postgresql_where=sa.text("variant_id IS NULL")

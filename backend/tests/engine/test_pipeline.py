@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 
 import httpx
@@ -77,7 +78,7 @@ async def test_known_intents_adds_newly_observed_labels(db_session, conversation
             merchant_id=conversation.merchant_id,
             normalized_text="foo",
             intent="custom_intent_from_label",
-            source="test"
+            source="test",
         )
     )
     db_session.add(
@@ -99,15 +100,20 @@ async def test_known_intents_scoped_to_merchant(db_session, merchant, conversati
     db_session.add(other_merchant)
     await db_session.flush()
     other_conversation = Conversation(
-        merchant_id=other_merchant.id, customer_ref="other-cust",
-        state=ConvState.NEW, slots={}, last_message_at=conversation.last_message_at,
+        merchant_id=other_merchant.id,
+        customer_ref="other-cust",
+        state=ConvState.NEW,
+        slots={},
+        last_message_at=conversation.last_message_at,
     )
     db_session.add(other_conversation)
     await db_session.flush()
     db_session.add(
         Message(
-            conversation_id=other_conversation.id, direction=Direction.INBOUND,
-            normalized_text="hi", intent="other_merchants_secret_intent",
+            conversation_id=other_conversation.id,
+            direction=Direction.INBOUND,
+            normalized_text="hi",
+            intent="other_merchants_secret_intent",
         )
     )
     await db_session.flush()
@@ -442,7 +448,6 @@ async def test_process_message_routes_to_action_resolution_when_enabled(db_sessi
     assert result.message.escalation_reason is None
     assert result.order is None
 
-import json
 
 async def test_classification_call_sets_max_tokens(db_session, conversation, mock_ai):
     route = mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
@@ -539,8 +544,11 @@ async def test_no_matching_knowledge_leaves_answer_text_none(db_session, convers
 async def test_purchase_intent_with_order_skips_knowledge_lookup(db_session, conversation, mock_ai):
     db_session.add(
         StoreKnowledge(
-            merchant_id=conversation.merchant_id, knowledge_type="general", title="x",
-            content="should not appear when an order was produced", keywords=["رز"],
+            merchant_id=conversation.merchant_id,
+            knowledge_type="general",
+            title="x",
+            content="should not appear when an order was produced",
+            keywords=["رز"],
         )
     )
     await db_session.flush()

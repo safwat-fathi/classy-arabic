@@ -14,10 +14,10 @@ from app.models.enums import ConvState
 
 if TYPE_CHECKING:
     from app.models.channel_connection import ChannelConnection
+    from app.models.human_handoff import HumanHandoff
     from app.models.merchant import Merchant
     from app.models.message import Message
     from app.models.order import Order
-    from app.models.human_handoff import HumanHandoff
 
 
 class Conversation(Base):

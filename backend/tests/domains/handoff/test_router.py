@@ -1,5 +1,6 @@
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime, UTC
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,6 +16,7 @@ from app.models.merchant import Merchant
 @pytest.fixture
 async def sample_conversation(db_session: AsyncSession, merchant: Merchant) -> Conversation:
     from app.models.enums import ConvState
+
     conversation = Conversation(
         merchant_id=merchant.id,
         customer_ref="test_customer",
@@ -52,14 +54,18 @@ async def test_takeover_conversation(
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/conversations/{sample_conversation.id}/takeover",
-            json={"reason": "MERCHANT_TAKEOVER", "notes": "Taking over manually"}
+            json={"reason": "MERCHANT_TAKEOVER", "notes": "Taking over manually"},
         )
     assert response.status_code == 204
 
     await db_session.refresh(sample_conversation)
     assert sample_conversation.human_takeover is True
 
-    handoffs = (await db_session.execute(select(HumanHandoff).where(HumanHandoff.conversation_id == sample_conversation.id))).scalars().all()
+    handoffs = (
+        (await db_session.execute(select(HumanHandoff).where(HumanHandoff.conversation_id == sample_conversation.id)))
+        .scalars()
+        .all()
+    )
     assert len(handoffs) == 1
     assert handoffs[0].reason == "MERCHANT_TAKEOVER"
     assert handoffs[0].notes == "Taking over manually"
@@ -74,22 +80,22 @@ async def test_return_to_ai(
 ):
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # First takeover
-        await client.post(
-            f"/conversations/{sample_conversation.id}/takeover",
-            json={"reason": "MERCHANT_TAKEOVER"}
-        )
+        await client.post(f"/conversations/{sample_conversation.id}/takeover", json={"reason": "MERCHANT_TAKEOVER"})
 
         # Then return to AI
         response = await client.post(
-            f"/conversations/{sample_conversation.id}/return-to-ai",
-            json={"notes": "Issue resolved"}
+            f"/conversations/{sample_conversation.id}/return-to-ai", json={"notes": "Issue resolved"}
         )
     assert response.status_code == 204
 
     await db_session.refresh(sample_conversation)
     assert sample_conversation.human_takeover is False
 
-    handoffs = (await db_session.execute(select(HumanHandoff).where(HumanHandoff.conversation_id == sample_conversation.id))).scalars().all()
+    handoffs = (
+        (await db_session.execute(select(HumanHandoff).where(HumanHandoff.conversation_id == sample_conversation.id)))
+        .scalars()
+        .all()
+    )
     assert len(handoffs) == 1
     assert handoffs[0].resolved_at is not None
     assert handoffs[0].notes == "Issue resolved"

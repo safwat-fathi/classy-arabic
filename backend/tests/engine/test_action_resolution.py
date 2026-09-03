@@ -67,9 +67,7 @@ async def test_resolve_action_executes_search_store_knowledge_with_no_matches(
     assert resolution.response_text == "I couldn't find any information about that."
 
 
-async def test_resolve_action_returns_knowledge_content_on_match(
-    db_session, merchant, conversation, message, mock_ai
-):
+async def test_resolve_action_returns_knowledge_content_on_match(db_session, merchant, conversation, message, mock_ai):
     db_session.add(
         StoreKnowledge(
             merchant_id=merchant.id,

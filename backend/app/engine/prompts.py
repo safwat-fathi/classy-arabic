@@ -55,7 +55,8 @@ EXTRACTION_TASK_BLOCK = (
     "1. ONLY extract information explicitly stated in the CURRENT customer message.\n"
     "2. DO NOT copy address, phone, or other details from the few-shot examples.\n"
     "3. If a field is not present in the current message, leave it null/empty.\n"
-    "4. If the customer mentions payment (e.g., 'Insta', 'انستا', 'كاش', 'cash', 'vf cash'), extract it into `payment_method` (e.g. 'InstaPay', 'Cash on Delivery', 'Vodafone Cash').\n"
+    "4. If the customer mentions payment (e.g., 'Insta', 'انستا', 'كاش', 'cash', 'vf cash'), "
+    "extract it into `payment_method` (e.g. 'InstaPay', 'Cash on Delivery', 'Vodafone Cash').\n"
     "5. If the customer mentions a size, color, or other variant descriptor for a line item "
     "(e.g. 'XL', 'الأسود', 'the large one'), extract it into that line item's `variant_hint`."
 )

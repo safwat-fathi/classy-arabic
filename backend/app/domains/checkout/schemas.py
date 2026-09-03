@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, Field
 
 
@@ -21,3 +22,27 @@ class ManualOrderRead(BaseModel):
     status: str
     subtotal: float | None
     total: float | None
+
+class OrderItemRead(BaseModel):
+    id: str
+    product_id: str | None
+    variant_id: str | None
+    name_snapshot: str
+    variant_snapshot: str | None
+    unit_price: float
+    quantity: float
+
+class OrderRead(BaseModel):
+    id: str
+    order_number: int | None
+    status: str
+    customer_name: str | None
+    customer_phone: str | None
+    delivery_address: str | None
+    subtotal: float | None
+    total: float | None
+    created_at: datetime
+    items: list[OrderItemRead] = []
+    
+    class Config:
+        from_attributes = True

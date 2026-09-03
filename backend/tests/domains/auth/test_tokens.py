@@ -21,9 +21,9 @@ def test_decode_access_token_returns_none_when_expired():
 
 def test_decode_access_token_returns_none_when_tampered():
     token = create_access_token("merchant-123")
-    last_char = token[-1]
-    replacement = "A" if last_char != "A" else "B"
-    tampered = token[:-1] + replacement
+    header, payload, signature = token.split(".")
+    tampered_sig = ("A" if signature[0] != "A" else "B") + signature[1:]
+    tampered = f"{header}.{payload}.{tampered_sig}"
 
     assert decode_access_token(tampered) is None
 

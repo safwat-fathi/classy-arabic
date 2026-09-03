@@ -56,6 +56,7 @@ async def test_extract_order_flags_ambiguous_fields(mock_ai):
     assert usage is not None
     assert usage.tier == "deepseek"
 
+
 async def test_extract_order_skips_ai_call_on_repeated_correction(mock_ai):
     result, reason, usage = await extract_order(
         "customer: x",

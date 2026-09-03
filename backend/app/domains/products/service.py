@@ -8,7 +8,6 @@ from app.domains.products.schemas import (
     ProductCreate,
     ProductRead,
     ProductUpdate,
-    ProductVariantCreate,
     ProductVariantRead,
 )
 from app.engine.embeddings import embed_text
@@ -81,14 +80,20 @@ async def create_product(db: AsyncSession, merchant_id: str, payload: ProductCre
     db.add(product)
     await db.flush()
     for v in payload.variants:
-        db.add(ProductVariant(product_id=product.id, label=v.label, sku=v.sku, price=v.price, stock=v.stock, attributes=v.attributes))
+        db.add(
+            ProductVariant(
+                product_id=product.id, label=v.label, sku=v.sku, price=v.price, stock=v.stock, attributes=v.attributes
+            )
+        )
     await db.flush()
     # Reload with variants
     await db.refresh(product, ["variants"])
     return _to_product_read(product)
 
 
-async def update_product(db: AsyncSession, merchant_id: str, product_id: str, payload: ProductUpdate) -> ProductRead | None:
+async def update_product(
+    db: AsyncSession, merchant_id: str, product_id: str, payload: ProductUpdate
+) -> ProductRead | None:
     product = await db.get(Product, product_id, options=[selectinload(Product.variants)])
     if product is None or product.merchant_id != merchant_id:
         return None

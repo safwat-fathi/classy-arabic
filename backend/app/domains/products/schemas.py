@@ -48,4 +48,3 @@ class ProductUpdate(BaseModel):
     name: str | None = None
     aliases: list[str] | None = None
     price: float | None = None
-

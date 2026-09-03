@@ -5,9 +5,7 @@ from app.domains.store_knowledge.schemas import StoreKnowledgeCreate, StoreKnowl
 from app.models import StoreKnowledge
 
 
-async def search(
-    session: AsyncSession, merchant_id: str, query: str, knowledge_type: str | None = None
-) -> list[dict]:
+async def search(session: AsyncSession, merchant_id: str, query: str, knowledge_type: str | None = None) -> list[dict]:
     """Keyword-match MVP for SRD §23 ("keyword/full-text retrieval"). A row
     matches when any of its seeded trigger `keywords` appears as a substring
     of the customer's free-text query — the reverse direction from
@@ -37,7 +35,11 @@ async def search(
 
 
 async def list_knowledge(db: AsyncSession, merchant_id: str) -> list[StoreKnowledgeRead]:
-    stmt = select(StoreKnowledge).where(StoreKnowledge.merchant_id == merchant_id).order_by(StoreKnowledge.created_at.desc())
+    stmt = (
+        select(StoreKnowledge)
+        .where(StoreKnowledge.merchant_id == merchant_id)
+        .order_by(StoreKnowledge.created_at.desc())
+    )
     result = await db.execute(stmt)
     return [StoreKnowledgeRead.model_validate(row) for row in result.scalars().all()]
 
@@ -55,7 +57,9 @@ async def create_knowledge(db: AsyncSession, merchant_id: str, payload: StoreKno
     return StoreKnowledgeRead.model_validate(entry)
 
 
-async def update_knowledge(db: AsyncSession, merchant_id: str, knowledge_id: str, payload: StoreKnowledgeUpdate) -> StoreKnowledgeRead | None:
+async def update_knowledge(
+    db: AsyncSession, merchant_id: str, knowledge_id: str, payload: StoreKnowledgeUpdate
+) -> StoreKnowledgeRead | None:
     entry = await db.get(StoreKnowledge, knowledge_id)
     if entry is None or entry.merchant_id != merchant_id:
         return None

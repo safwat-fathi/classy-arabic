@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 10080  # 7 days
-    AUTH_DEV_BYPASS_MERCHANT_ID: str = ""
+    ENCRYPTION_KEY: str = ""
 
     @property
     def sqlalchemy_database_uri(self) -> str:

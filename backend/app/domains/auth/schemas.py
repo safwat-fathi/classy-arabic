@@ -10,3 +10,4 @@ class AuthTokenResponse(BaseModel):
     merchant_id: str
     merchant_name: str
     pages_connected: int = 0
+    conflicted_pages: list[str] = []

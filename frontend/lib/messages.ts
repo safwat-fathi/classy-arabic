@@ -13,6 +13,7 @@ export interface OrderLineItem {
 
 export interface OrderDetail {
   id: string;
+  order_number?: number | null;
   status: string;
   confidence_score: number;
   extracted_by_tier: string;

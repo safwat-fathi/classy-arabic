@@ -5,18 +5,19 @@ Revises: 62d05723243d
 Create Date: 2026-08-27 14:57:17.785096
 
 """
-from typing import Sequence, Union
 
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '4f209de00b23'
-down_revision: Union[str, Sequence[str], None] = '62d05723243d'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision: str = "4f209de00b23"
+down_revision: str | Sequence[str] | None = "62d05723243d"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

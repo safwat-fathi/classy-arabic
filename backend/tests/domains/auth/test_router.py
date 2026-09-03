@@ -14,15 +14,22 @@ _ME_URL = "https://graph.facebook.com/me"
 _ME_ACCOUNTS_URL = "https://graph.facebook.com/me/accounts"
 
 
-def _mock_facebook_success(*, app_id: str, facebook_user_id: str, name: str):
+def _mock_facebook_success(*, app_id: str, facebook_user_id: str, name: str, scopes: list[str] | None = None):
+    if scopes is None:
+        scopes = ["pages_manage_metadata", "pages_messaging", "pages_show_list"]
     respx.get(_DEBUG_TOKEN_URL).mock(
-        return_value=httpx.Response(200, json={"data": {"is_valid": True, "app_id": app_id}})
+        return_value=httpx.Response(200, json={"data": {"is_valid": True, "app_id": app_id, "scopes": scopes}})
     )
     respx.get(_ME_URL).mock(return_value=httpx.Response(200, json={"id": facebook_user_id, "name": name}))
     respx.get(_ME_ACCOUNTS_URL).mock(
-        return_value=httpx.Response(200, json={"data": [
-            {"id": "page-123", "name": "Test Page", "access_token": "page-token-123"},
-        ]})
+        return_value=httpx.Response(
+            200,
+            json={
+                "data": [
+                    {"id": "page-123", "name": "Test Page", "access_token": "page-token-123"},
+                ]
+            },
+        )
     )
 
 
@@ -102,3 +109,45 @@ async def test_facebook_callback_rejects_suspended_merchant(db_session, monkeypa
         app.dependency_overrides.pop(get_db, None)
 
     assert response.status_code == 403
+
+
+@respx.mock
+async def test_get_me_returns_merchant(db_session):
+    from app.domains.auth.tokens import create_access_token
+
+    merchant = Merchant(name="Active Merchant", facebook_user_id="fb-user-3", status=MerchantStatus.ACTIVE)
+    db_session.add(merchant)
+    await db_session.flush()
+
+    token = create_access_token(merchant.id)
+
+    async def _override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = _override_get_db
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
+    finally:
+        app.dependency_overrides.pop(get_db, None)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["merchant_id"] == str(merchant.id)
+    assert body["merchant_name"] == "Active Merchant"
+    assert body["is_active"] is True
+
+
+@respx.mock
+async def test_get_me_rejects_missing_token(db_session):
+    async def _override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = _override_get_db
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.get("/auth/me")
+    finally:
+        app.dependency_overrides.pop(get_db, None)
+
+    assert response.status_code == 401

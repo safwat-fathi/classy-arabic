@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, func
 from sqlalchemy import Enum as SAEnum
@@ -9,6 +12,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 from app.models._ids import new_id
 from app.models.enums import VariantStatus
+
+if TYPE_CHECKING:
+    from app.models.product import Product
 
 
 class ProductVariant(Base):
@@ -32,4 +38,4 @@ class ProductVariant(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
-    product: Mapped["Product"] = relationship(back_populates="variants")
+    product: Mapped[Product] = relationship(back_populates="variants")

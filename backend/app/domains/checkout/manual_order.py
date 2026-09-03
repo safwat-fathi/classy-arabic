@@ -53,12 +53,14 @@ async def create_manual_order(db: AsyncSession, merchant_id: str, payload: Manua
                 quantity=item.quantity,
             )
         )
-        extracted_items.append({
-            "product_name": product.name,
-            "product_id": product.id,
-            "variant_id": variant.id if variant else None,
-            "quantity": item.quantity,
-        })
+        extracted_items.append(
+            {
+                "product_name": product.name,
+                "product_id": product.id,
+                "variant_id": variant.id if variant else None,
+                "quantity": item.quantity,
+            }
+        )
 
     # Create a synthetic message to satisfy the NOT NULL FK
     synthetic_message = Message(

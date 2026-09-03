@@ -8,7 +8,10 @@ declare global {
     FB: {
       init: (params: { appId: string; cookie: boolean; xfbml: boolean; version: string }) => void;
       login: (
-        callback: (response: any) => void,
+        callback: (response: {
+          authResponse?: { accessToken: string; userID?: string; expiresIn?: number; signedRequest?: string };
+          status?: string;
+        }) => void,
         params?: { scope: string; return_scopes?: boolean; config_id?: string }
       ) => void;
     };

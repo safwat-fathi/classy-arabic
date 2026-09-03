@@ -92,7 +92,12 @@ export default async function Home() {
         <p className="text-sm text-gray-500">
           {m.demo_chat_subtitle()}
         </p>
-        <Workspace conversationId={conversation.id} products={products} knowledge={knowledge} />
+        <Workspace
+          conversationId={conversation.id}
+          merchantId={conversation.merchant_id}
+          products={products}
+          knowledge={knowledge}
+        />
       </main>
     </>
   );
