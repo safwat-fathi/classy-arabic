@@ -9,3 +9,4 @@ class AuthTokenResponse(BaseModel):
     access_token: str
     merchant_id: str
     merchant_name: str
+    pages_connected: int = 0

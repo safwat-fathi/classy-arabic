@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.domains.auth.router import router as auth_router
 from app.domains.channels.router import router as channels_router
+from app.domains.checkout.router import router as checkout_router
 from app.domains.conversations.router import router as conversations_router
 from app.domains.delivery.router import router as delivery_router
 from app.domains.handoff.router import router as handoff_router
@@ -21,3 +22,4 @@ api_router.include_router(channels_router, prefix="/webhooks", tags=["webhooks"]
 api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
 api_router.include_router(delivery_router, prefix="/delivery-areas", tags=["delivery"])
 api_router.include_router(handoff_router, prefix="/conversations", tags=["handoff"])
+api_router.include_router(checkout_router, prefix="/orders", tags=["orders"])

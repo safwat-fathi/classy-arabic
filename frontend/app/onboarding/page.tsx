@@ -2,60 +2,69 @@
 
 import { FacebookSDK } from "@/components/facebook-sdk";
 import * as m from "@/paraglide/messages";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleConnectFacebook = useCallback(() => {
-    if (typeof window === "undefined" || !window.FB) {
-      alert("Facebook SDK is not loaded yet.");
-      return;
-    }
-
-    window.FB.login(
-      (response) => {
-        if (response.authResponse) {
-          console.log("Successfully connected Facebook/IG", response.authResponse);
-          // TODO: Send response.authResponse.accessToken to backend to persist
-          alert("Facebook connected successfully! Check console for token.");
-        } else {
-          console.log("User cancelled login or did not fully authorize.");
-        }
-      },
-      {
-        scope:
-          "email,public_profile,pages_manage_metadata,pages_messaging",
-        return_scopes: true,
+  const handleConnect = useCallback(
+    async (scopes: string) => {
+      if (typeof window === "undefined" || !window.FB) {
+        alert("Facebook SDK is not loaded yet.");
+        return;
       }
-    );
-  }, []);
 
-  const handleConnectWhatsApp = useCallback(() => {
-    if (typeof window === "undefined" || !window.FB) {
-      alert("Facebook SDK is not loaded yet.");
-      return;
-    }
+      setLoading(true);
+      setError(null);
 
-    // For WhatsApp embedded signup, you usually pass the config_id or use specific scopes.
-    // Here we request whatsapp scopes, which triggers the WABA flow in the business login dialog.
-    window.FB.login(
-      (response) => {
-        if (response.authResponse) {
-          console.log("Successfully connected WhatsApp", response.authResponse);
-          // TODO: Send response.authResponse.accessToken to backend
-          alert("WhatsApp connected successfully! Check console for token.");
-        } else {
-          console.log("User cancelled WhatsApp login or did not fully authorize.");
-        }
-      },
-      {
-        scope: "email,public_profile,whatsapp_business_management,whatsapp_business_messaging",
-        return_scopes: true,
-      }
-    );
-  }, []);
+      window.FB.login(
+        async (response) => {
+          if (!response.authResponse) {
+            setLoading(false);
+            setError("Login cancelled.");
+            return;
+          }
+
+          try {
+            const res = await fetch(`${API_BASE}/auth/facebook/callback`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                access_token: response.authResponse.accessToken,
+              }),
+            });
+
+            if (!res.ok) {
+              const detail = await res.text();
+              throw new Error(`${res.status}: ${detail}`);
+            }
+
+            const data = await res.json();
+            // Store JWT for subsequent API calls
+            localStorage.setItem("tijaratk_token", data.access_token);
+            localStorage.setItem("tijaratk_merchant_id", data.merchant_id);
+            localStorage.setItem("tijaratk_merchant_name", data.merchant_name);
+
+            alert(
+              `Connected! ${data.pages_connected} page(s) linked. Merchant: ${data.merchant_name}`
+            );
+            router.push("/demo");
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Connection failed");
+          } finally {
+            setLoading(false);
+          }
+        },
+        { scope: scopes, return_scopes: true }
+      );
+    },
+    [router]
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -81,6 +90,12 @@ export default function OnboardingPage() {
           {m.onboarding_title()}
         </h1>
 
+        {error && (
+          <div className="mb-8 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 max-w-md w-full text-center">
+            {error}
+          </div>
+        )}
+
         <div className="flex flex-col md:flex-row gap-8 w-full max-w-4xl justify-center">
           {/* Facebook & Instagram Card */}
           <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col items-center text-center transition-transform hover:-translate-y-1 hover:shadow-md">
@@ -93,10 +108,13 @@ export default function OnboardingPage() {
             <h2 className="text-xl font-bold text-slate-900 mb-3">{m.onboarding_fb_title()}</h2>
             <p className="text-slate-500 mb-8 max-w-xs">{m.onboarding_fb_desc()}</p>
             <button
-              onClick={handleConnectFacebook}
-              className="mt-auto w-full bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
+              onClick={() =>
+                handleConnect("email,public_profile,pages_manage_metadata,pages_messaging")
+              }
+              disabled={loading}
+              className="mt-auto w-full bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {m.onboarding_fb_btn()}
+              {loading ? "..." : m.onboarding_fb_btn()}
             </button>
           </div>
 
@@ -111,10 +129,15 @@ export default function OnboardingPage() {
             <h2 className="text-xl font-bold text-slate-900 mb-3">{m.onboarding_wa_title()}</h2>
             <p className="text-slate-500 mb-8 max-w-xs">{m.onboarding_wa_desc()}</p>
             <button
-              onClick={handleConnectWhatsApp}
-              className="mt-auto w-full bg-[#25D366] hover:bg-[#20b858] text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
+              onClick={() =>
+                handleConnect(
+                  "email,public_profile,whatsapp_business_management,whatsapp_business_messaging"
+                )
+              }
+              disabled={loading}
+              className="mt-auto w-full bg-[#25D366] hover:bg-[#20b858] text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {m.onboarding_wa_btn()}
+              {loading ? "..." : m.onboarding_wa_btn()}
             </button>
           </div>
         </div>

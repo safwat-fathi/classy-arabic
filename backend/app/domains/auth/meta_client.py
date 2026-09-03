@@ -6,6 +6,7 @@ from app.core.config import settings
 
 _DEBUG_TOKEN_URL = "https://graph.facebook.com/debug_token"
 _ME_URL = "https://graph.facebook.com/me"
+_ME_ACCOUNTS_URL = "https://graph.facebook.com/me/accounts"
 
 _HTTP_TIMEOUT_SECONDS = 10.0
 
@@ -14,6 +15,13 @@ _HTTP_TIMEOUT_SECONDS = 10.0
 class FacebookIdentity:
     facebook_user_id: str
     name: str
+
+
+@dataclass(frozen=True)
+class FacebookPage:
+    page_id: str
+    name: str
+    access_token: str
 
 
 async def verify_facebook_access_token(access_token: str) -> FacebookIdentity | None:
@@ -45,3 +53,23 @@ async def verify_facebook_access_token(access_token: str) -> FacebookIdentity | 
         return FacebookIdentity(facebook_user_id=me_data["id"], name=me_data["name"])
     except (httpx.HTTPError, KeyError, TypeError, AttributeError, ValueError):
         return None
+
+
+async def fetch_user_pages(access_token: str) -> list[FacebookPage]:
+    """Fetch the Facebook Pages managed by this user. Each page comes with a
+    page-scoped access token that we store to send outbound replies."""
+    try:
+        async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS) as client:
+            response = await client.get(
+                _ME_ACCOUNTS_URL,
+                params={"access_token": access_token, "fields": "id,name,access_token"},
+            )
+        response.raise_for_status()
+        data = response.json().get("data", [])
+        return [
+            FacebookPage(page_id=page["id"], name=page["name"], access_token=page["access_token"])
+            for page in data
+            if page.get("id") and page.get("access_token")
+        ]
+    except (httpx.HTTPError, KeyError, TypeError, ValueError):
+        return []

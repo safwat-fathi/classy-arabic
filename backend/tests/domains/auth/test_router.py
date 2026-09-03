@@ -11,6 +11,7 @@ from app.models.enums import MerchantStatus
 
 _DEBUG_TOKEN_URL = "https://graph.facebook.com/debug_token"
 _ME_URL = "https://graph.facebook.com/me"
+_ME_ACCOUNTS_URL = "https://graph.facebook.com/me/accounts"
 
 
 def _mock_facebook_success(*, app_id: str, facebook_user_id: str, name: str):
@@ -18,6 +19,11 @@ def _mock_facebook_success(*, app_id: str, facebook_user_id: str, name: str):
         return_value=httpx.Response(200, json={"data": {"is_valid": True, "app_id": app_id}})
     )
     respx.get(_ME_URL).mock(return_value=httpx.Response(200, json={"id": facebook_user_id, "name": name}))
+    respx.get(_ME_ACCOUNTS_URL).mock(
+        return_value=httpx.Response(200, json={"data": [
+            {"id": "page-123", "name": "Test Page", "access_token": "page-token-123"},
+        ]})
+    )
 
 
 @respx.mock

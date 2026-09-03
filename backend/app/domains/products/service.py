@@ -1,9 +1,19 @@
+from decimal import Decimal
+
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.domains.products.schemas import ProductRead, ProductVariantRead
+from app.domains.products.schemas import (
+    ProductCreate,
+    ProductRead,
+    ProductUpdate,
+    ProductVariantCreate,
+    ProductVariantRead,
+)
+from app.engine.embeddings import embed_text
 from app.models import Product
+from app.models.product_variant import ProductVariant
 
 
 def _to_product_read(p: Product) -> ProductRead:
@@ -58,3 +68,47 @@ async def get_product(db: AsyncSession, merchant_id: str, product_id: str) -> Pr
     if product is None or product.merchant_id != merchant_id:
         return None
     return _to_product_read(product)
+
+
+async def create_product(db: AsyncSession, merchant_id: str, payload: ProductCreate) -> ProductRead:
+    product = Product(
+        merchant_id=merchant_id,
+        name=payload.name,
+        aliases=payload.aliases,
+        price=Decimal(str(payload.price)) if payload.price is not None else None,
+    )
+    product.embedding = await embed_text(f"{product.name} " + " ".join(product.aliases))
+    db.add(product)
+    await db.flush()
+    for v in payload.variants:
+        db.add(ProductVariant(product_id=product.id, label=v.label, sku=v.sku, price=v.price, stock=v.stock, attributes=v.attributes))
+    await db.flush()
+    # Reload with variants
+    await db.refresh(product, ["variants"])
+    return _to_product_read(product)
+
+
+async def update_product(db: AsyncSession, merchant_id: str, product_id: str, payload: ProductUpdate) -> ProductRead | None:
+    product = await db.get(Product, product_id, options=[selectinload(Product.variants)])
+    if product is None or product.merchant_id != merchant_id:
+        return None
+    if payload.name is not None:
+        product.name = payload.name
+    if payload.aliases is not None:
+        product.aliases = payload.aliases
+    if payload.price is not None:
+        product.price = Decimal(str(payload.price))
+    # Re-embed if name or aliases changed
+    if payload.name is not None or payload.aliases is not None:
+        product.embedding = await embed_text(f"{product.name} " + " ".join(product.aliases))
+    await db.flush()
+    return _to_product_read(product)
+
+
+async def delete_product(db: AsyncSession, merchant_id: str, product_id: str) -> bool:
+    product = await db.get(Product, product_id)
+    if product is None or product.merchant_id != merchant_id:
+        return False
+    await db.delete(product)
+    await db.flush()
+    return True
