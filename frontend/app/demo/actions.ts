@@ -1,6 +1,8 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { COOKIES, LOGIN_MARKER } from "@/lib/constants";
+import { getBaseUrl } from "@/lib/api";
 import type { MessageIngestResponse } from "@/lib/messages";
 import type { Product } from "@/lib/products";
 import type { StoreKnowledge } from "@/lib/knowledge";
@@ -11,22 +13,11 @@ export type IngestState =
   | { status: "success"; data: MessageIngestResponse }
   | { status: "error"; message: string };
 
-function getBaseUrl() {
-  const baseUrl = process.env.BASE_API_URL;
-  if (!baseUrl) {
-    throw new Error("BASE_API_URL not configured");
-  }
-  return baseUrl;
-}
-
 export async function checkResponse(res: Response, errorPrefix: string = "Request failed") {
   if (res.status === 401 || res.status === 403) {
-    const cookieStore = await cookies();
-    cookieStore.delete("tijaratk_token");
-    cookieStore.delete("tijaratk_merchant_name");
-    // Next.js redirect throws a special error to halt execution and trigger the client redirect
+    // Proxy clears session cookies when it sees the marker on /login.
     const { redirect } = await import("next/navigation");
-    redirect("/login");
+    redirect(`/login?${LOGIN_MARKER}=1`);
   }
   if (!res.ok) {
     const err = await res.text().catch(() => res.statusText);
@@ -34,13 +25,13 @@ export async function checkResponse(res: Response, errorPrefix: string = "Reques
   }
 }
 
-async function getAuthHeaders(merchantId?: string, token?: string): Promise<Record<string, string>> {
+async function getAuthHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const cookieStore = await cookies();
-  const actualToken = token || cookieStore.get("tijaratk_token")?.value;
+  const token = cookieStore.get(COOKIES.TOKEN)?.value;
 
-  if (actualToken) {
-    headers["Authorization"] = `Bearer ${actualToken}`;
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
   return headers;
 }
@@ -74,11 +65,9 @@ export async function sendMessage(
 
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {
-      const cookieStore = await cookies();
-      cookieStore.delete("tijaratk_token");
-      cookieStore.delete("tijaratk_merchant_name");
+      // Proxy clears session cookies when it sees the marker on /login.
       const { redirect } = await import("next/navigation");
-      redirect("/login");
+      redirect(`/login?${LOGIN_MARKER}=1`);
     }
     const detail = await response.text();
     return { status: "error", message: `${response.status}: ${detail}` };
@@ -90,10 +79,10 @@ export async function sendMessage(
 
 // ---------------- PRODUCTS ACTIONS ----------------
 
-export async function fetchProductsAction(merchantId?: string, token?: string): Promise<Product[]> {
+export async function fetchProductsAction(merchantId?: string): Promise<Product[]> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/products/`, {
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     cache: "no-store",
   });
   await checkResponse(res, "Failed to fetch products");
@@ -108,12 +97,11 @@ export async function createProductAction(
     variants?: Array<{ label: string; sku?: string; price?: number; stock?: number }>;
   },
   merchantId?: string,
-  token?: string,
 ): Promise<Product> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/products/`, {
     method: "POST",
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     body: JSON.stringify(data),
     cache: "no-store",
   });
@@ -125,12 +113,11 @@ export async function updateProductAction(
   productId: string,
   data: { name?: string; aliases?: string[]; price?: number | null },
   merchantId?: string,
-  token?: string,
 ): Promise<Product> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/products/${productId}`, {
     method: "PUT",
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     body: JSON.stringify(data),
     cache: "no-store",
   });
@@ -138,11 +125,11 @@ export async function updateProductAction(
   return res.json();
 }
 
-export async function deleteProductAction(productId: string, merchantId?: string, token?: string): Promise<void> {
+export async function deleteProductAction(productId: string, merchantId?: string): Promise<void> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/products/${productId}`, {
     method: "DELETE",
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     cache: "no-store",
   });
   await checkResponse(res, "Failed to delete product");
@@ -150,10 +137,10 @@ export async function deleteProductAction(productId: string, merchantId?: string
 
 // ---------------- STORE KNOWLEDGE ACTIONS ----------------
 
-export async function fetchKnowledgeAction(merchantId?: string, token?: string): Promise<StoreKnowledge[]> {
+export async function fetchKnowledgeAction(merchantId?: string): Promise<StoreKnowledge[]> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/store-knowledge/`, {
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     cache: "no-store",
   });
   await checkResponse(res, "Failed to fetch knowledge");
@@ -168,12 +155,11 @@ export async function createKnowledgeAction(
     keywords: string[];
   },
   merchantId?: string,
-  token?: string,
 ): Promise<StoreKnowledge> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/store-knowledge/`, {
     method: "POST",
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     body: JSON.stringify(data),
     cache: "no-store",
   });
@@ -190,12 +176,11 @@ export async function updateKnowledgeAction(
     keywords?: string[];
   },
   merchantId?: string,
-  token?: string,
 ): Promise<StoreKnowledge> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/store-knowledge/${knowledgeId}`, {
     method: "PUT",
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     body: JSON.stringify(data),
     cache: "no-store",
   });
@@ -203,11 +188,11 @@ export async function updateKnowledgeAction(
   return res.json();
 }
 
-export async function deleteKnowledgeAction(knowledgeId: string, merchantId?: string, token?: string): Promise<void> {
+export async function deleteKnowledgeAction(knowledgeId: string, merchantId?: string): Promise<void> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/store-knowledge/${knowledgeId}`, {
     method: "DELETE",
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     cache: "no-store",
   });
   await checkResponse(res, "Failed to delete knowledge");
@@ -232,12 +217,11 @@ export async function createManualOrderAction(
     delivery_address?: string;
   },
   merchantId?: string,
-  token?: string,
 ): Promise<ManualOrderResult> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/orders/manual`, {
     method: "POST",
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     body: JSON.stringify(data),
     cache: "no-store",
   });
@@ -252,12 +236,11 @@ export async function takeoverConversationAction(
   reason: string = "MERCHANT_TAKEOVER",
   notes?: string,
   merchantId?: string,
-  token?: string,
 ): Promise<void> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/conversations/${conversationId}/takeover`, {
     method: "POST",
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ reason, notes }),
     cache: "no-store",
   });
@@ -268,12 +251,11 @@ export async function returnToAiAction(
   conversationId: string,
   notes?: string,
   merchantId?: string,
-  token?: string,
 ): Promise<void> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/conversations/${conversationId}/return-to-ai`, {
     method: "POST",
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ notes }),
     cache: "no-store",
   });
@@ -284,12 +266,11 @@ export async function sendManualReplyAction(
   conversationId: string,
   text: string,
   merchantId?: string,
-  token?: string,
 ): Promise<{ message_id: string; sent: boolean }> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/conversations/${conversationId}/reply`, {
     method: "POST",
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ text }),
     cache: "no-store",
   });
@@ -318,20 +299,20 @@ export interface ConversationRecord {
   updated_at: string;
 }
 
-export async function fetchConversationsAction(merchantId?: string, token?: string): Promise<ConversationRecord[]> {
+export async function fetchConversationsAction(merchantId?: string): Promise<ConversationRecord[]> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/conversations/`, {
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     cache: "no-store",
   });
   await checkResponse(res, "Failed to fetch conversations");
   return res.json();
 }
 
-export async function fetchOrdersAction(merchantId?: string, token?: string): Promise<Order[]> {
+export async function fetchOrdersAction(merchantId?: string): Promise<Order[]> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/orders/`, {
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     cache: "no-store",
   });
   await checkResponse(res, "Failed to fetch orders");
@@ -341,11 +322,10 @@ export async function fetchOrdersAction(merchantId?: string, token?: string): Pr
 export async function fetchMessagesAction(
   conversationId: string,
   merchantId?: string,
-  token?: string,
 ): Promise<MessageRecord[]> {
   const baseUrl = getBaseUrl();
   const res = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, {
-    headers: await getAuthHeaders(merchantId, token),
+    headers: await getAuthHeaders(),
     cache: "no-store",
   });
   await checkResponse(res, "Failed to fetch messages");

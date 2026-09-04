@@ -124,7 +124,7 @@ export function StoreKnowledgeView({
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Add Info
+            إضافة معلومات
           </button>
         )}
       </div>
@@ -198,7 +198,7 @@ export function StoreKnowledgeView({
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
               <h3 className="font-semibold text-lg text-gray-900">
-                {editingItem ? "Edit Policy" : "Add Policy / Knowledge"}
+                {editingItem ? "تعديل السياسة" : "إضافة سياسة / معلومات"}
               </h3>
               <button
                 onClick={() => setModalOpen(false)}
@@ -216,7 +216,7 @@ export function StoreKnowledgeView({
 
             <form onSubmit={handleSave} className="mt-4 flex flex-col gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Policy Category</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">الفئة</label>
                 <select
                   value={knowledgeType}
                   onChange={(e) => setKnowledgeType(e.target.value)}
@@ -231,38 +231,38 @@ export function StoreKnowledgeView({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Title</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">العنوان</label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. سياسة الشحن والتوصيل"
+                  placeholder="مثال: سياسة الشحن والتوصيل"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Policy Content / Details</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">تفاصيل السياسة</label>
                 <textarea
                   required
                   rows={3}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="e.g. التوصيل لجميع المحافظات خلال 3-5 أيام عمل وداخل القاهرة 50 جنيه."
+                  placeholder="مثال: التوصيل لجميع المحافظات خلال 3-5 أيام عمل وداخل القاهرة 50 جنيه."
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none resize-none"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Trigger Keywords (comma separated)
+                  كلمات مفتاحية (مفصولة بفاصلة)
                 </label>
                 <input
                   type="text"
                   value={keywords}
                   onChange={(e) => setKeywords(e.target.value)}
-                  placeholder="e.g. شحن, توصيل, مصاريف, القاهرة"
+                  placeholder="مثال: شحن, توصيل, مصاريف, القاهرة"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
                 />
               </div>
@@ -273,14 +273,14 @@ export function StoreKnowledgeView({
                   onClick={() => setModalOpen(false)}
                   className="rounded-lg px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100"
                 >
-                  Cancel
+                  إلغاء
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
                   className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:opacity-50"
                 >
-                  {loading ? "Saving..." : editingItem ? "Save Changes" : "Create Policy"}
+                  {loading ? "جاري الحفظ..." : editingItem ? "حفظ التغييرات" : "إنشاء سياسة"}
                 </button>
               </div>
             </form>

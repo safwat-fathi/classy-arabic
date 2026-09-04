@@ -17,10 +17,10 @@ export function PoliciesClient({
   return (
     <div className="font-sans">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Policies</h1>
-        <p className="text-slate-500 mt-1">Manage your store knowledge and policies.</p>
+        <h1 className="text-2xl font-bold text-slate-900">السياسات</h1>
+        <p className="text-slate-500 mt-1">إدارة سياسات ومعلومات المتجر.</p>
       </div>
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <StoreKnowledgeView
           knowledge={knowledge}
           merchantId={merchantId}

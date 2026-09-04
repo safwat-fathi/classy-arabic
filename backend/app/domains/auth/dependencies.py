@@ -14,6 +14,7 @@ logger = logging.getLogger("app.domains.auth")
 
 _bearer_scheme = HTTPBearer(auto_error=False)
 
+
 async def get_current_merchant(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer_scheme)] = None,
     db: AsyncSession = Depends(get_db),

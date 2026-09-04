@@ -162,12 +162,12 @@ export function ProductCatalog({
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Add Product
+            إضافة منتج
           </button>
         )}
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         {products.map((product) => {
           const isHighlighted = highlightedProductIds.includes(product.id);
           const variants = formatVariants(product.variants);
@@ -268,7 +268,7 @@ export function ProductCatalog({
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
               <h3 className="font-semibold text-lg text-gray-900">
-                {editingProduct ? "Edit Product" : "Add New Product"}
+                {editingProduct ? "تعديل المنتج" : "إضافة منتج جديد"}
               </h3>
               <button
                 onClick={() => setModalOpen(false)}
@@ -286,65 +286,65 @@ export function ProductCatalog({
 
             <form onSubmit={handleSave} className="mt-4 flex flex-col gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Product Name</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">اسم المنتج</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Denim Jacket"
+                  placeholder="مثال: جاكيت جينز"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Aliases / Egyptian Dialect Keywords (comma separated)
+                  الأسماء المستعارة / كلمات بالعامية (مفصولة بفاصلة)
                 </label>
                 <input
                   type="text"
                   value={aliases}
                   onChange={(e) => setAliases(e.target.value)}
-                  placeholder="e.g. جاكيت جينز, چاكيت, جينز"
+                  placeholder="مثال: جاكيت جينز, چاكيت, جينز"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Price (EGP)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">السعر (جنيه)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  placeholder="e.g. 750"
+                  placeholder="مثال: 750"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               {!editingProduct && (
                 <div className="rounded-lg bg-gray-50 p-3 border border-gray-200/60 mt-1">
-                  <p className="text-xs font-semibold text-gray-700 mb-2">Initial Variant (Optional)</p>
+                  <p className="text-xs font-semibold text-gray-700 mb-2">النوع الأول (اختياري)</p>
                   <div className="grid grid-cols-3 gap-2">
                     <input
                       type="text"
                       value={variantLabel}
                       onChange={(e) => setVariantLabel(e.target.value)}
-                      placeholder="Label (e.g. Blue / L)"
+                      placeholder="النوع (مثل: أزرق / كبير)"
                       className="col-span-3 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs bg-white focus:outline-none"
                     />
                     <input
                       type="number"
                       value={variantPrice}
                       onChange={(e) => setVariantPrice(e.target.value)}
-                      placeholder="Price"
+                      placeholder="السعر"
                       className="rounded-md border border-gray-300 px-2.5 py-1.5 text-xs bg-white focus:outline-none"
                     />
                     <input
                       type="number"
                       value={variantStock}
                       onChange={(e) => setVariantStock(e.target.value)}
-                      placeholder="Stock (10)"
+                      placeholder="الكمية (10)"
                       className="rounded-md border border-gray-300 px-2.5 py-1.5 text-xs bg-white focus:outline-none"
                     />
                   </div>
@@ -357,14 +357,14 @@ export function ProductCatalog({
                   onClick={() => setModalOpen(false)}
                   className="rounded-lg px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100"
                 >
-                  Cancel
+                  إلغاء
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
                   className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:opacity-50"
                 >
-                  {loading ? "Saving..." : editingProduct ? "Save Changes" : "Create Product"}
+                  {loading ? "جاري الحفظ..." : editingProduct ? "حفظ التغييرات" : "إنشاء منتج"}
                 </button>
               </div>
             </form>

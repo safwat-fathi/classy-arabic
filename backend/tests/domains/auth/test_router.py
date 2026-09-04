@@ -31,6 +31,9 @@ def _mock_facebook_success(*, app_id: str, facebook_user_id: str, name: str, sco
             },
         )
     )
+    respx.post(url__regex=r"https://graph\.facebook\.com/.+/subscribed_apps").mock(
+        return_value=httpx.Response(200, json={"success": True})
+    )
 
 
 @respx.mock

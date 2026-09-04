@@ -160,12 +160,12 @@ export function MessageComposer({
         {isTakeover ? (
           <span className="rounded-full bg-amber-400/20 border border-amber-300/40 px-2.5 py-1 text-xs font-semibold text-amber-200 flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></span>
-            Takeover Active
+            التدخل نشط
           </span>
         ) : (
           <span className="rounded-full bg-emerald-400/20 border border-emerald-300/40 px-2.5 py-1 text-xs font-semibold text-emerald-200 flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
-            AI Responding
+            الذكاء الاصطناعي يرد
           </span>
         )}
       </div>
@@ -174,7 +174,7 @@ export function MessageComposer({
       {isTakeover && (
         <div className="bg-amber-50 border-b border-amber-200/80 px-4 py-2 flex items-center justify-between text-xs text-amber-900">
           <span className="font-medium">
-            AI is paused. You have taken over this conversation.
+            تم إيقاف الذكاء الاصطناعي. لقد توليت هذه المحادثة.
           </span>
           <div className="flex items-center gap-1 bg-amber-200/60 p-0.5 rounded-lg text-[11px]">
             <button
@@ -184,7 +184,7 @@ export function MessageComposer({
                 !sendAsAgent ? "bg-white text-gray-900 shadow-xs" : "text-amber-800"
               }`}
             >
-              Simulate Customer
+              محاكاة عميل
             </button>
             <button
               type="button"
@@ -193,7 +193,7 @@ export function MessageComposer({
                 sendAsAgent ? "bg-white text-gray-900 shadow-xs" : "text-amber-800"
               }`}
             >
-              Reply as Agent
+              الرد كخدمة عملاء
             </button>
           </div>
         </div>
@@ -219,10 +219,10 @@ export function MessageComposer({
             }`}
           >
             {msg.role === "agent" && (
-              <p className="text-[10px] text-blue-600 uppercase font-semibold mb-0.5">Merchant Agent Reply</p>
+              <p className="text-[10px] text-blue-600 uppercase font-semibold mb-0.5">رد خدمة العملاء</p>
             )}
             {msg.role === "ai" && (
-              <p className="text-[10px] text-emerald-600 uppercase font-semibold mb-0.5">AI Response</p>
+              <p className="text-[10px] text-emerald-600 uppercase font-semibold mb-0.5">رد الذكاء الاصطناعي</p>
             )}
             {msg.text}
           </div>
@@ -242,7 +242,7 @@ export function MessageComposer({
           rows={1}
           placeholder={
             isTakeover && sendAsAgent
-              ? "Type official merchant reply to send to customer..."
+              ? "اكتب ردك لإرساله للعميل..."
               : isFocused
               ? m.demo_msg_placeholder()
               : placeholderText || " "
@@ -265,7 +265,7 @@ export function MessageComposer({
           className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white transition-colors disabled:opacity-50 ${
             isTakeover && sendAsAgent ? "bg-blue-600 hover:bg-blue-700" : "bg-[#00a884] hover:bg-[#008f6f]"
           }`}
-          title={isTakeover && sendAsAgent ? "Send Agent Reply" : "Send Customer Message"}
+          title={isTakeover && sendAsAgent ? "إرسال رد خدمة العملاء" : "إرسال رسالة عميل"}
         >
           {isPending || agentSending ? (
             <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">

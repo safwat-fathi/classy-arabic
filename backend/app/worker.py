@@ -23,6 +23,8 @@ def _compose_reply(result) -> str | None:
         return result.answer_text
     if result.order is not None:
         return f"تم استلام طلبك #{result.order.order_number or result.order.id[:8]}. هنتواصل معاك قريب!"
+    if result.message.intent == "greeting":
+        return "أهلاً بك! إزاي أقدر أساعدك النهارده؟"
     return None
 
 

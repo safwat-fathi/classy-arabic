@@ -17,10 +17,10 @@ export function ProductsClient({
   return (
     <div className="font-sans">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Products</h1>
-        <p className="text-slate-500 mt-1">Manage your product catalog.</p>
+        <h1 className="text-2xl font-bold text-slate-900">المنتجات</h1>
+        <p className="text-slate-500 mt-1">إدارة كتالوج المنتجات.</p>
       </div>
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <ProductCatalog
           products={products}
           merchantId={merchantId}

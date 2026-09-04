@@ -5,6 +5,7 @@ Revises: 892c0d02709a
 Create Date: 2026-09-03 15:09:19.578486
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -14,13 +15,10 @@ from alembic import op
 from app.core.config import settings
 
 # revision identifiers, used by Alembic.
-revision: str = 'ee5c64df2d8d'
-down_revision: str | Sequence[str] | None = '892c0d02709a'
+revision: str = "ee5c64df2d8d"
+down_revision: str | Sequence[str] | None = "892c0d02709a"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
-
-
-
 
 
 def upgrade() -> None:
@@ -49,8 +47,9 @@ def upgrade() -> None:
         encrypted_token = fernet.encrypt(raw_token.encode()).decode()
         connection.execute(
             sa.text("UPDATE channel_connections SET page_access_token = :enc WHERE id = :id"),
-            {"enc": encrypted_token, "id": conn_id}
+            {"enc": encrypted_token, "id": conn_id},
         )
+
 
 def downgrade() -> None:
     if not settings.ENCRYPTION_KEY:
@@ -70,7 +69,7 @@ def downgrade() -> None:
             raw_token = fernet.decrypt(enc_token.encode()).decode()
             connection.execute(
                 sa.text("UPDATE channel_connections SET page_access_token = :raw WHERE id = :id"),
-                {"raw": raw_token, "id": conn_id}
+                {"raw": raw_token, "id": conn_id},
             )
         except Exception:
-            pass # Not a valid token, probably already raw
+            pass  # Not a valid token, probably already raw

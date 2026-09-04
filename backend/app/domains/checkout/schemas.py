@@ -24,6 +24,7 @@ class ManualOrderRead(BaseModel):
     subtotal: float | None
     total: float | None
 
+
 class OrderItemRead(BaseModel):
     id: str
     product_id: str | None
@@ -32,6 +33,7 @@ class OrderItemRead(BaseModel):
     variant_snapshot: str | None
     unit_price: float
     quantity: float
+
 
 class OrderRead(BaseModel):
     id: str

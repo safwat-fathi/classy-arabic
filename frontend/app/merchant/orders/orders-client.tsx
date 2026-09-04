@@ -50,9 +50,21 @@ export function OrdersClient({
       setOrderSuccess(result);
       await refresh();
     } catch (err) {
-      setOrderError(err instanceof Error ? err.message : "Failed to create order");
+      setOrderError(err instanceof Error ? err.message : "فشل إنشاء الطلب");
     } finally {
       setOrderLoading(false);
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'COMPLETED': return 'مكتمل';
+      case 'CANCELLED': return 'ملغي';
+      case 'GATHERING_ITEMS': return 'تجميع العناصر';
+      case 'FAILED_VALIDATION': return 'فشل التحقق';
+      case 'PENDING_REVIEW': return 'قيد المراجعة';
+      case 'AUTO_CONFIRMED': return 'مؤكد تلقائياً';
+      default: return status.toLowerCase().replace(/_/g, ' ');
     }
   };
 
@@ -60,8 +72,8 @@ export function OrdersClient({
     <div className="font-sans">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Orders</h1>
-          <p className="text-slate-500 mt-1">Manage and create orders.</p>
+          <h1 className="text-2xl font-bold text-slate-900">الطلبات</h1>
+          <p className="text-slate-500 mt-1">إدارة وإنشاء الطلبات.</p>
         </div>
         <button
           onClick={() => {
@@ -71,26 +83,26 @@ export function OrdersClient({
           }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm"
         >
-          + Create Manual Order
+          + إنشاء طلب يدوي
         </button>
       </div>
       
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {orders.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-slate-500">No orders found.</p>
+            <p className="text-slate-500">لا توجد طلبات.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-6 py-3 text-left font-semibold text-slate-900">Order</th>
-                  <th className="px-6 py-3 text-left font-semibold text-slate-900">Date</th>
-                  <th className="px-6 py-3 text-left font-semibold text-slate-900">Customer</th>
-                  <th className="px-6 py-3 text-left font-semibold text-slate-900">Items</th>
-                  <th className="px-6 py-3 text-left font-semibold text-slate-900">Status</th>
-                  <th className="px-6 py-3 text-right font-semibold text-slate-900">Total</th>
+                  <th className="px-6 py-3 text-start font-semibold text-slate-900">رقم الطلب</th>
+                  <th className="px-6 py-3 text-start font-semibold text-slate-900">التاريخ</th>
+                  <th className="px-6 py-3 text-start font-semibold text-slate-900">العميل</th>
+                  <th className="px-6 py-3 text-start font-semibold text-slate-900">العناصر</th>
+                  <th className="px-6 py-3 text-start font-semibold text-slate-900">الحالة</th>
+                  <th className="px-6 py-3 text-end font-semibold text-slate-900">الإجمالي</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
@@ -100,15 +112,15 @@ export function OrdersClient({
                       #{order.order_number || "---"}
                     </td>
                     <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
-                      {new Date(order.created_at).toLocaleDateString()}
+                      {new Date(order.created_at).toLocaleDateString('ar-EG')}
                     </td>
                     <td className="px-6 py-4 text-slate-700">
-                      <div>{order.customer_name || "Unknown"}</div>
-                      {order.customer_phone && <div className="text-xs text-slate-500 mt-0.5">{order.customer_phone}</div>}
+                      <div>{order.customer_name || "غير معروف"}</div>
+                      {order.customer_phone && <div className="text-xs text-slate-500 mt-0.5" dir="ltr">{order.customer_phone}</div>}
                     </td>
                     <td className="px-6 py-4 text-slate-700 text-xs">
                       {order.items.length === 0 ? (
-                        <span className="text-slate-400 italic">No items</span>
+                        <span className="text-slate-400 italic">لا توجد عناصر</span>
                       ) : (
                         <ul className="list-disc list-inside space-y-1">
                           {order.items.map((item) => (
@@ -127,11 +139,11 @@ export function OrdersClient({
                           order.status === 'FAILED_VALIDATION' ? 'bg-orange-100 text-orange-700' :
                           'bg-slate-100 text-slate-700'}`}
                       >
-                        {order.status.toLowerCase().replace(/_/g, ' ')}
+                        {getStatusText(order.status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right font-medium text-slate-900 whitespace-nowrap">
-                      {order.total != null ? `${Number(order.total).toFixed(2)} EGP` : "---"}
+                    <td className="px-6 py-4 text-end font-medium text-slate-900 whitespace-nowrap">
+                      {order.total != null ? `${Number(order.total).toFixed(2)} جنيه` : "---"}
                     </td>
                   </tr>
                 ))}
@@ -146,7 +158,7 @@ export function OrdersClient({
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-slate-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="font-semibold text-lg text-slate-900">Create Order</h3>
+                <h3 className="font-semibold text-lg text-slate-900">إنشاء طلب</h3>
               </div>
               <button
                 onClick={() => setOrderModalOpen(false)}
@@ -166,11 +178,11 @@ export function OrdersClient({
               <div className="mt-4 flex flex-col gap-3 rounded-xl bg-green-50 border border-green-200 p-4 text-green-900">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">✅</span>
-                  <h4 className="font-bold">Order Created!</h4>
+                  <h4 className="font-bold">تم إنشاء الطلب!</h4>
                 </div>
                 <div className="text-sm space-y-1 text-green-800">
-                  <p><strong>Order Number:</strong> #{orderSuccess.order_number || "Auto"}</p>
-                  <p><strong>Total Amount:</strong> {orderSuccess.total ?? orderSuccess.subtotal ?? 0} EGP</p>
+                  <p><strong>رقم الطلب:</strong> #{orderSuccess.order_number || "تلقائي"}</p>
+                  <p><strong>المبلغ الإجمالي:</strong> {orderSuccess.total ?? orderSuccess.subtotal ?? 0} جنيه</p>
                 </div>
                 <button
                   onClick={() => {
@@ -179,13 +191,13 @@ export function OrdersClient({
                   }}
                   className="mt-2 w-full rounded-lg bg-green-600 py-2 text-sm font-semibold text-white hover:bg-green-500"
                 >
-                  Done
+                  تم
                 </button>
               </div>
             ) : (
               <form onSubmit={handleCreateManualOrder} className="mt-4 flex flex-col gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Product</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">المنتج</label>
                   <select
                     required
                     value={selectedProductId}
@@ -194,14 +206,14 @@ export function OrdersClient({
                   >
                     {products.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} {p.price ? `(${p.price} EGP)` : ""}
+                        {p.name} {p.price ? `(${p.price} جنيه)` : ""}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Quantity</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">الكمية</label>
                   <input
                     type="number"
                     min="1"
@@ -213,27 +225,28 @@ export function OrdersClient({
                 </div>
 
                 <div className="border-t border-slate-100 pt-3">
-                  <p className="text-sm font-medium text-slate-800 mb-2">Customer Details (Optional)</p>
+                  <p className="text-sm font-medium text-slate-800 mb-2">بيانات العميل (اختياري)</p>
                   <div className="flex flex-col gap-3">
                     <input
                       type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="Name"
+                      placeholder="الاسم"
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                     />
                     <input
                       type="tel"
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
-                      placeholder="Phone"
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                      placeholder="رقم الهاتف"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-blue-500 text-start"
+                      dir="ltr"
                     />
                     <input
                       type="text"
                       value={deliveryAddress}
                       onChange={(e) => setDeliveryAddress(e.target.value)}
-                      placeholder="Address"
+                      placeholder="العنوان"
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                     />
                   </div>
@@ -245,14 +258,14 @@ export function OrdersClient({
                     onClick={() => setOrderModalOpen(false)}
                     className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
                   >
-                    Cancel
+                    إلغاء
                   </button>
                   <button
                     type="submit"
                     disabled={orderLoading || !selectedProductId}
                     className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-50"
                   >
-                    {orderLoading ? "Creating..." : "Place Order"}
+                    {orderLoading ? "جاري الإنشاء..." : "تأكيد الطلب"}
                   </button>
                 </div>
               </form>

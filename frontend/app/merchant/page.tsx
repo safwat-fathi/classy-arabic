@@ -1,36 +1,23 @@
 import { Store, MessageSquare, Package, BookOpen } from "lucide-react";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-
-const API_BASE = process.env.BASE_API_URL || "http://localhost:8000";
+import { getCurrentMerchant } from "@/lib/dal";
+import { fetchProductsAction, fetchKnowledgeAction, fetchConversationsAction } from "@/app/demo/actions";
 
 export default async function MerchantDashboard() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("tijaratk_token")?.value;
+  const { merchantId, merchantName, channels } = await getCurrentMerchant();
 
-  if (!token) {
-    redirect("/login");
-  }
+  const [products, policies, conversations] = await Promise.all([
+    fetchProductsAction(merchantId).catch(() => []),
+    fetchKnowledgeAction(merchantId).catch(() => []),
+    fetchConversationsAction(merchantId).catch(() => []),
+  ]);
 
-  const res = await fetch(`${API_BASE}/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    },
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    redirect("/login");
-  }
-
-  const merchant = await res.json();
-  const merchantName = merchant.merchant_name || "Merchant";
+  const activeChannels = channels.length;
 
   return (
     <div className="space-y-6 font-sans">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Welcome back, {merchantName}</h1>
-        <p className="text-slate-500 mt-1">Here is an overview of your store.</p>
+        <h1 className="text-2xl font-bold text-slate-900">مرحباً بعودتك، {merchantName}</h1>
+        <p className="text-slate-500 mt-1">إليك نظرة عامة على متجرك.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -40,8 +27,8 @@ export default async function MerchantDashboard() {
             <Package className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">Products</p>
-            <p className="text-2xl font-bold text-slate-900">Manage</p>
+            <p className="text-sm font-medium text-slate-500">المنتجات</p>
+            <p className="text-2xl font-bold text-slate-900">{products.length}</p>
           </div>
         </div>
         
@@ -50,8 +37,8 @@ export default async function MerchantDashboard() {
             <BookOpen className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">Policies</p>
-            <p className="text-2xl font-bold text-slate-900">Manage</p>
+            <p className="text-sm font-medium text-slate-500">السياسات</p>
+            <p className="text-2xl font-bold text-slate-900">{policies.length}</p>
           </div>
         </div>
 
@@ -60,8 +47,8 @@ export default async function MerchantDashboard() {
             <MessageSquare className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">Conversations</p>
-            <p className="text-2xl font-bold text-slate-900">View</p>
+            <p className="text-sm font-medium text-slate-500">المحادثات</p>
+            <p className="text-2xl font-bold text-slate-900">{conversations.length}</p>
           </div>
         </div>
 
@@ -70,8 +57,8 @@ export default async function MerchantDashboard() {
             <Store className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">Channels</p>
-            <p className="text-2xl font-bold text-slate-900">Active</p>
+            <p className="text-sm font-medium text-slate-500">القنوات المتصلة</p>
+            <p className="text-2xl font-bold text-slate-900">{activeChannels}</p>
           </div>
         </div>
       </div>

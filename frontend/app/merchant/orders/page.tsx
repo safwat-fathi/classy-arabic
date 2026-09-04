@@ -1,24 +1,18 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { fetchProductsAction, fetchOrdersAction } from "@/app/demo/actions";
 import { OrdersClient } from "./orders-client";
+import { getCurrentMerchant } from "@/lib/dal";
 
 export default async function OrdersPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("tijaratk_token")?.value;
-  
-  if (!token) {
-    redirect("/login");
-  }
+  const { merchantId } = await getCurrentMerchant();
 
   // Fetch actual products list from backend for the manual order form
-  const products = await fetchProductsAction(undefined, token);
+  const products = await fetchProductsAction();
   // Fetch actual orders list
-  const orders = await fetchOrdersAction(undefined, token);
+  const orders = await fetchOrdersAction();
 
   return (
-    <OrdersClient 
-      merchantId="" 
+    <OrdersClient
+      merchantId={merchantId}
       products={products}
       initialOrders={orders}
     />

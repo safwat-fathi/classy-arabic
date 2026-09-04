@@ -847,6 +847,8 @@ This allows future model replacement without rewriting the commerce system.
 - FAQ
 - Human takeover
 - AI behavior settings
+- Custom AI Learning (UI for adding `labeled_examples` for custom intents)
+- Continuous Learning settings (from previous conversations)
 
 ---
 

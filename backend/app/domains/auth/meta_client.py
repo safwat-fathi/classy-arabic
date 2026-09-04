@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 _DEBUG_TOKEN_URL = "https://graph.facebook.com/debug_token"
 _ME_URL = "https://graph.facebook.com/me"
 _ME_ACCOUNTS_URL = "https://graph.facebook.com/me/accounts"
+_SUBSCRIBED_APPS_URL_TEMPLATE = "https://graph.facebook.com/{}/subscribed_apps"
 
 _HTTP_TIMEOUT_SECONDS = 10.0
 
@@ -25,7 +26,7 @@ class FacebookIdentity:
 class FacebookPage:
     page_id: str
     name: str
-    access_token: str
+    access_token: str | None
 
 
 async def verify_facebook_access_token(access_token: str) -> FacebookIdentity | None:
@@ -100,19 +101,22 @@ async def fetch_user_pages(access_token: str) -> list[FacebookPage]:
                 data = response.json()
 
                 for page in data.get("data", []):
-                    if page.get("id") and page.get("access_token"):
+                    if page.get("id"):
                         pages.append(
                             FacebookPage(
                                 page_id=page["id"],
-                                name=page["name"],
-                                access_token=page["access_token"]
+                                name=page.get("name", "Unknown Page"),
+                                access_token=page.get("access_token"),
                             )
                         )
+                    else:
+                        logger.warning("page_missing_id data=%s", page)
 
                 paging = data.get("paging", {})
                 next_url = paging.get("next")
-                params = None # URL already contains params for next page
+                params = None  # URL already contains params for next page
 
+        logger.info("fetched_user_pages count=%d pages=%s", len(pages), [(p.page_id, p.name) for p in pages])
         return pages
     except httpx.HTTPStatusError as e:
         logger.error("facebook_pages_api_error status=%s body=%s", e.response.status_code, e.response.text)
@@ -123,3 +127,35 @@ async def fetch_user_pages(access_token: str) -> list[FacebookPage]:
     except (KeyError, TypeError, ValueError) as e:
         logger.error("facebook_pages_parse_error error=%s", str(e))
         raise HTTPException(status_code=500, detail="Invalid response from Facebook API")
+
+
+async def subscribe_page_to_app(page: FacebookPage) -> bool:
+    """Subscribe the page to this app's webhooks so Meta delivers its message
+    events. Idempotent; failures are logged and swallowed — a subscription
+    failure must never abort the connect flow."""
+    if page.access_token is None:
+        logger.warning("page_subscribe_skipped_no_token page_id=%s", page.page_id)
+        return False
+    try:
+        async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS) as client:
+            response = await client.post(
+                _SUBSCRIBED_APPS_URL_TEMPLATE.format(page.page_id),
+                params={"access_token": page.access_token},
+                data={"subscribed_fields": "messages"},
+            )
+        if response.status_code >= 500:
+            logger.warning("page_subscribe_failed page_id=%s status=%s", page.page_id, response.status_code)
+            return False
+        response.raise_for_status()
+        return True
+    except httpx.HTTPStatusError as e:
+        logger.warning(
+            "page_subscribe_failed page_id=%s status=%s body=%s",
+            page.page_id,
+            e.response.status_code,
+            e.response.text,
+        )
+        return False
+    except httpx.RequestError as e:
+        logger.warning("page_subscribe_request_error page_id=%s error=%s", page.page_id, str(e))
+        return False

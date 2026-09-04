@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -8,7 +9,7 @@ from app.domains.auth.meta_client import fetch_user_pages, verify_facebook_acces
 from app.domains.auth.schemas import AuthTokenResponse, FacebookCallbackRequest
 from app.domains.auth.service import find_or_create_merchant_by_facebook_id, provision_channel_connections
 from app.domains.auth.tokens import create_access_token
-from app.models import MerchantStatus
+from app.models import ChannelConnection, MerchantStatus
 
 router = APIRouter()
 
@@ -39,17 +40,34 @@ async def facebook_callback(body: FacebookCallbackRequest, db: AsyncSession = De
     )
 
 
+class ConnectedChannel(BaseModel):
+    channel: str
+    account_name: str | None
+
+
 class MeResponse(BaseModel):
     merchant_id: str
     merchant_name: str
     is_active: bool
+    channels: list[ConnectedChannel] = []
+
 
 @router.get("/me", response_model=MeResponse)
-async def get_me(merchant=Depends(get_current_merchant)) -> MeResponse:
+async def get_me(merchant=Depends(get_current_merchant), db: AsyncSession = Depends(get_db)) -> MeResponse:
     """Return the currently authenticated merchant based on JWT token."""
+    result = await db.execute(
+        select(ChannelConnection).where(
+            ChannelConnection.merchant_id == merchant.id, ChannelConnection.is_active.is_(True)
+        )
+    )
+    connections = result.scalars().all()
+
     return MeResponse(
         merchant_id=merchant.id,
         merchant_name=merchant.name,
         is_active=(merchant.status == MerchantStatus.ACTIVE),
+        channels=[
+            ConnectedChannel(channel=c.channel.value, account_name=str(c.account_name) if c.account_name else None)
+            for c in connections
+        ],
     )
-

@@ -40,10 +40,16 @@ export function ConversationsClient({
         setIsTakeover(true);
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Takeover action failed");
+      alert(err instanceof Error ? err.message : "فشلت عملية نقل المحادثة");
     } finally {
       setTakeoverLoading(false);
     }
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? "" : date.toLocaleDateString('ar-EG');
   };
 
   return (
@@ -51,25 +57,25 @@ export function ConversationsClient({
       {/* Sidebar: Conversation List */}
       <div className="w-1/3 bg-white rounded-xl shadow-sm border border-slate-200 overflow-y-auto flex flex-col">
         <div className="p-4 border-b border-slate-200 shrink-0 bg-slate-50 sticky top-0">
-          <h2 className="font-bold text-slate-800">Chats ({conversations.length})</h2>
+          <h2 className="font-bold text-slate-800">المحادثات ({conversations.length})</h2>
         </div>
         <div className="flex-1 overflow-y-auto">
           {conversations.length === 0 ? (
-            <div className="p-4 text-slate-500 text-sm text-center">No conversations found.</div>
+            <div className="p-4 text-slate-500 text-sm text-center">لا توجد محادثات.</div>
           ) : (
             <ul className="divide-y divide-slate-100">
               {conversations.map((conv) => (
                 <li key={conv.id}>
                   <button
                     onClick={() => handleSelectConversation(conv.id)}
-                    className={`w-full text-left p-4 hover:bg-slate-50 transition-colors ${
-                      selectedConversationId === conv.id ? "bg-blue-50 hover:bg-blue-50 border-l-4 border-blue-500 pl-3" : "pl-4"
+                    className={`w-full text-start p-4 hover:bg-slate-50 transition-colors ${
+                      selectedConversationId === conv.id ? "bg-blue-50 hover:bg-blue-50 border-r-4 border-blue-500 pr-3" : "pr-4"
                     }`}
                   >
                     <div className="flex justify-between items-start mb-1">
                       <span className="font-semibold text-slate-800 text-sm">{conv.customer_ref}</span>
                       <span className="text-xs text-slate-400">
-                        {new Date(conv.updated_at || conv.created_at).toLocaleDateString()}
+                        {formatDate(conv.updated_at || conv.created_at)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -78,7 +84,7 @@ export function ConversationsClient({
                       </span>
                       {conv.is_human_takeover && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                          Human Takeover
+                          تدخل بشري
                         </span>
                       )}
                     </div>
@@ -94,8 +100,8 @@ export function ConversationsClient({
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex items-center justify-between mb-4 shrink-0">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Conversations</h1>
-            <p className="text-slate-500 mt-1">Manage chats and AI takeover.</p>
+            <h1 className="text-2xl font-bold text-slate-900">المحادثات</h1>
+            <p className="text-slate-500 mt-1">إدارة المحادثات وتدخل الذكاء الاصطناعي.</p>
           </div>
           <button
             onClick={handleToggleTakeover}
@@ -107,14 +113,14 @@ export function ConversationsClient({
             }`}
           >
             {takeoverLoading ? (
-              "Updating..."
+              "جاري التحديث..."
             ) : isTakeover ? (
               <>
-                <span>🤖</span> Return to AI
+                <span>🤖</span> العودة للذكاء الاصطناعي
               </>
             ) : (
               <>
-                <span>👤</span> Take Over Chat
+                <span>👤</span> تولي المحادثة
               </>
             )}
           </button>
@@ -129,7 +135,7 @@ export function ConversationsClient({
             />
           ) : (
             <div className="flex-1 flex items-center justify-center text-slate-500">
-              Select a conversation to view messages.
+              اختر محادثة لعرض الرسائل.
             </div>
           )}
         </div>

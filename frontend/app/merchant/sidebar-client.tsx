@@ -17,12 +17,12 @@ import {
 import { logoutAction } from "@/app/login/actions";
 
 const navigation = [
-  { name: "Overview", href: "/merchant", icon: LayoutDashboard },
-  { name: "Products", href: "/merchant/products", icon: Package },
-  { name: "Policies", href: "/merchant/policies", icon: BookOpen },
-  { name: "Orders", href: "/merchant/orders", icon: ShoppingCart },
-  { name: "Conversations", href: "/merchant/conversations", icon: MessageSquare },
-  { name: "Settings", href: "/merchant/settings", icon: Settings },
+  { name: "نظرة عامة", href: "/merchant", icon: LayoutDashboard },
+  { name: "المنتجات", href: "/merchant/products", icon: Package },
+  { name: "السياسات", href: "/merchant/policies", icon: BookOpen },
+  { name: "الطلبات", href: "/merchant/orders", icon: ShoppingCart },
+  { name: "المحادثات", href: "/merchant/conversations", icon: MessageSquare },
+  { name: "الإعدادات", href: "/merchant/settings", icon: Settings },
 ];
 
 export function SidebarClient({ children }: { children: React.ReactNode }) {
@@ -34,9 +34,9 @@ export function SidebarClient({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 flex" dir="rtl">
       {/* Sidebar for Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200">
+      <aside className="hidden md:flex flex-col w-64 bg-white border-l border-slate-200">
         <div className="h-16 flex items-center px-6 border-b border-slate-200">
           <span className="text-xl font-bold text-slate-800">Tijaratk</span>
         </div>
@@ -65,10 +65,10 @@ export function SidebarClient({ children }: { children: React.ReactNode }) {
         <div className="p-4 border-t border-slate-200">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+            className="flex items-center gap-3 px-3 py-2 w-full text-right rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-700 transition-colors"
           >
             <LogOut className="w-5 h-5 text-slate-400 group-hover:text-red-500" />
-            Logout
+            تسجيل الخروج
           </button>
         </div>
       </aside>
@@ -77,7 +77,7 @@ export function SidebarClient({ children }: { children: React.ReactNode }) {
       {isSidebarOpen && (
         <div className="md:hidden fixed inset-0 z-40 flex">
           <div className="fixed inset-0 bg-slate-900/50" onClick={() => setIsSidebarOpen(false)} />
-          <aside className="relative flex w-64 flex-col bg-white border-r border-slate-200">
+          <aside className="relative flex w-64 flex-col bg-white border-l border-slate-200">
             <div className="h-16 flex items-center justify-between px-6 border-b border-slate-200">
               <span className="text-xl font-bold text-slate-800">Tijaratk</span>
               <button onClick={() => setIsSidebarOpen(false)} className="text-slate-500 hover:text-slate-700">
@@ -110,10 +110,10 @@ export function SidebarClient({ children }: { children: React.ReactNode }) {
             <div className="p-4 border-t border-slate-200">
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+                className="flex items-center gap-3 px-3 py-2 w-full text-right rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-700 transition-colors"
               >
                 <LogOut className="w-5 h-5 text-slate-400 group-hover:text-red-500" />
-                Logout
+                تسجيل الخروج
               </button>
             </div>
           </aside>

@@ -1,9 +1,10 @@
 "use client";
 
 import { FacebookSDK } from "@/components/facebook-sdk";
-import * as m from "@/paraglide/messages";
+
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { FACEBOOK_SCOPES } from "@/lib/constants";
 
 import { loginWithFacebookAction } from "./actions";
 export default function LoginPage() {
@@ -43,7 +44,8 @@ export default function LoginPage() {
             }
           })();
         },
-        { scope: scopes, return_scopes: true }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { scope: scopes, return_scopes: true, auth_type: 'rerequest' } as any
       );
     },
     [router]
@@ -68,9 +70,7 @@ export default function LoginPage() {
         )}
 
         <button
-          onClick={() =>
-            handleConnect("email,public_profile,pages_manage_metadata,pages_messaging,pages_show_list")
-          }
+          onClick={() => handleConnect(FACEBOOK_SCOPES)}
           disabled={loading}
           className="w-full bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
         >

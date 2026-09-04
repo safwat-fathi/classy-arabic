@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 export function useMerchantData<T>(
-  fetcher: (merchantId: string, token?: string) => Promise<T>,
+  fetcher: (merchantId: string) => Promise<T>,
   merchantId: string,
   initialData: T
 ) {

@@ -23,6 +23,7 @@ Everything below is in the PRD's MVP scope (§4) or Success Criteria (§35). Str
 - ~~**Store knowledge retrieval**~~ **Built (keyword-match MVP)** — `StoreKnowledge` table (FAQ/shipping/returns/exchange/payment/general), keyword-substring search scoped per merchant (SRD §23). Reachable both from `search_store_knowledge` (AI tool-ordering path) and from `POST /messages`'s classify/extract path when no order is produced. Not built: full-text/semantic retrieval, an authoring UI (seed-script-only today).
 - **Human handoff** — `HumanHandoff` entity, AI-disable-on-takeover behavior (SRD §31, PRD §13)
 - **Merchant dashboard** — conversation inbox, product CRUD UI, order management, AI settings, human takeover controls (PRD §32) — currently only the `/demo` page exists
+- **Custom AI Learning** — Simple UI for merchants to provide their own `labeled_examples` (custom intent training) so the AI learns specific business contexts, plus automated learning from previous conversations.
 - **Billing** — base plans, AI add-on, fair-use tracking/enforcement (SRD §50–§41, PRD §7, §34)
 - **Security baseline** — ~~Authentication root security & token encryption~~ **Built** (Auth fixed via JWTs, tokens encrypted at rest, page ownership conflicts prevented). Not built: full RBAC for the dashboard, audit logging (SRD §42)
 

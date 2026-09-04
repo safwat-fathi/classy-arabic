@@ -28,6 +28,7 @@ class ChannelConnection(Base):
     channel: Mapped[Channel] = mapped_column(SAEnum(Channel, name="channel"), nullable=False)
     external_account_id: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    account_name: Mapped[str | None] = mapped_column(String, nullable=True)
     page_access_token: Mapped[str | None] = mapped_column(EncryptedString, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 

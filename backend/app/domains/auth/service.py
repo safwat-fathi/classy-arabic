@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domains.auth.meta_client import FacebookIdentity, FacebookPage
+from app.domains.auth.meta_client import FacebookIdentity, FacebookPage, subscribe_page_to_app
 from app.models import Channel, ChannelConnection, Merchant
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,12 @@ async def provision_channel_connections(
     Returns the count of pages connected and a list of conflicted page IDs."""
     connected = 0
     conflicts = []
+
+    # Track the page IDs we are provisioning to deactivate the rest
+    provisioned_page_ids = set()
+
     for page in pages:
+        provisioned_page_ids.add(page.page_id)
         result = await db.execute(
             select(ChannelConnection).where(
                 ChannelConnection.channel == Channel.FACEBOOK,
@@ -60,12 +65,15 @@ async def provision_channel_connections(
             if existing.merchant_id != merchant_id:
                 logger.warning(
                     "page_conflict page_id=%s owned_by=%s requested_by=%s",
-                    page.page_id, existing.merchant_id, merchant_id
+                    page.page_id,
+                    existing.merchant_id,
+                    merchant_id,
                 )
                 conflicts.append(page.page_id)
                 continue
 
             existing.page_access_token = page.access_token
+            existing.account_name = page.name
             existing.is_active = True
         else:
             db.add(
@@ -73,9 +81,11 @@ async def provision_channel_connections(
                     merchant_id=merchant_id,
                     channel=Channel.FACEBOOK,
                     external_account_id=page.page_id,
+                    account_name=page.name,
                     page_access_token=page.access_token,
                 )
             )
+        await subscribe_page_to_app(page)
         connected += 1
         logger.info(
             "channel_connection_provisioned merchant_id=%s page_id=%s page_name=%s",
@@ -83,5 +93,17 @@ async def provision_channel_connections(
             page.page_id,
             page.name,
         )
+    # Deactivate pages that the user unchecked
+    result = await db.execute(
+        select(ChannelConnection).where(
+            ChannelConnection.merchant_id == merchant_id,
+            ChannelConnection.channel == Channel.FACEBOOK,
+        )
+    )
+    existing_connections = result.scalars().all()
+    for conn in existing_connections:
+        if conn.external_account_id not in provisioned_page_ids:
+            conn.is_active = False
+
     await db.flush()
     return connected, conflicts

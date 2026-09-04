@@ -11,6 +11,7 @@ from app.models import Merchant, Message, Order
 
 router = APIRouter()
 
+
 @router.get("/", response_model=list[OrderRead], status_code=200)
 async def list_orders(
     current_merchant: Merchant = Depends(get_current_merchant),

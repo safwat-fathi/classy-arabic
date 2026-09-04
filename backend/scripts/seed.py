@@ -2,7 +2,13 @@ import asyncio
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from app.models.models import (
+from sqlalchemy import delete, select
+
+from app.core.config import settings
+from app.core.database import async_session_maker
+from app.domains.auth.tokens import create_access_token
+from app.engine.embeddings import embed_text
+from app.models import (
     Conversation,
     ConvState,
     Direction,
@@ -12,13 +18,7 @@ from app.models.models import (
     ProductVariant,
     StoreKnowledge,
 )
-from app.utils.id_gen import new_id
-from sqlalchemy import delete, select
-
-from app.core.config import settings
-from app.core.database import async_session_maker
-from app.domains.auth.tokens import create_access_token
-from app.engine.embeddings import embed_text
+from app.models._ids import new_id
 
 MERCHANT_NAME = "Classy Boutique"
 DEMO_CUSTOMER_REF = "demo-visitor"
@@ -177,6 +177,7 @@ async def seed_data():
                 state=ConvState.GATHERING,
                 slots={},
                 last_message_at=datetime.now(UTC),
+                human_takeover=False,
             )
             session.add(conversation)
             await session.flush()
@@ -194,6 +195,7 @@ async def seed_data():
             m1.embedding = await embed_text(m1.normalized_text)
             session.add(m1)
 
+        conversation.human_takeover = False
         await session.commit()
 
         jwt_token = create_access_token(merchant.id)

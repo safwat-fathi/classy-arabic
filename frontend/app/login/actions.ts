@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { COOKIES, SESSION_COOKIES } from "@/lib/constants";
 
 const API_BASE = process.env.BASE_API_URL || "http://localhost:8000";
 
@@ -9,7 +10,7 @@ async function setAuthCookies(data: { access_token: string; merchant_id: string;
   const isProd = process.env.NODE_ENV === "production";
   const cookieStore = await cookies();
   
-  cookieStore.set("tijaratk_token", data.access_token, {
+  cookieStore.set(COOKIES.TOKEN, data.access_token, {
     httpOnly: true,
     secure: isProd,
     sameSite: "lax",
@@ -17,7 +18,7 @@ async function setAuthCookies(data: { access_token: string; merchant_id: string;
     maxAge: 60 * 60 * 24 * 7, // 1 week
   });
 
-  cookieStore.set("tijaratk_merchant_name", data.merchant_name, {
+  cookieStore.set(COOKIES.MERCHANT_NAME, data.merchant_name, {
     httpOnly: false,
     secure: isProd,
     sameSite: "lax",
@@ -47,8 +48,8 @@ export async function loginWithFacebookAction(accessToken: string) {
 
 export async function logoutAction() {
   const cookieStore = await cookies();
-  cookieStore.delete("tijaratk_token");
-  cookieStore.delete("tijaratk_merchant_id");
-  cookieStore.delete("tijaratk_merchant_name");
+  for (const key of SESSION_COOKIES) {
+    cookieStore.delete(key);
+  }
   redirect("/login");
 }

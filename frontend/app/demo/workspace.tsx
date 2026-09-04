@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Product } from "@/lib/products";
 import type { StoreKnowledge } from "@/lib/knowledge";
-import { ProductCatalog } from "./product-catalog";
+import { DemoProductCatalog } from "./demo-product-catalog";
 import { MessageComposer } from "./message-composer";
 import { AIInsights } from "./ai-insights";
 import { StoreKnowledgeView } from "./store-knowledge-view";
@@ -97,12 +97,9 @@ export function Workspace({
             </div>
 
             {activeTab === "products" ? (
-              <ProductCatalog
+              <DemoProductCatalog
                 products={products}
                 highlightedProductIds={highlightedProductIds}
-                merchantId={merchantId}
-                onRefresh={refreshProducts}
-                readOnly={true}
               />
             ) : (
               <StoreKnowledgeView
