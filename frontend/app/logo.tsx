@@ -15,16 +15,16 @@ export function BrandMark({
     <span className="inline-flex items-center gap-2.5">
       <Image
         src="/app-icon-dark.png"
-        alt="TijaratkBot Logo"
+        alt="تجارتك بوت"
         width={iconSize}
         height={iconSize}
         className="shrink-0 rounded-lg"
       />
       <span
-        dir="ltr"
+        dir="rtl"
         className={`font-display ${textSize} font-extrabold tracking-tight ${textColor}`}
       >
-        TijaratkBot
+        تجارتك بوت
       </span>
     </span>
   );
