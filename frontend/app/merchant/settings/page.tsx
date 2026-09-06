@@ -1,8 +1,10 @@
-import { getCurrentMerchant } from "@/lib/dal";
+import { getCurrentMerchant, getMerchantSettings } from "@/lib/dal";
 import { ConnectFacebookPages } from "@/components/connect-facebook-pages";
+import { AutoLearningToggle } from "./auto-learning-toggle";
 
 export default async function SettingsPage() {
   const { merchantName, channels } = await getCurrentMerchant();
+  const settings = await getMerchantSettings();
 
   return (
     <div className="font-sans max-w-3xl">
@@ -67,6 +69,15 @@ export default async function SettingsPage() {
               ربط
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="mt-8 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100">
+          <h2 className="font-semibold text-slate-900">الذكاء الاصطناعي</h2>
+        </div>
+        <div className="p-6">
+          <AutoLearningToggle initialEnabled={settings.autoLearningEnabled} />
         </div>
       </div>
 

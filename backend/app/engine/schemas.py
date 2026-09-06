@@ -15,6 +15,10 @@ class IntentClassification(BaseModel):
         return v
 
 
+class GeneratedReply(BaseModel):
+    reply: str = Field(min_length=1)
+
+
 class ExtractedLineItem(BaseModel):
     product_name: str
     quantity: float

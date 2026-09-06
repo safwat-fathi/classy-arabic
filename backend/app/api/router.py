@@ -7,6 +7,8 @@ from app.domains.conversations.router import router as conversations_router
 from app.domains.delivery.router import router as delivery_router
 from app.domains.handoff.router import router as handoff_router
 from app.domains.health.router import router as health_router
+from app.domains.labeled_examples.router import router as labeled_examples_router
+from app.domains.merchants.router import router as merchants_router
 from app.domains.messages.router import router as messages_router
 from app.domains.products.router import router as products_router
 from app.domains.store_knowledge.router import router as store_knowledge_router
@@ -22,4 +24,6 @@ api_router.include_router(channels_router, prefix="/webhooks", tags=["webhooks"]
 api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
 api_router.include_router(delivery_router, prefix="/delivery-areas", tags=["delivery"])
 api_router.include_router(handoff_router, prefix="/conversations", tags=["handoff"])
+api_router.include_router(labeled_examples_router, prefix="/labeled-examples", tags=["labeled-examples"])
+api_router.include_router(merchants_router, prefix="/merchants", tags=["merchants"])
 api_router.include_router(checkout_router, prefix="/orders", tags=["orders"])

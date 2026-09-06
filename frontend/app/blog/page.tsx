@@ -32,7 +32,7 @@ export default function BlogIndexPage() {
         datePublished: post.publishedAt,
         url: `https://tijaratk.com/blog/${post.slug}`,
         author: {
-          "@type": "Person",
+          "@type": "Organization",
           name: post.author.name.ar,
         },
       })),

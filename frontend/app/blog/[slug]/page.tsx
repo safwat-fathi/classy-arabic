@@ -58,9 +58,8 @@ export default async function BlogPostPage(props: {
       datePublished: post.publishedAt,
       mainEntityOfPage: `https://tijaratk.com/blog/${slug}`,
       author: {
-        "@type": "Person",
+        "@type": "Organization",
         name: post.author.name.ar,
-        jobTitle: post.author.role.ar,
       },
       publisher: {
         "@type": "Organization",

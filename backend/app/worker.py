@@ -3,9 +3,11 @@ from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
 from functools import partial
 
+from arq import cron
 from arq.connections import RedisSettings
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.clustering.job import run_clustering
 from app.core.config import settings
 from app.core.database import async_session_maker
 from app.core.locks import conversation_lock
@@ -18,13 +20,13 @@ logger = logging.getLogger(__name__)
 
 
 def _compose_reply(result) -> str | None:
-    """Build a human-readable reply from the pipeline result."""
+    """Build a human-readable reply from the pipeline result. The order
+    confirmation is the deliberate last-resort fallback: it must stay
+    deterministic and never pass through the AI (order numbers + hallucination)."""
     if result.answer_text:
         return result.answer_text
     if result.order is not None:
         return f"تم استلام طلبك #{result.order.order_number or result.order.id[:8]}. هنتواصل معاك قريب!"
-    if result.message.intent == "greeting":
-        return "أهلاً بك! إزاي أقدر أساعدك النهارده؟"
     return None
 
 
@@ -83,6 +85,15 @@ async def process_channel_message(ctx: dict, message_id: str) -> None:
         await _process_channel_message(session, lock_cm, message_id)
 
 
+async def run_auto_learning(ctx: dict) -> int:
+    async with async_session_maker() as session:
+        created = await run_clustering(session)
+        await session.commit()
+    logger.info("auto_learning_run created=%d", created)
+    return created
+
+
 class WorkerSettings:
     functions = [process_channel_message]
+    cron_jobs = [cron(run_auto_learning, hour=3, minute=0)]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)

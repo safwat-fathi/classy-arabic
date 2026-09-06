@@ -24,29 +24,29 @@ class ActionResolution:
 
 def _render_response(outcome: ActionOutcome, action) -> str:
     if outcome.status == "rejected":
-        reason = outcome.errors[0].message if outcome.errors else "that wasn't a valid request"
-        return f"Sorry, I couldn't do that — {reason}."
+        reason = outcome.errors[0].message if outcome.errors else "طلب غير صالح"
+        return f"عذراً، لم أتمكن من تنفيذ ذلك — {reason}."
     if outcome.status == "failed":
-        return "I can't complete that yet — let me get a teammate to help you with this."
+        return "لا أستطيع إتمام ذلك حالياً — دعني أحولك لأحد زملائي لمساعدتك."
     if action.action == "search_products":
         products = outcome.result.get("products", [])
         if not products:
-            return "I couldn't find any products matching that."
+            return "لم أتمكن من العثور على أي منتجات مطابقة."
         names = ", ".join(p["name"] for p in products[:5])
-        return f"Found {len(products)} product(s): {names}"
+        return f"وجدت {len(products)} منتج(ات): {names}"
     if action.action == "get_product":
         return outcome.result["product"]["name"]
     if action.action == "update_customer_info":
         note = ""
         if outcome.result["delivery_validation"]["status"] == "unavailable":
-            note = " I'll confirm the delivery fee for your area separately."
-        return "Got it, saved your info." + note
+            note = " سأقوم بتأكيد رسوم التوصيل لمنطقتك بشكل منفصل."
+        return "تمام، حفظت بياناتك." + note
     if action.action == "search_store_knowledge":
         results = outcome.result.get("results", [])
         if not results:
-            return "I couldn't find any information about that."
+            return "لم أتمكن من العثور على أي معلومات حول ذلك."
         return results[0]["content"]
-    return "Done."
+    return "تم."
 
 
 async def resolve_action(session: AsyncSession, conversation: Conversation, message: Message) -> ActionResolution:
@@ -95,7 +95,7 @@ async def resolve_action(session: AsyncSession, conversation: Conversation, mess
         return ActionResolution(
             proposed_action=None,
             outcome=None,
-            response_text="Let me get a teammate to help with this.",
+            response_text="دعني أحولك لأحد زملائي للمساعدة في هذا.",
             escalation_reason="ai_call_failed",
         )
 

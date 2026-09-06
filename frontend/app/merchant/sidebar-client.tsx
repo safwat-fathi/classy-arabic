@@ -9,6 +9,7 @@ import {
   BookOpen,
   ShoppingCart,
   MessageSquare,
+  GraduationCap,
   Settings,
   LogOut,
   Menu,
@@ -22,6 +23,7 @@ const navigation = [
   { name: "السياسات", href: "/merchant/policies", icon: BookOpen },
   { name: "الطلبات", href: "/merchant/orders", icon: ShoppingCart },
   { name: "المحادثات", href: "/merchant/conversations", icon: MessageSquare },
+  { name: "تدريب الـ AI", href: "/merchant/training", icon: GraduationCap },
   { name: "الإعدادات", href: "/merchant/settings", icon: Settings },
 ];
 

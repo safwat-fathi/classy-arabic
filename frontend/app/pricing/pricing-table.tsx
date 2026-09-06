@@ -23,47 +23,42 @@ function CheckIcon({ className = "" }: { className?: string }) {
 }
 
 export function PricingTable() {
-  const [isYearly, setIsYearly] = useState(false);
+  const [isUsd, setIsUsd] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(true);
 
   const calculatePrice = (base: number, ai: number) => {
-    let total = base + (aiEnabled ? ai : 0);
-    if (isYearly) {
-      total = Math.round(total * 0.8);
-    }
-    return total;
+    const totalEgp = base + (aiEnabled ? ai : 0);
+    const totalUsd = (base === 3990 ? 99 : 0) + (aiEnabled ? 29 : 0);
+    return isUsd ? totalUsd : totalEgp;
   };
 
   return (
     <div>
       {/* Toggles */}
       <div className="flex flex-wrap items-center justify-center gap-4 mb-12">
-        {/* Monthly vs Yearly */}
+        {/* Currency Toggle */}
         <div className="flex items-center gap-1 rounded-2xl border border-gray-200 bg-gray-50 p-1.5 shadow-inner">
           <button
             type="button"
-            onClick={() => setIsYearly(false)}
+            onClick={() => setIsUsd(false)}
             className={`rounded-xl px-5 py-2.5 text-xs sm:text-sm font-bold transition-all ${
-              !isYearly
+              !isUsd
                 ? "bg-white text-gray-900 shadow-sm"
                 : "text-gray-500 hover:text-gray-900"
             }`}
           >
-            اشتراك شهري
+            بالجنيه المصري (EGP)
           </button>
           <button
             type="button"
-            onClick={() => setIsYearly(true)}
+            onClick={() => setIsUsd(true)}
             className={`relative flex items-center gap-1.5 rounded-xl px-5 py-2.5 text-xs sm:text-sm font-bold transition-all ${
-              isYearly
+              isUsd
                 ? "bg-emerald-600 text-white shadow-md"
                 : "text-gray-500 hover:text-emerald-700"
             }`}
           >
-            اشتراك سنوي
-            <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-black text-emerald-800">
-              وفر 20%
-            </span>
+            بالدولار الأمريكي (USD)
           </button>
         </div>
 
@@ -96,7 +91,7 @@ export function PricingTable() {
       </div>
 
       {/* Pricing Cards Grid */}
-      <div className="grid items-stretch gap-8 lg:grid-cols-3">
+      <div className="flex justify-center max-w-lg mx-auto w-full">
         {PRICING_TIERS.map((tier) => {
           const isHighlight = tier.highlighted;
           const price = calculatePrice(tier.basePrice, tier.aiAddonPrice);
@@ -155,13 +150,11 @@ export function PricingTable() {
                   </span>
                   <div className="flex flex-col text-xs font-semibold">
                     <span className={isHighlight ? "text-gray-200" : "text-gray-700"}>
-                      ج.م / شهرياً
+                      {isUsd ? "دولار أمريكي (USD)" : "جنيه مصري (EGP)"}
                     </span>
-                    {isYearly && (
-                      <span className="text-[11px] text-emerald-400 font-bold">
-                        فاتورة سنوية مخفضة
-                      </span>
-                    )}
+                    <span className="text-[11px] text-emerald-400 font-bold mt-1">
+                      تدفع مرة واحدة مدى الحياة
+                    </span>
                   </div>
                 </div>
 

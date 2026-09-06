@@ -403,8 +403,13 @@ async def test_process_message_persists_ai_usage_event(db_session, conversation,
     # instead (same text as test_non_purchase_intent_does_not_create_order).
     # The mocked intent value itself is arbitrary here — only the usage event
     # persisted for the one AI call is under test.
+    # The pipeline now makes two calls for a non-order message: classification,
+    # then reply generation — both must be tracked.
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
-        return_value=httpx.Response(200, json=_chat_response('{"intent": "greeting", "confidence": 0.95}'))
+        side_effect=[
+            httpx.Response(200, json=_chat_response('{"intent": "greeting", "confidence": 0.95}')),
+            httpx.Response(200, json=_chat_response('{"reply": "أهلاً!"}')),
+        ]
     )
     mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response())
@@ -419,10 +424,11 @@ async def test_process_message_persists_ai_usage_event(db_session, conversation,
         .scalars()
         .all()
     )
-    assert len(events) == 1
-    assert events[0].tier == "deepseek"
-    assert events[0].conversation_id == conversation.id
-    assert events[0].latency_ms > 0
+    assert len(events) == 2
+    assert all(e.tier == "deepseek" for e in events)
+    assert all(e.conversation_id == conversation.id for e in events)
+    assert all(e.latency_ms > 0 for e in events)
+    assert all(e.success for e in events)
 
 
 async def test_process_message_routes_to_action_resolution_when_enabled(db_session, conversation, mock_ai):
@@ -476,7 +482,10 @@ async def test_question_intent_returns_seeded_knowledge_answer(db_session, conve
     await db_session.flush()
 
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
-        return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
+        side_effect=[
+            httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}')),
+            httpx.Response(200, json=_chat_response('{"reply": "بنوصل لكل المحافظات خلال يومين لأربعة يام!"}')),
+        ]
     )
     mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response())
@@ -486,7 +495,9 @@ async def test_question_intent_returns_seeded_knowledge_answer(db_session, conve
         db_session, conversation, _inbound_message(conversation, "الشحن بيوصل امتى؟", "الشحن بيوصل امتى؟")
     )
 
-    assert result.answer_text == "بنشحن لكل محافظات مصر خلال يومين لأربعة أيام."
+    # The raw knowledge content is grounding input to the generation call,
+    # not the reply itself — the customer gets the AI-written reply.
+    assert result.answer_text == "بنوصل لكل المحافظات خلال يومين لأربعة يام!"
 
 
 async def test_question_intent_prefers_more_specific_knowledge_match(db_session, conversation, mock_ai):
@@ -510,8 +521,11 @@ async def test_question_intent_prefers_more_specific_knowledge_match(db_session,
     )
     await db_session.flush()
 
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
-        return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
+    route = mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        side_effect=[
+            httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}')),
+            httpx.Response(200, json=_chat_response('{"reply": "مواعيد العمل من ١٠ الصبح لـ ١٠ بالليل."}')),
+        ]
     )
     mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response())
@@ -521,14 +535,19 @@ async def test_question_intent_prefers_more_specific_knowledge_match(db_session,
         db_session, conversation, _inbound_message(conversation, "ايه هي مواعيد العمل؟", "ايه هي مواعيد العمل؟")
     )
 
-    assert result.answer_text == (
-        "فريق خدمة العملاء متاح للرد على استفساراتكم من السبت إلى الخميس، من الساعة 10 صباحاً وحتى 10 مساءً."
-    )
+    assert result.answer_text == "مواعيد العمل من ١٠ الصبح لـ ١٠ بالليل."
+    # The more specific knowledge match is what gets grounded into the
+    # generation prompt (call[0] is classification, call[1] is generation).
+    generation_body = json.loads(route.calls[1].request.content)
+    assert "فريق خدمة العملاء متاح للرد على استفساراتكم" in generation_body["messages"][1]["content"]
 
 
-async def test_no_matching_knowledge_leaves_answer_text_none(db_session, conversation, mock_ai):
-    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
-        return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
+async def test_no_matching_knowledge_generates_reply_without_store_info(db_session, conversation, mock_ai):
+    route = mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        side_effect=[
+            httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}')),
+            httpx.Response(200, json=_chat_response('{"reply": "هتأكد وأرد عليك حالا!"}')),
+        ]
     )
     mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response())
@@ -538,7 +557,9 @@ async def test_no_matching_knowledge_leaves_answer_text_none(db_session, convers
         db_session, conversation, _inbound_message(conversation, "الاسعار كام؟", "الاسعار كام؟")
     )
 
-    assert result.answer_text is None
+    assert result.answer_text == "هتأكد وأرد عليك حالا!"
+    generation_body = json.loads(route.calls[1].request.content)
+    assert "store_info:" not in generation_body["messages"][1]["content"]
 
 
 async def test_purchase_intent_with_order_skips_knowledge_lookup(db_session, conversation, mock_ai):
@@ -573,4 +594,76 @@ async def test_purchase_intent_with_order_skips_knowledge_lookup(db_session, con
     )
 
     assert result.order is not None
+    assert result.answer_text is None
+
+
+async def test_tier0_greeting_generates_ai_reply(db_session, conversation, mock_ai):
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        return_value=httpx.Response(200, json=_chat_response('{"reply": "أهلاً وسهلاً! إزاي أقدر أساعدك؟"}'))
+    )
+
+    result = await process_message(db_session, conversation, _inbound_message(conversation, "أهلا", "أهلا"))
+
+    assert result.message.intent == "greeting"
+    assert result.message.model_tier == ModelTier.RULE
+    assert result.answer_text == "أهلاً وسهلاً! إزاي أقدر أساعدك؟"
+
+
+async def test_tier0_greeting_generation_failure_falls_back_to_none(db_session, conversation, mock_ai):
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        return_value=httpx.Response(200, json=_chat_response("not json"))
+    )
+
+    result = await process_message(db_session, conversation, _inbound_message(conversation, "أهلا", "أهلا"))
+
+    # Worker falls back to its static greeting on None — never silence.
+    assert result.answer_text is None
+    events = (await db_session.execute(select(AIUsageEvent))).scalars().all()
+    assert any(e.success is False for e in events)
+
+
+async def test_generation_failure_on_question_path_falls_back_to_none(db_session, conversation, mock_ai):
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        side_effect=[
+            httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}')),
+            httpx.Response(200, json=_chat_response("not json")),
+        ]
+    )
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "الاسعار كام؟", "الاسعار كام؟")
+    )
+
+    assert result.answer_text is None
+
+
+async def test_low_confidence_classification_escalates_without_auto_reply(db_session, conversation, mock_ai):
+    # Regression guard: after a human handoff the bot must stay silent —
+    # the pipeline must not fall through to knowledge search / generation.
+    db_session.add(
+        StoreKnowledge(
+            merchant_id=conversation.merchant_id,
+            knowledge_type="shipping",
+            title="سياسة الشحن",
+            content="بنشحن لكل محافظات مصر.",
+            keywords=["شحن"],
+        )
+    )
+    await db_session.flush()
+
+    mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
+        return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.1}'))
+    )
+    mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
+        return_value=httpx.Response(200, json=_embedding_response())
+    )
+
+    result = await process_message(
+        db_session, conversation, _inbound_message(conversation, "الشحن بيوصل امتى؟", "الشحن بيوصل امتى؟")
+    )
+
+    assert result.message.escalation_reason is not None
     assert result.answer_text is None

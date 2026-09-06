@@ -1,6 +1,5 @@
 import logging
 from dataclasses import dataclass
-from datetime import UTC, datetime
 
 from sqlalchemy import String, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +15,7 @@ from app.engine.cost import estimate_cost
 from app.engine.embeddings import embed_text, find_similar_examples
 from app.engine.extraction import extract_order
 from app.engine.gateway import CallUsage
+from app.engine.generation import generate_reply
 from app.engine.product_matching import (
     build_resolved_order_lines,
     match_line_items_to_products,
@@ -34,9 +34,7 @@ from app.models import (
     OrderSource,
     OrderStatus,
 )
-from app.models.enums import HandoffReason
-
-DEFAULT_INTENTS = ["greeting", "spam", "reaction", "purchase_intent", "question", "other"]
+from app.models.enums import DEFAULT_INTENTS, HandoffReason
 
 logger = logging.getLogger(__name__)
 
@@ -125,6 +123,31 @@ async def _merchant_info(session: AsyncSession, merchant_id: str) -> tuple[str, 
     return result.one()
 
 
+async def _generate_reply(
+    session: AsyncSession,
+    conversation: Conversation,
+    message: Message,
+    *,
+    merchant_name: str,
+    user_prompt: str,
+) -> str | None:
+    """Best-effort AI reply generation. On AI call failure, returns None so the
+    worker falls back to its last-resort static strings (never silence)."""
+    try:
+        reply, usage = await generate_reply(
+            user_prompt=user_prompt,
+            merchant_name=merchant_name,
+            conv_state=conversation.state,
+            slots=conversation.slots,
+        )
+    except AICallError as exc:
+        logger.warning("generation_failed message_id=%s error=%s", message.id, exc)
+        session.add(_usage_event(conversation.id, message.id, None, success=False, failed_tier="deepseek"))
+        return None
+    session.add(_usage_event(conversation.id, message.id, usage, success=True))
+    return reply
+
+
 async def process_message(session: AsyncSession, conversation: Conversation, message: Message) -> PipelineResult:
     # `message` may be a brand-new, not-yet-flushed object (the internal
     # POST /messages caller) or an already-persistent row loaded by the arq
@@ -137,23 +160,6 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
     normalized_text = message.normalized_text
     tier0_intent = match_tier0(normalized_text)
 
-    # Read history BEFORE any flush of `message` — session.execute() autoflushes,
-    # which would otherwise put the message being classified into its own history
-    # and duplicate it against build_context_prompt's current_line. Excluding
-    # message.id explicitly (rather than relying on flush timing) makes this
-    # correct whether `message` is pending or already persistent.
-    history = []
-    if not tier0_intent:
-        history_result = await session.execute(
-            select(Message)
-            .where(Message.conversation_id == conversation.id, Message.id != message.id)
-            .order_by(Message.created_at.desc())
-            .limit(settings.CONTEXT_HISTORY_TURNS)
-        )
-        history = list(reversed(history_result.scalars().all()))
-
-    conversation.last_message_at = datetime.now(UTC)
-
     merchant_name, ai_tool_ordering_enabled, merchant_ai_enabled = await _merchant_info(
         session, conversation.merchant_id
     )
@@ -162,12 +168,39 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
         await session.flush()
         return PipelineResult(message=message, order=None)
 
+    # Read history BEFORE any flush of `message` — session.execute() autoflushes,
+    # which would otherwise put the message being classified into its own history
+    # and duplicate it against build_context_prompt's current_line. Excluding
+    # message.id explicitly (rather than relying on flush timing) makes this
+    # correct whether `message` is pending or already persistent.
+    history_result = await session.execute(
+        select(Message)
+        .where(Message.conversation_id == conversation.id, Message.id != message.id)
+        .order_by(Message.created_at.desc())
+        .limit(settings.CONTEXT_HISTORY_TURNS)
+    )
+    history = list(reversed(history_result.scalars().all()))
+
     if tier0_intent:
         message.intent = tier0_intent
         message.intent_confidence = 1.0
         message.model_tier = ModelTier.RULE
+        answer_text = None
+        if tier0_intent == "greeting":
+            # ponytail: 1 extra LLM call per greeting — skip generation and let
+            # the worker fallback reply if cost ever matters more than voice.
+            answer_text = await _generate_reply(
+                session,
+                conversation,
+                message,
+                merchant_name=merchant_name,
+                user_prompt=(
+                    f"customer: {normalized_text}\n"
+                    "The customer just greeted you. Greet them back and ask how you can help."
+                ),
+            )
         await session.flush()
-        return PipelineResult(message=message, order=None)
+        return PipelineResult(message=message, order=None, answer_text=answer_text)
 
     examples: list[LabeledExample] = []
     try:
@@ -193,11 +226,24 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
         resolution = await resolve_action(session, conversation, message)
         message.model_tier = ModelTier.DEEPSEEK
 
+        answer_text = None
         if resolution.escalation_reason:
             await _trigger_escalation(session, conversation, message, resolution.escalation_reason)
+        else:
+            answer_text = await _generate_reply(
+                session,
+                conversation,
+                message,
+                merchant_name=merchant_name,
+                user_prompt=(
+                    f"customer: {normalized_text}\n"
+                    f'action_result: {resolution.response_text}\n'
+                    "Turn the action_result facts into a natural reply to the customer."
+                ),
+            )
 
         await session.flush()
-        return PipelineResult(message=message, order=None, answer_text=resolution.response_text)
+        return PipelineResult(message=message, order=None, answer_text=answer_text)
     try:
         classification, reason, usage = await classify_message(
             prompt,
@@ -224,6 +270,9 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
 
     if reason:
         await _trigger_escalation(session, conversation, message, reason)
+        # Never auto-reply after handing off to a human.
+        await session.flush()
+        return PipelineResult(message=message, order=None)
 
     order = None
     if classification.intent == "purchase_intent" and conversation.state in (ConvState.GATHERING, ConvState.CONFIRMING):
@@ -288,7 +337,20 @@ async def process_message(session: AsyncSession, conversation: Conversation, mes
     if order is None:
         knowledge_matches = await knowledge_service.search(session, conversation.merchant_id, normalized_text)
         if knowledge_matches:
-            answer_text = knowledge_matches[0]["content"]
+            prompt = (
+                f"customer: {normalized_text}\n"
+                f'store_info: {knowledge_matches[0]["content"]}\n'
+                "Answer the customer's question using store_info."
+            )
+        else:
+            prompt = (
+                f"customer: {normalized_text}\n"
+                "No store_info is available. Respond naturally to the customer; "
+                "if you cannot answer their question, say you will check and get back to them."
+            )
+        answer_text = await _generate_reply(
+            session, conversation, message, merchant_name=merchant_name, user_prompt=prompt
+        )
 
     await session.flush()
     return PipelineResult(message=message, order=order, answer_text=answer_text)

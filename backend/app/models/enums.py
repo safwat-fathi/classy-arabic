@@ -1,5 +1,7 @@
 import enum
 
+DEFAULT_INTENTS = ["greeting", "spam", "reaction", "purchase_intent", "question", "other"]
+
 
 class Direction(enum.StrEnum):
     INBOUND = "INBOUND"

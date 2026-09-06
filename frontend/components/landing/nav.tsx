@@ -136,11 +136,11 @@ export function Nav() {
                   أحدث المقالات والمقارنات:
                 </span>
                 <Link
-                  href="/blog/comparison-with-other-tools"
+                  href="/blog/tijaratkbot-vs-arabybot"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block rounded-lg px-4 py-2 text-xs text-gray-600 hover:text-emerald-700 hover:bg-emerald-50/50"
                 >
-                  مقارنة شاملة مع ManyChat و Chatfuel ←
+                  مقارنة تِجارتك بوت مع عربي بوت (ArabyBot) ←
                 </Link>
                 <Link
                   href="/blog/why-sell-from-chat-inbox"

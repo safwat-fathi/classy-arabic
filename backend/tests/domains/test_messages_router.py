@@ -200,7 +200,10 @@ async def test_ingest_question_returns_answer_text(db_session, merchant, convers
     await db_session.flush()
 
     mock_ai.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions").mock(
-        return_value=httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}'))
+        side_effect=[
+            httpx.Response(200, json=_chat_response('{"intent": "question", "confidence": 0.9}')),
+            httpx.Response(200, json=_chat_response('{"reply": "بنشحن لكل محافظات مصر خلال يومين لأربعة أيام."}')),
+        ]
     )
     mock_ai.post(f"{settings.EMBEDDING_BASE_URL}/embeddings").mock(
         return_value=httpx.Response(200, json=_embedding_response())

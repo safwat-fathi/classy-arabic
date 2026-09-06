@@ -27,6 +27,7 @@ async def test_run_clustering_labels_a_tight_cluster(db_session, conversation, m
         return_value=httpx.Response(200, json=_labeling_response("delivery_question", "asks about delivery time"))
     )
 
+    conversation.merchant.auto_learning_enabled = True
     vec = [1.0] * 1024
     for i in range(4):
         db_session.add(
@@ -52,6 +53,7 @@ async def test_run_clustering_labels_a_tight_cluster(db_session, conversation, m
 async def test_run_clustering_falls_back_on_labeling_failure(db_session, conversation, mock_ai):
     mock_ai.post("https://openrouter.ai/api/v1/chat/completions").mock(return_value=httpx.Response(500))
 
+    conversation.merchant.auto_learning_enabled = True
     vec = [1.0] * 1024
     for i in range(4):
         db_session.add(

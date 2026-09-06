@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import UTC, datetime
 
 import numpy as np
@@ -7,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.engine import gateway
-from app.models import LabeledExample, Message
+from app.models import Conversation, LabeledExample, Merchant, Message
 
 FALLBACK_LABEL_PREFIX = "unknown_intent"
 
@@ -18,9 +19,18 @@ async def fetch_embedded_messages(session: AsyncSession, limit: int) -> list[Mes
     # re-fetched on the next run: without this, every run re-inserts the same
     # LabeledExample rows for the same representative messages. order_by makes
     # which `limit` messages get sampled deterministic instead of arbitrary.
+    # Opted-in merchants only, and each merchant's messages are clustered in
+    # isolation — cross-merchant clusters would leak one tenant's few-shot
+    # examples into another tenant's classification prompts.
     result = await session.execute(
         select(Message)
-        .where(Message.embedding.is_not(None), Message.clustered_at.is_(None))
+        .join(Conversation, Conversation.id == Message.conversation_id)
+        .join(Merchant, Merchant.id == Conversation.merchant_id)
+        .where(
+            Message.embedding.is_not(None),
+            Message.clustered_at.is_(None),
+            Merchant.auto_learning_enabled.is_(True),
+        )
         .options(selectinload(Message.conversation))
         .order_by(Message.created_at)
         .limit(limit)
@@ -68,27 +78,33 @@ async def run_clustering(
     session: AsyncSession, distance_threshold: float = 0.3, min_cluster_size: int = 3, limit: int = 1000
 ) -> int:
     messages = await fetch_embedded_messages(session, limit)
-    clusters = cluster_messages(messages, distance_threshold)
+    by_merchant: dict[str, list[Message]] = defaultdict(list)
+    for message in messages:
+        merchant_id = message.conversation.merchant_id if message.conversation else None
+        if merchant_id is not None:
+            by_merchant[merchant_id].append(message)
+
     created = 0
-    for cluster_id, members in clusters.items():
-        if len(members) < min_cluster_size:
-            continue
-        representatives = representative_messages(members)
-        intent = await label_cluster(representatives, len(members), cluster_id)
-        for message in representatives:
-            merchant_id = message.conversation.merchant_id if message.conversation else None
-            session.add(
-                LabeledExample(
-                    merchant_id=merchant_id,
-                    normalized_text=message.normalized_text or "",
-                    intent=intent,
-                    embedding=message.embedding,
-                    source="cluster_labeling",
+    for merchant_id, merchant_messages in by_merchant.items():
+        clusters = cluster_messages(merchant_messages, distance_threshold)
+        for cluster_id, members in clusters.items():
+            if len(members) < min_cluster_size:
+                continue
+            representatives = representative_messages(members)
+            intent = await label_cluster(representatives, len(members), cluster_id)
+            for message in representatives:
+                session.add(
+                    LabeledExample(
+                        merchant_id=merchant_id,
+                        normalized_text=message.normalized_text or "",
+                        intent=intent,
+                        embedding=message.embedding,
+                        source="cluster_labeling",
+                    )
                 )
-            )
-            created += 1
-        clustered_at = datetime.now(UTC)
-        for message in members:
-            message.clustered_at = clustered_at
+                created += 1
+            clustered_at = datetime.now(UTC)
+            for message in members:
+                message.clustered_at = clustered_at
     await session.flush()
     return created

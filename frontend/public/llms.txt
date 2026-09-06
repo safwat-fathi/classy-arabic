@@ -9,7 +9,9 @@
 - [How It Works](/how-it-works.md): 5-step operational blueprint detailing onboarding, catalog sync, instant AI sales responses, address parsing, and courier dispatch.
 - [Features & Capabilities](/features.md): Technical deep-dive into colloquial dialect modeling, in-chat interactive cart, Egyptian address verification, and unified omnichannel inbox.
 - [Blog & Guides](/blog.md): Practical e-commerce strategy articles and market benchmarks.
-  - [TijaratkBot vs Legacy Bots (ManyChat & Chatfuel)](/blog/comparison-with-other-tools.md): Why rigid flow-based decision tree bots fail in Egypt and how specialized dialect AI triples conversion rates.
+  - [TijaratkBot vs ArabyBot](/blog/tijaratkbot-vs-arabybot.md): High-converting dialect AI sales closer vs broadcast marketing tools in the Egyptian market.
+  - [TijaratkBot vs BotOrders](/blog/tijaratkbot-vs-botorders.md): Conversational AI and automated NLP address extraction vs map webviews and rigid form flows.
+  - [TijaratkBot vs Bosla](/blog/tijaratkbot-vs-bosla.md): Autonomous 24/7 AI sales closer vs multi-seat omnichannel CRM ticketing platforms.
   - [Why Sell From Your Chat Inbox](/blog/why-sell-from-chat-inbox.md): Why standalone websites lose over 70% of potential orders and how conversational commerce maximizes Cash on Delivery (COD) fulfillment.
 
 ## Full Reference

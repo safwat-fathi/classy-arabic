@@ -7,6 +7,7 @@ import type { MessageIngestResponse } from "@/lib/messages";
 import type { Product } from "@/lib/products";
 import type { StoreKnowledge } from "@/lib/knowledge";
 import type { Order } from "@/lib/orders";
+import type { LabeledExample } from "@/lib/training";
 
 export type IngestState =
   | { status: "idle" }
@@ -329,5 +330,72 @@ export async function fetchMessagesAction(
     cache: "no-store",
   });
   await checkResponse(res, "Failed to fetch messages");
+  return res.json();
+}
+
+// ---------------- AI TRAINING (LABELED EXAMPLES) ACTIONS ----------------
+
+export async function fetchExamplesAction(merchantId?: string): Promise<LabeledExample[]> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/labeled-examples/`, {
+    headers: await getAuthHeaders(),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to fetch training examples");
+  return res.json();
+}
+
+export async function createExampleAction(data: {
+  normalized_text: string;
+  intent: string;
+  extraction?: Record<string, unknown> | null;
+}): Promise<LabeledExample> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/labeled-examples/`, {
+    method: "POST",
+    headers: await getAuthHeaders(),
+    body: JSON.stringify(data),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to create training example");
+  return res.json();
+}
+
+export async function updateExampleAction(
+  exampleId: string,
+  data: { normalized_text?: string; intent?: string; extraction?: Record<string, unknown> | null },
+): Promise<LabeledExample> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/labeled-examples/${exampleId}`, {
+    method: "PUT",
+    headers: await getAuthHeaders(),
+    body: JSON.stringify(data),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to update training example");
+  return res.json();
+}
+
+export async function deleteExampleAction(exampleId: string): Promise<void> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/labeled-examples/${exampleId}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to delete training example");
+}
+
+export async function updateAutoLearningAction(
+  enabled: boolean,
+): Promise<{ auto_learning_enabled: boolean }> {
+  const baseUrl = getBaseUrl();
+  const res = await fetch(`${baseUrl}/merchants/me/settings`, {
+    method: "PATCH",
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ auto_learning_enabled: enabled }),
+    cache: "no-store",
+  });
+  await checkResponse(res, "Failed to update settings");
   return res.json();
 }

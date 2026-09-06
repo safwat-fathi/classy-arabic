@@ -213,11 +213,9 @@ The AI add-on price depends on the merchant's selected base plan.
 
 Example pricing structure:
 
-| Base Plan | Base Price | AI Add-on | Combined |
+| Plan | Base Price | AI Add-on | Combined |
 |---|---:|---:|---:|
-| Starter | 499 EGP | +250 EGP | 749 EGP |
-| Growth | 749 EGP | +350 EGP | 1,099 EGP |
-| Pro | 1,199 EGP | +450 EGP | 1,649 EGP |
+| Lifetime Access | 3990 EGP (One-time) | +1499 EGP (One-time) | 5489 EGP |
 
 These values are initial pricing hypotheses and should be validated with real merchants.
 
@@ -904,9 +902,7 @@ Initial pricing hypothesis:
 
 | Plan | Base | AI Add-on | Total with AI |
 |---|---:|---:|---:|
-| Starter | 499 EGP | +250 | 749 EGP |
-| Growth | 749 EGP | +350 | 1,099 EGP |
-| Pro | 1,199 EGP | +450 | 1,649 EGP |
+| Lifetime Access | 3990 EGP (One-time) | +1499 (One-time) | 5489 EGP |
 
 These prices must remain configurable rather than hard-coded.
 

@@ -28,6 +28,13 @@ Instructions and operational rules for AI agents working in this repository.
 - Refer to [CLAUDE.md](file:///Users/safwat/Coding/Projects/side-projects/tijaratk-bot/CLAUDE.md) for architectural overview, commands, and domain guidelines.
 - Always preserve codebase integrity and follow existing coding standards.
 
+## ✍️ Content & Blog Author Rule: TijaratkBot Team Only
+
+- **All blog articles, guides, and comparison pieces must ALWAYS have the author set to 'TijaratkBot Team' (`فريق تِجارتك بوت`).**
+- **NEVER set an individual person's name as the author for any article.**
+- **Author `@type` in structured data (JSON-LD) must always be `Organization`.**
+- **Author avatar must point to the official brand icon (`/icon1.png`) or branded team asset.**
+
 ## graphify
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.

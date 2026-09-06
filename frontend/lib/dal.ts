@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { COOKIES, LOGIN_MARKER } from "@/lib/constants";
 import { getBaseUrl } from "@/lib/api";
 
-const getAuthToken = cache(async () => {
+export const getAuthToken = cache(async () => {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIES.TOKEN)?.value;
   if (!token) {
@@ -31,4 +31,17 @@ export const getCurrentMerchant = cache(async () => {
     merchantName: data.merchant_name || "Merchant",
     channels: data.channels || [],
   };
+});
+
+export const getMerchantSettings = cache(async () => {
+  const token = await getAuthToken();
+  const res = await fetch(`${getBaseUrl()}/merchants/me/settings`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch merchant settings: ${res.status}`);
+  }
+  const data = (await res.json()) as { auto_learning_enabled: boolean };
+  return { autoLearningEnabled: data.auto_learning_enabled };
 });

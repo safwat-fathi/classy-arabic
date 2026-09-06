@@ -23,77 +23,29 @@ export interface ComparisonFeature {
 
 export const PRICING_TIERS: PricingTier[] = [
   {
-    id: "starter",
-    name: { ar: "الأساسية (Starter)", en: "Starter" },
+    id: "lifetime",
+    name: { ar: "وصول مدى الحياة (Lifetime Access)", en: "Lifetime Access" },
+    badge: { ar: "دفع لمرة واحدة", en: "One-Time Payment" },
     description: {
-      ar: "مثالية للمشاريع الناشئة والصفحات التي تبدأ مبيعاتها الأولى عبر السوشيال ميديا.",
-      en: "Perfect for emerging brands and new pages scaling their first sales on social media.",
+      ar: "امتلك النظام لمتجرك وادفع مرة واحدة فقط، بدون اشتراكات شهرية أو سنوية.",
+      en: "Own the system for your store with a single payment. No monthly or annual recurring fees.",
     },
-    basePrice: 499,
-    aiAddonPrice: 250,
-    ordersLimit: { ar: "حتى 150 أوردر شهريًا", en: "Up to 150 orders/mo" },
-    channels: { ar: "صفحة فيسبوك + حساب إنستجرام", en: "1 Facebook Page + 1 Instagram Account" },
-    ctaText: { ar: "ابدأ تجربة مجانية (30 أوردر)", en: "Start Free Trial (30 Orders)" },
-    ctaHref: "/demo",
-    features: [
-      { ar: "حتى 150 أوردر مكتمل شهريًا", en: "Up to 150 completed orders/mo" },
-      { ar: "ربط متكامل مع فيسبوك ماسنجر وإنستجرام DM", en: "Facebook Messenger & Instagram DM integration" },
-      { ar: "وضع الكتالوج التفاعلي الكامل مع سلة الشراء داخل الشات", en: "Interactive in-chat catalog & shopping cart" },
-      { ar: "تفريغ فوري لبيانات الشحن والعنوان المصري", en: "Automated Egyptian shipping address extraction" },
-      { ar: "تصدير فوري للأوردرات إلى Google Sheets وإكسيل", en: "Instant order sync to Google Sheets & Excel" },
-      { ar: "لوحة تحكم لإدارة المنتجات وحالات الطلب", en: "Merchant dashboard for products & order statuses" },
-      { ar: "دعم فني عبر البريد الإلكتروني والشات", en: "Standard email and chat support" },
-    ],
-  },
-  {
-    id: "growth",
-    name: { ar: "النمو (Growth)", en: "Growth" },
-    badge: { ar: "الأكثر طلبًا للتجار", en: "Most Popular" },
-    description: {
-      ar: "الخيار الأفضل للبراندات السريعة والمتاجر النشطة التي تستقبل مئات المحادثات يوميًا.",
-      en: "The sweet spot for high-growth brands receiving hundreds of customer inquiries daily.",
-    },
-    basePrice: 749,
-    aiAddonPrice: 350,
-    ordersLimit: { ar: "حتى 600 أوردر شهريًا", en: "Up to 600 orders/mo" },
-    channels: { ar: "فيسبوك + إنستجرام + واتساب كلاود", en: "Facebook + Instagram + WhatsApp Cloud API" },
+    basePrice: 3990,
+    aiAddonPrice: 1499,
+    ordersLimit: { ar: "حتى 500 أوردر", en: "Up to 500 orders" },
+    channels: { ar: "فيسبوك + واتساب فقط", en: "FB & WA only" },
     highlighted: true,
-    ctaText: { ar: "جرّب باقة النمو مجانًا", en: "Try Growth Free" },
+    ctaText: { ar: "احصل على العرض", en: "Get Lifetime Deal" },
     ctaHref: "/demo",
     features: [
-      { ar: "حتى 600 أوردر شهريًا مع إمكانية الترقية المرنة", en: "Up to 600 orders/mo with flexible top-ups" },
-      { ar: "ربط فيسبوك وإنستجرام ورقم واتساب رسمي (Cloud API)", en: "Official WhatsApp Cloud API + FB & Instagram" },
-      { ar: "محرك الذكاء الاصطناعي لفهم العامية المصرية والفرانكو", en: "Native Egyptian Arabic & Arabizi AI Engine" },
-      { ar: "رد ذكي وتلقائي على الأسئلة الشائعة وسياسات الاستبدال والتوصيل", en: "Automated FAQ & store policies handling" },
-      { ar: "نظام تحويل ذكي للتيم البشري وإيقاف البوت عند الحاجة", en: "Smart human takeover & moderator notifications" },
-      { ar: "تعدد مستخدمي لوحة التحكم (حتى 3 موظفين)", en: "Multi-user dashboard access (up to 3 team members)" },
-      { ar: "تحليلات مبيعات تفصيلية وتقارير معدل التحويل", en: "Detailed sales analytics & conversion reports" },
-      { ar: "دعم فني سريع عبر الواتساب ومجموعات المتابعة", en: "Priority WhatsApp and onboarding support" },
-    ],
-  },
-  {
-    id: "pro",
-    name: { ar: "المحترفين (Pro)", en: "Pro / Enterprise" },
-    badge: { ar: "للمتاجر الكبيرة والوكالات", en: "High Volume" },
-    description: {
-      ar: "للمتاجر الكبرى، سلاسل التوزيع، ووكالات التجارة الإلكترونية التي تدير حجم مبيعات ضخم.",
-      en: "Built for top-tier merchants, multi-brand operations, and high-volume media buyers.",
-    },
-    basePrice: 1199,
-    aiAddonPrice: 450,
-    ordersLimit: { ar: "أوردرات غير محدودة شهريًا", en: "Unlimited orders/mo" },
-    channels: { ar: "قنوات ومتاجر غير محدودة", en: "Unlimited channels & pages" },
-    ctaText: { ar: "تحدث مع مبيعات المحترفين", en: "Contact Pro Sales" },
-    ctaHref: "/demo",
-    features: [
-      { ar: "عدد أوردرات غير محدود بدون قيود حجم شهري", en: "Unlimited monthly order volume" },
-      { ar: "ربط غير محدود لصفحات السوشيال ميديا وأرقام الواتساب", en: "Unlimited social media pages & WhatsApp lines" },
-      { ar: "أعلى أولوية وسرعة استجابة على سيرفرات الذكاء الاصطناعي", en: "Highest-priority ultra-fast AI inference cluster" },
-      { ar: "تخصيص كامل لنبرة البوت (Persona) وقواعد العمل المعقدة", en: "Full AI persona customization & custom business rules" },
-      { ar: "ربط Webhooks مخصص بأنظمة الشحن والمخازن (ERP)", en: "Custom Webhook integrations with ERP & shipping APIs" },
-      { ar: "عدد لا محدود من موظفي خدمة العملاء والمشرفين", en: "Unlimited moderator seats & permission roles" },
-      { ar: "مدير حساب مخصص وتدريب كامل لفريق العمل", en: "Dedicated account manager & 1-on-1 team training" },
-      { ar: "اتفاقية مستوى الخدمة SLA 99.9% مع دعم طوارئ 24/7", en: "99.9% SLA agreement & 24/7 dedicated support" },
+      { ar: "دفع لمرة واحدة، وصول مدى الحياة", en: "One-time payment, lifetime access" },
+      { ar: "حتى 500 أوردر", en: "Up to 500 orders limit" },
+      { ar: "ربط متكامل مع فيسبوك ماسنجر وواتساب كلاود", en: "Facebook Messenger & WhatsApp Cloud integration" },
+      { ar: "وضع الكتالوج التفاعلي وسلة الشراء", en: "Interactive catalog & shopping cart" },
+      { ar: "تفريغ بيانات الشحن والتصدير لشيتس", en: "Shipping address parsing & Sheets export" },
+      { ar: "تعدد مستخدمي لوحة التحكم", en: "Multi-user dashboard access" },
+      { ar: "رد ذكي وتلقائي على الأسئلة مع إضافة الـ AI", en: "Automated FAQ replies with AI add-on" },
+      { ar: "دعم فني وتحديثات مستمرة", en: "Ongoing support and updates" },
     ],
   },
 ];
@@ -307,12 +259,12 @@ export const PRICING_FAQS = [
   },
   {
     q: {
-      ar: "هل يوجد خصم عند الاشتراك السنوي؟",
-      en: "Is there a discount on annual subscriptions?",
+      ar: "هل الدفع شهري أم سنوي؟",
+      en: "Is billing monthly or annual?",
     },
     a: {
-      ar: "بالتأكيد! نوفر خصم 20% كامل على جميع الخطط عند اختيار الدفع السنوي، ما يمنحك توفيراً يعادل شهرين ونصف مجاناً كل عام.",
-      en: "Yes! You save 20% across all plans when choosing annual billing, giving you nearly 2.5 months free every year.",
+      ar: "نظامنا يعتمد على الدفع لمرة واحدة. لا توجد أي اشتراكات شهرية أو سنوية.",
+      en: "Our system is a one-time lifetime payment. There are no monthly or annual subscriptions.",
     },
   },
 ];
@@ -328,43 +280,17 @@ export function getPricingMarkdown(lang: string = "ar"): string {
 
 ## الباقات المتاحة
 
-### 1. باقة الأساسية (Starter)
-- **السعر الأساسي**: 499 ج.م / شهريًا (أو وفر 20% عند الاشتراك السنوي)
-- **إضافة الذكاء الاصطناعي**: +250 ج.م / شهريًا
-- **الحد الشهري**: حتى 150 أوردر مكتمل
-- **القنوات**: صفحة فيسبوك + حساب إنستجرام
+### وصول مدى الحياة (Lifetime Access)
+- **السعر الأساسي**: 3990 ج.م تدفع مرة واحدة
+- **إضافة الذكاء الاصطناعي**: +1499 ج.م تدفع مرة واحدة
+- **الحد**: حتى 500 أوردر
+- **القنوات**: فيسبوك + واتساب فقط
 - **المميزات**:
   - وضع الكتالوج التفاعلي وسلة التسوق داخل المحادثة
   - تفريغ فوري لبيانات الشحن والعناوين المصرية
   - تصدير مباشر للطلبات إلى Google Sheets وإكسيل
   - لوحة تحكم لإدارة المنتجات وحالات الطلب
   - دعم فني قياسي
-
-### 2. باقة النمو (Growth) — الأكثر طلباً للتجار
-- **السعر الأساسي**: 749 ج.م / شهريًا (أو وفر 20% عند الاشتراك السنوي)
-- **إضافة الذكاء الاصطناعي**: +350 ج.م / شهريًا
-- **الحد الشهري**: حتى 600 أوردر مكتمل
-- **القنوات**: فيسبوك + إنستجرام + واتساب كلاود الرسمي (WhatsApp Business API)
-- **المميزات**:
-  - محرك الذكاء الاصطناعي لفهم العامية المصرية والفرانكو والأخطاء الإملائية
-  - الرد الذكي على الأسئلة الشائعة وسياسات الاستبدال والشحن
-  - نظام التحويل البشري الفوري مع إشعار للمشرفين
-  - لوحة تحكم متعددة المستخدمين (حتى 3 موظفين)
-  - تحليلات مبيعات تفصيلية وتقارير التحويل
-  - دعم فني سريع عبر الواتساب
-
-### 3. باقة المحترفين (Pro / Enterprise)
-- **السعر الأساسي**: 1199 ج.م / شهريًا (أو وفر 20% عند الاشتراك السنوي)
-- **إضافة الذكاء الاصطناعي**: +450 ج.م / شهريًا
-- **الحد الشهري**: أوردرات غير محدودة
-- **القنوات**: صفحات وقنوات وحسابات واتساب غير محدودة
-- **المميزات**:
-  - أعلى أولوية معالجة على سيرفرات الذكاء الاصطناعي
-  - تخصيص نبرة البوت (Persona) وقواعد العمل المتقدمة
-  - ربط Webhooks بأنظمة الشحن والمخازن (ERP)
-  - عدد لا محدود من المقاعد وموظفي خدمة العملاء
-  - مدير حساب مخصص ودعم طوارئ 24/7
-  - ضمان مستوى الخدمة SLA 99.9%
 
 ---
 
@@ -397,9 +323,7 @@ export function getPricingMarkdown(lang: string = "ar"): string {
 Automate your social media sales 24/7 directly in Facebook, Instagram, and WhatsApp chat.
 
 ## Plans
-- **Starter**: 499 EGP/mo (Base) + 250 EGP/mo (AI Addon). Up to 150 orders/mo, FB & IG, interactive catalog, Google Sheets export.
-- **Growth (Most Popular)**: 749 EGP/mo (Base) + 350 EGP/mo (AI Addon). Up to 600 orders/mo, FB + IG + WhatsApp Cloud, Egyptian Arabic & Franco understanding, automated FAQ replies, human handover.
-- **Pro / Enterprise**: 1199 EGP/mo (Base) + 450 EGP/mo (AI Addon). Unlimited orders, unlimited channels, highest-priority AI, custom webhooks, dedicated account manager.
+- **Lifetime Access**: 3990 EGP (Base) + 1499 EGP (AI Addon). One-time payment. Up to 500 orders, FB & WA, interactive catalog, Google Sheets export.
 
 ## AI Addon Fair Usage Terms
 - Generous fair usage designed for real e-commerce operations.

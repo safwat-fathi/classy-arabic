@@ -3,7 +3,6 @@ import { Nav } from "@/components/landing/nav";
 import { FinalCTA } from "@/components/landing/final-cta";
 import {
   PRICING_TIERS,
-  COMPARISON_CATEGORIES,
   FAIR_USAGE_TERMS,
   PAYMENT_METHODS,
   PRICING_FAQS,
@@ -22,47 +21,12 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "أسعار تِجارتك بوت | خطط مرنة واستخدام عادل للذكاء الاصطناعي",
-    description: "باقات تبدأ من 499 ج.م لتجارة أوتوماتيكية داخل فيسبوك وإنستجرام وواتساب.",
+    description: "امتلك النظام لمتجرك وادفع مرة واحدة فقط، لتجارة أوتوماتيكية داخل فيسبوك وواتساب.",
     url: "https://tijaratk.com/pricing",
   },
 };
 
-function CheckIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`shrink-0 ${className}`}
-    >
-      <path d="M20 6L9 17l-5-5" />
-    </svg>
-  );
-}
 
-function CloseIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`shrink-0 ${className}`}
-    >
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  );
-}
 
 export default function PricingPage() {
   const jsonLd = [
@@ -165,65 +129,6 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Full Feature Comparison Table */}
-      <section className="px-5 py-16 sm:px-8 bg-white border-y border-gray-200">
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-12">
-            <span className="text-xs font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-              مقارنة تفصيلية
-            </span>
-            <h2 className="font-display mt-3 text-2xl sm:text-4xl font-black text-gray-950">
-              جدول مقارنة المميزات بين الباقات
-            </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              كل التفاصيل التي تحتاج لمعرفتها لاختيار الباقة الأنسب لمتجرك
-            </p>
-          </div>
-
-          <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm">
-            <table className="w-full text-right border-collapse text-[13.5px]">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="p-4 sm:p-5 font-black text-gray-900 w-2/5">الميزة</th>
-                  <th className="p-4 sm:p-5 font-black text-gray-900 text-center w-1/5">الأساسية</th>
-                  <th className="p-4 sm:p-5 font-black text-emerald-700 bg-emerald-50/50 text-center w-1/5">النمو</th>
-                  <th className="p-4 sm:p-5 font-black text-gray-900 text-center w-1/5">المحترفين</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {COMPARISON_CATEGORIES.map((cat, catIdx) => (
-                  <tr key={catIdx} className="contents">
-                    <tr className="bg-gray-100/70">
-                      <td
-                        colSpan={4}
-                        className="p-3 px-5 text-xs font-black text-gray-700 tracking-wider"
-                      >
-                        {cat.category.ar}
-                      </td>
-                    </tr>
-                    {cat.features.map((feat, fIdx) => (
-                      <tr key={fIdx} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="p-4 sm:p-5 font-semibold text-gray-800">
-                          {feat.name.ar}
-                        </td>
-                        <td className="p-4 sm:p-5 text-center text-gray-600">
-                          {renderFeatureValue(feat.starter)}
-                        </td>
-                        <td className="p-4 sm:p-5 text-center bg-emerald-50/30 font-medium text-emerald-900">
-                          {renderFeatureValue(feat.growth)}
-                        </td>
-                        <td className="p-4 sm:p-5 text-center text-gray-700">
-                          {renderFeatureValue(feat.pro)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
 
       {/* Fair Usage Terms Section */}
       <section className="px-5 py-16 sm:px-8 sm:py-24 bg-gray-50">
@@ -331,16 +236,3 @@ export default function PricingPage() {
   );
 }
 
-function renderFeatureValue(val: boolean | string | { ar: string; en: string }) {
-  if (typeof val === "boolean") {
-    return val ? (
-      <CheckIcon className="mx-auto text-emerald-600" />
-    ) : (
-      <CloseIcon className="mx-auto text-gray-300" />
-    );
-  }
-  if (typeof val === "string") {
-    return <span>{val}</span>;
-  }
-  return <span>{val.ar}</span>;
-}
